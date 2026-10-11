@@ -1,9 +1,9 @@
 # Feature Specification: Kinh doanh TRX — thưởng staking, thuê Energy, bán TRX
 
-**Feature Branch**: `006-trx-energy` (chưa bắt đầu)
+**Feature Branch**: `006-trx-energy`
 **Created**: 2026-10-11 (migrate từ PRODUCT-SPEC §5 F07)
-**Status**: Draft — backlog, **chưa triển khai**; có điểm nghiệp vụ còn mở nên cần `/speckit-clarify` trước khi plan
-**Nguồn yêu cầu**: R33–R41, R48 · Chi tiết gốc: PRODUCT-SPEC.md dòng 270–343 (không sao chép lại ở đây)
+**Status**: Clarified 11/10/2026 → đang triển khai bản đầu (xem Clarifications)
+**Nguồn yêu cầu**: R33–R41, R48, R63–R66 · Chi tiết gốc: PRODUCT-SPEC.md dòng 270–343 (không sao chép lại ở đây)
 
 ## User Scenarios & Testing
 
@@ -38,8 +38,18 @@ Ghi thưởng theo ngày/nguồn/claim; APY chỉ tham khảo có nhãn (R33–R
 ### Key Entities
 Khách · Đơn (dòng Energy/Bán TRX) · Điều khoản · Khoản thu & phân bổ · Thưởng stake.
 
-## Điểm còn mở (phải hỏi Thạch trước khi plan)
-Lượng ghi trên gói tháng là mức cấp duy trì hay tổng hạn mức; đơn vị báo giá USD/USDT; nguồn tỷ giá; phương pháp ghi nhận doanh thu theo thời gian; giá vốn thưởng. Không tự chọn công thức.
+## Clarifications
+
+### Session 2026-10-11 (Thạch trả lời phỏng vấn, ghi ở PRODUCT-SPEC R63–R66)
+- Q: Gói tháng "1 triệu Energy" nghĩa là gì? → A: mức cấp duy trì; app chỉ ghi nhận tài chính (R63).
+- Q: Đơn vị báo giá? → A: USDT; khách trả VND thì ghi VND + tỷ giá nhập tay + USDT cấn (R64).
+- Q: Doanh thu gói tháng? → A: theo tiền thực thu, không chia theo thời gian dịch vụ (R65).
+- Q: Bán TRX/thưởng có tính lãi/lỗ không? → A: chưa, chỉ ghi số lượng và tiền thu (R66).
+
+## Phạm vi bản đầu (quyết định PO để triển khai)
+Ghi nhận thủ công: khách → đơn (dòng Energy một lần / gói tháng / bán TRX, điều khoản thu trước-sau lưu theo đơn, hạn thu nếu có) → khoản thu (USDT hoặc VND quy đổi, tùy chọn gắn giao dịch ngân hàng đã có để không ghi tiền hai lần) → phân bổ vào dòng; phần chưa phân bổ nằm "chờ phân bổ" → thưởng staking ghi số lượng → báo cáo theo tiền thực thu (tuần/tháng/quý). Không snapshot riêng, không tự quá hạn, không tích hợp blockchain.
+
+Chưa làm ở bản đầu (backlog): snapshot/duyệt riêng cho TRX, lãi/lỗ bán TRX, nguồn USDT tự động từ ví/sàn (khoản thu USDT nhập tay kèm ghi chú bằng chứng).
 
 ## Success Criteria
 - **SC-001**: PO kiểm bằng dữ liệu giả toàn luồng khách → đơn → thu → phân bổ → báo cáo → điều chỉnh (tiêu chí chi tiết chờ chốt ở ACCEPTANCE).

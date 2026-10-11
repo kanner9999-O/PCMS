@@ -521,3 +521,14 @@ Bản 05.2: nạp nguồn ở giai đoạn Đang nhập liệu, chưa được p
 Trạng thái phân loại từng dòng độc lập với trạng thái duyệt: còn bất kỳ phần Chưa phân loại thì dòng vẫn Chưa phân loại; lưu đầy đủ hợp lệ mới là Đã phân loại. Mặc định nhóm chưa phân loại, có nhóm Đã phân loại/Tất cả và bộ đếm, thao tác lưu xong quay về danh sách. Đổi dropdown chưa lưu không chuyển trạng thái. Bulk thành công chuyển các dòng đã chọn. Báo cáo luôn bao gồm toàn bộ đợt, không chỉ trang hoặc bộ lọc.
 
 Approve vẫn được phép khi còn chưa phân loại theo quyết định trước, nhưng phải tick xác nhận số dòng còn thiếu. Snapshot giữ cả trạng thái còn chưa rõ; Approved không được diễn giải là mọi giao dịch đã phân loại. Bản đã duyệt chỉ xem, sửa qua phiên điều chỉnh; nguồn ngân hàng không đổi. Toàn bộ khóa và trạng thái hiện là hành vi bản mẫu trong phiên, chưa lưu bền vững.
+
+### R63–R66 — Chốt phạm vi TRX/Energy bản đầu · 11/10/2026 (Thạch trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R63 | Gói Energy tháng (ví dụ 1 triệu Energy) là **mức cấp duy trì**. App ghi tên gói, mức cấp, phí cố định, khoảng dịch vụ; không điều khiển cấp/thu hồi (R41). |
+| R64 | **Đơn vị báo giá và công nợ là USDT.** Khách trả VND thì ghi VND thực nhận, tỷ giá người dùng nhập ở lần thu và USDT được cấn (R39). |
+| R65 | **Doanh thu theo tiền thực thu**: báo cáo chỉ hiện tiền đã thu theo ngày nhận và công nợ còn lại; không chia doanh thu theo thời gian dịch vụ. Quá hạn chỉ khi có hạn cam kết đã qua (R40). |
+| R66 | **Bán TRX và thưởng staking bản đầu chỉ ghi số lượng và tiền thu**; không tính lãi/lỗ khi chưa có giá vốn đáng tin. |
+
+Triển khai: [specs/006-trx-energy](specs/006-trx-energy/spec.md).
