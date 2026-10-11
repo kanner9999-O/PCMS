@@ -80,3 +80,4 @@ description: "Task list — 005 debt-journey-polish"
 ## Chiến lược triển khai
 - **MVP = US1 + US2** (cả hai P1): đủ để Thạch thấy báo cáo có số và tổng quan. US3 rồi US4 thêm sau, mỗi story kiểm độc lập.
 - Một coder duy nhất làm tuần tự theo thứ tự trên (constitution VI); PO nghiệm thu ở T019.
+- [X] T023 Addendum: `vnTime()` và ngày DD/MM/YYYY trong `src/pcms/web/p01.js`, kiểm trong `tests/js/default_report_date.test.cjs`

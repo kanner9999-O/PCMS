@@ -120,3 +120,7 @@ Từ màn tài khoản, Thạch thấy giao dịch đã phân loại vào khoả
 - Tổng quan tính trên toàn bộ khoản, độc lập bộ lọc hiển thị, và nêu rõ điều đó (nhất quán với cách báo cáo hiện hành không cắt theo bộ lọc).
 - Giới hạn VND như các đợt trước; không kiểm mobile riêng ở đợt này (ghi vào giới hạn khi bàn giao).
 - Đợt này không kiểm hay thao tác trên `outputs/p01-user-trial`; nghiệm thu bằng bộ dữ liệu giả riêng (constitution I, V).
+
+## Addendum 2026-10-11 (sau phát hành) — hiển thị ngày giờ
+
+Rà màn tài khoản phát hiện hai chỗ lệch định dạng: thẻ "Nguồn tới" hiện ISO (2026-09-30) và thời điểm duyệt/lịch sử hiện ISO UTC. Quyết định PO: hiển thị ngày DD/MM/YYYY và giờ theo giờ Việt Nam (GMT+7, DD/MM/YYYY HH:mm); chỉ đổi hiển thị, giá trị lưu giữ nguyên UTC. Đã kiểm bằng `tests/js/default_report_date.test.cjs` (T023).
