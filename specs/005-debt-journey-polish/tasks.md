@@ -64,7 +64,7 @@ description: "Task list — 005 debt-journey-polish"
 - [X] T019 PO dùng thử UI: khởi động bộ giả mới (`/tmp/pcms-claude-qa`, cổng 8801) theo `quickstart.md` §1 và đi đủ các kịch bản §3 (5 bước); chụp ảnh bằng chứng lưu `outputs/p08-po-review.jpg`; ghi lỗi tìm thấy, sửa rồi kiểm lại
 - [X] T020 Đối chiếu SHA256 `outputs/p01-user-trial/**` với `/tmp/pcms-005-data-before.sha256` — phải khớp 100% (SC-005); nếu lệch dừng và báo Thạch
 - [X] T021 Viết `outputs/p08-handoff.md` (mã đổi, cách chạy, bằng chứng, giới hạn: chưa kiểm mobile, dữ liệu lớn); cập nhật `IMPLEMENTATION-STATUS.md` (mục P08 ở đầu), `HANDOFF.md`, `README.md`, `ACCEPTANCE.md` (thêm tiêu chí P08 tương ứng SC-001…SC-005), `specs/README.md` (005 → Implemented); không đổi hành vi nghiệp vụ trong `PRODUCT-SPEC.md`
-- [ ] T022 Báo Thạch trước khi restart cổng 8792; sau khi đồng ý: restart đúng backend, mở UI chính **chỉ đọc**, xác nhận không ghi dữ liệu; commit, merge `main`, push
+- [X] T022 Báo Thạch trước khi restart cổng 8792; sau khi đồng ý: restart đúng backend, mở UI chính **chỉ đọc**, xác nhận không ghi dữ liệu; commit, merge `main`, push
 
 ## Dependencies & thứ tự
 
