@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P13 — R18, R27, R58, R71–R73, Bất động sản bản đầu (spec 011)
+
+Tiêu chí ở `specs/011-realty/spec.md` (SC-001…SC-005): Đất A 200 + 150 + 250 triệu → vốn 600 triệu, đủ ba dòng, mở dòng nguồn ≤2 thao tác; vốn cạnh giá trị hiện tại (ngày, nguồn) với chênh lệch có nhãn, không gọi lãi/lỗ; một khoản vay chỉ thế chấp một BĐS và không bị trừ vào giá trị; góp vốn từng người riêng, không tỷ lệ; snapshot/báo cáo/công nợ/danh mục cũ không đổi.
+
 ### P12 — R70, hoàn chi tiêu (spec 010)
 
 Tiêu chí ở `specs/010-expense-refund/spec.md` (SC-001…SC-005): ví dụ cơm 1.000.000 + hai khoản 300.000 → chi 1.000.000, hoàn chi 600.000, chi ròng 400.000, thu nhập 0; phân loại hoàn chi ≤3 thao tác; chi và hoàn chi luôn hiển thị riêng; snapshot/báo cáo/công nợ cũ không đổi; tổng cha khớp các dòng, mỗi giao dịch một lần.

@@ -546,3 +546,13 @@ Triển khai: [specs/009-classification-ux](specs/009-classification-ux/spec.md)
 ### R70 — Hoàn chi tiêu · 11/10/2026 (Thạch)
 
 Khi Thạch chi trả hộ nhiều người rồi những người còn lại hoàn tiền (ví dụ cơm 1.000.000, hai người trả lại 300.000), các khoản tiền vào là **hoàn chi tiêu**: giảm chi tiêu ròng, không phải thu nhập. Chi tiêu nhận cả tiền ra (chi) và tiền vào (hoàn chi); Thu nhập chỉ nhận tiền vào. Mọi báo cáo và tổng danh mục hiển thị riêng chi, hoàn chi và chi ròng (không bù trừ âm thầm, R56). Bản đầu chưa gắn từng khoản hoàn vào khoản chi cụ thể. Triển khai: [specs/010-expense-refund](specs/010-expense-refund/spec.md).
+
+### R71–R73 — Chốt phạm vi Bất động sản bản đầu · 11/10/2026 (Thạch trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R71 | Bản đầu phần BĐS gồm hồ sơ cơ bản (vốn đã thanh toán có nguồn từ sao kê, chi phí gắn BĐS, giá trị hiện tại nhập tay kèm ngày và nguồn) **cộng thế chấp** (liên kết khoản vay, mục đích dùng tiền vay; tiền vay không là thu nhập, không trừ nợ hai lần) **và góp vốn nhiều người**. Chung cư theo tiến độ để đợt sau. |
+| R72 | Quyền lợi trong BĐS góp vốn ghi bằng **số tiền góp của từng người**, hiển thị riêng, không quy đổi ra tỷ lệ và không tự suy từ tiền đã chuyển (R27). |
+| R73 | Vốn đã thanh toán và giá trị hiện tại hiện **cạnh nhau**; chênh lệch có nhãn "chưa thực hiện", không gọi là lãi/lỗ (R18). |
+
+Triển khai: [specs/011-realty](specs/011-realty/spec.md).

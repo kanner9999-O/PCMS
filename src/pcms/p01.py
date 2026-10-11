@@ -39,8 +39,9 @@ from .interest_settlement import InterestSettlement
 from .loan_completion import LoanCompletion
 from .trx_energy import TrxEnergy
 from .categories import Categories, root_key
+from .realty import Realty
 
-class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -91,7 +92,7 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree','quick-object'], 'build':'P12-2026-10-11'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty'], 'build':'P13-2026-10-11'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -270,6 +271,7 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
         return issues,new,duplicates
 
     def change(self,s,action,d):
+        if action.startswith('realty-'):return self.change_realty(s,action,d)
         if action.startswith('category-'):return self.change_category(s,action,d)
         if action=='object-quick-create':return self.change_quick_object(s,d)
         if action.startswith('trx-'):return self.change_trx(s,action,d)
