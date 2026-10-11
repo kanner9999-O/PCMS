@@ -11,18 +11,18 @@
 
 ## Requirement Completeness
 
-- [ ] CHK001 Are the exact fields a user may edit on a system root category versus a user-created category fully enumerated (name, description, parent, status)? [Completeness, Spec §FR-001, §FR-002]
+- [x] CHK001 Are the exact fields a user may edit on a system root category versus a user-created category fully enumerated (name, description, parent, status)? [Completeness, Spec §FR-001, §FR-002]
 - [ ] CHK002 Is the full list of system root categories specified, including how future roots (stock, shop) are added when they leave pending? [Gap, Spec §Assumptions]
-- [ ] CHK003 Are requirements defined for how existing transactions using the old fixed category keys map onto the new tree? [Gap, Spec §FR-009]
-- [ ] CHK004 Is the change-history content for a category (what is recorded, whether a reason is mandatory for rename/move/archive) fully specified? [Completeness, Spec §FR-003]
-- [ ] CHK005 Are requirements stated for who may archive or restore a category and whether restoring is allowed? [Gap, Spec §User Story 1]
+- [x] CHK003 Are requirements defined for how existing transactions using the old fixed category keys map onto the new tree? [Gap, Spec §FR-009]
+- [x] CHK004 Is the change-history content for a category (what is recorded, whether a reason is mandatory for rename/move/archive) fully specified? [Completeness, Spec §FR-003]
+- [x] CHK005 Are requirements stated for who may archive or restore a category and whether restoring is allowed? [Gap, Spec §User Story 1]
 - [ ] CHK006 Is the set of fields shown for each transaction in a category's history complete and consistent with R58 (source code, date, account, description, object, status, in/out, source-line link)? [Completeness, Spec §FR-005]
 
 ## Requirement Clarity
 
-- [ ] CHK007 Is "tên trùng cùng cấp" defined (case-insensitive? diacritic-insensitive? scope = siblings only or whole tree)? [Ambiguity, Spec §FR-001]
+- [x] CHK007 Is "tên trùng cùng cấp" defined (case-insensitive? diacritic-insensitive? scope = siblings only or whole tree)? [Ambiguity, Spec §FR-001]
 - [ ] CHK008 Is "vòng lặp cha-con" defined precisely enough to be testable (self-parent, descendant-as-parent)? [Clarity, Spec §FR-001]
-- [ ] CHK009 Is "kế thừa nhóm gốc" for object-linking rules defined with the concrete rule each root imposes (loan link, asset link, none)? [Ambiguity, Spec §FR-004]
+- [x] CHK009 Is "kế thừa nhóm gốc" for object-linking rules defined with the concrete rule each root imposes (loan link, asset link, none)? [Ambiguity, Spec §FR-004]
 - [ ] CHK010 Is "đối tượng" in the history list defined (person, loan, asset) and how it is displayed when absent? [Clarity, Spec §FR-005]
 - [ ] CHK011 Is "trạng thái" of a transaction line in the history enumerated (e.g., chờ duyệt, đã duyệt, chưa phân loại)? [Ambiguity, Spec §FR-005]
 - [ ] CHK012 Is "thiếu dữ liệu" for an empty category defined with the conditions that distinguish "no transactions" from "no source coverage"? [Clarity, Spec §FR-007]
@@ -30,8 +30,8 @@
 ## Requirement Consistency
 
 - [ ] CHK013 Do the group-level totals in Spec §FR-006 (counted once per line, whole tree) agree with the batch report rule that counts each transaction at its direct group (Spec §Assumptions, R46)? [Consistency, Spec §FR-006]
-- [ ] CHK014 Is the rule "snapshot keeps the old name" consistent with the rule that the current screens show the new name, including for categories moved to a different parent? [Consistency, Spec §FR-003, §Edge Cases]
-- [ ] CHK015 Are "archive instead of delete" (Spec §Assumptions) and "tên trùng bị chặn" consistent when a new category reuses an archived name? [Conflict, Spec §FR-001]
+- [x] CHK014 Is the rule "snapshot keeps the old name" consistent with the rule that the current screens show the new name, including for categories moved to a different parent? [Consistency, Spec §FR-003, §Edge Cases]
+- [x] CHK015 Are "archive instead of delete" (Spec §Assumptions) and "tên trùng bị chặn" consistent when a new category reuses an archived name? [Conflict, Spec §FR-001]
 - [ ] CHK016 Do requirements for objects under "Đầu tư BĐS" (children as selectable objects) avoid conflicting with spec 007's full asset records? [Consistency, Spec §Assumptions, spec 007]
 
 ## Acceptance Criteria Quality
@@ -43,23 +43,23 @@
 
 ## Scenario Coverage
 
-- [ ] CHK021 Are requirements defined for re-parenting a category that already has approved transactions (what changes in live views vs snapshots)? [Coverage, Spec §Edge Cases]
+- [x] CHK021 Are requirements defined for re-parenting a category that already has approved transactions (what changes in live views vs snapshots)? [Coverage, Spec §Edge Cases]
 - [ ] CHK022 Are multi-currency requirements specified for parent totals when children hold different currencies? [Coverage, Spec §FR-006]
 - [ ] CHK023 Are requirements defined for split transactions whose parts fall in different branches of the same parent? [Coverage, Spec §User Story 2]
-- [ ] CHK024 Are recovery requirements stated if a rename or move is applied by mistake (undo vs corrective change)? [Gap, Recovery]
+- [x] CHK024 Are recovery requirements stated if a rename or move is applied by mistake (undo vs corrective change)? [Gap, Recovery]
 - [ ] CHK025 Are concurrent-edit or double-submit requirements addressed for category changes (single-user app)? [Coverage, Gap]
 
 ## Edge Case Coverage
 
-- [ ] CHK026 Is the maximum depth of the category tree specified or explicitly left unlimited? [Gap, Spec §FR-001]
-- [ ] CHK027 Are limits on name and description length and allowed characters defined? [Gap, Spec §FR-001]
-- [ ] CHK028 Is the behaviour defined for archiving a parent whose children are still active? [Edge Case, Gap]
+- [x] CHK026 Is the maximum depth of the category tree specified or explicitly left unlimited? [Gap, Spec §FR-001]
+- [x] CHK027 Are limits on name and description length and allowed characters defined? [Gap, Spec §FR-001]
+- [x] CHK028 Is the behaviour defined for archiving a parent whose children are still active? [Edge Case, Gap]
 - [ ] CHK029 Is the display of refunds (money in under an expense category) specified so it is not netted away? [Edge Case, Spec §FR-006]
 
 ## Non-Functional Requirements
 
-- [ ] CHK030 Are volume expectations stated (number of categories and transactions the history screen must handle) so "usable" is measurable? [Gap, Non-Functional]
-- [ ] CHK031 Is a mobile-width requirement for the category tree and history views stated? [Gap, Non-Functional]
+- [x] CHK030 Are volume expectations stated (number of categories and transactions the history screen must handle) so "usable" is measurable? [Gap, Non-Functional]
+- [x] CHK031 Is a mobile-width requirement for the category tree and history views stated? [Gap, Non-Functional]
 - [ ] CHK032 Are data-protection requirements restated for this feature (operational data untouched, tests only on synthetic data)? [Dependency, Constitution §I, Spec §FR-009]
 
 ## Dependencies & Assumptions
@@ -70,8 +70,8 @@
 
 ## Ambiguities & Conflicts
 
-- [ ] CHK036 Does the spec resolve whether a category's total includes archived children and archived-category transactions? [Ambiguity, Spec §FR-006]
-- [ ] CHK037 Is it specified whether users may rename a system root's display name in the future, given R55 says root names are kept? [Conflict, Spec §FR-002]
+- [x] CHK036 Does the spec resolve whether a category's total includes archived children and archived-category transactions? [Ambiguity, Spec §FR-006]
+- [x] CHK037 Is it specified whether users may rename a system root's display name in the future, given R55 says root names are kept? [Conflict, Spec §FR-002]
 
 ## Notes
 
@@ -79,3 +79,4 @@
 - Leave items unchecked when they still require clarification, correction, or reviewer evaluation
 - `/speckit-implement` reads checklist state but does not modify markers
 - Generated without `plan.md` (spec-stage review): the prerequisites script requires a plan, so the template was used directly.
+- 11/10/2026 (PO rà sau /speckit-clarify): đã tick các mục được spec trả lời rõ (CHK001, 003, 004, 005, 007, 009, 014, 015, 021, 024, 026, 027, 028, 030, 031, 036, 037). Các mục còn mở sẽ được xử lý ở plan/analyze.

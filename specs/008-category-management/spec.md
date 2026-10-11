@@ -2,7 +2,7 @@
 
 **Feature Branch**: `008-category-management`
 **Created**: 2026-10-11
-**Status**: Draft (chưa plan/tasks)
+**Status**: Clarified 11/10/2026 (PO quyết định các điểm còn mở; chờ plan)
 **Input**: Thạch hỏi "phần quản lý danh mục đang ở đâu" (11/10/2026). Hiện danh mục là danh sách cố định trong mã; chưa có nơi thêm/sửa danh mục, chưa có màn xem lịch sử và tổng từng danh mục. Nguồn yêu cầu: R06, R45, R46, R50, R55, R56, R58 · Tiêu chí: ACCEPTANCE A06, A41, A46, A51, A54 · Spec liên quan: 001 (phân loại), 002 (đối tượng khoản vay).
 
 ## User Scenarios & Testing *(mandatory)*
@@ -43,22 +43,34 @@ Danh sách danh mục khi phân loại lấy từ cây; phân loại hàng loạ
 - Chuyển danh mục con sang cha khác: lịch sử các giao dịch đã duyệt giữ đường dẫn cũ trong snapshot.
 - Danh mục cổ phiếu (R24) và Shop pending: không tạo sẵn; người dùng có thể tự tạo nhưng không có nghiệp vụ riêng.
 
+## Clarifications
+
+### Session 2026-10-11 (PO chốt khi rà checklist `category.md`; không có điểm nào cần Thạch trả lời thêm)
+- Q: Người dùng có tạo được danh mục gốc mới không? → A: Không ở đợt này. Bảy danh mục gốc hệ thống (Thu nhập, Chi tiêu, Gốc vay, Lãi vay, Đầu tư BĐS, Chuyển nội bộ, Chưa phân loại) cố định; mọi danh mục người dùng tạo là con (trực tiếp hoặc gián tiếp) của một gốc để kế thừa quy tắc chiều tiền và liên kết đối tượng. Đây là cách hiểu R55 "gốc/con" an toàn cho tiền; nếu Thạch cần gốc tự do thì mở đợt sau.
+- Q: Danh mục đã lưu trữ có tính vào tổng của cha không? → A: Có. Lịch sử không bao giờ bị loại khỏi tổng; mục lưu trữ hiện nhãn "(đã lưu trữ)" trong danh sách con.
+- Q: Độ sâu tối đa và giới hạn tên? → A: Tối đa 4 cấp kể cả gốc; tên 1–100 ký tự sau khi cắt khoảng trắng, mô tả ≤ 500 ký tự; trùng tên chỉ xét giữa các danh mục cùng cha, không phân biệt hoa thường (so sánh sau chuẩn hóa Unicode NFC), tính cả danh mục đã lưu trữ.
+- Q: Lưu trữ, khôi phục và đổi cha tác động thế nào? → A: Lưu trữ cần lý do; khôi phục được; lưu trữ cha không tự lưu trữ con nhưng chặn nếu còn con hoạt động. Đổi tên/cha có lịch sử (thời điểm, giá trị trước/sau, lý do tùy chọn); màn hiện hành dùng tên/cha mới, snapshot cũ giữ nguyên.
+- Q: Sửa nhầm thì quay lại thế nào? → A: Không có "hoàn tác"; sửa lại bằng một thay đổi mới, lịch sử giữ cả hai.
+- Q: Danh mục cũ (khóa cố định) chuyển sang cây thế nào? → A: Khóa cũ trở thành bảy gốc hệ thống; mọi phân loại hiện có giữ nguyên (không gắn danh mục con); không đổi dữ liệu đã ghi.
+- Q: Liên kết đối tượng kế thừa thế nào? → A: Gốc quyết định đối tượng bắt buộc như hiện nay: Gốc vay/Lãi vay → khoản vay; Đầu tư BĐS → hồ sơ BĐS; các gốc còn lại không bắt buộc. Danh mục con chỉ là nhóm quản lý thêm, không thay đối tượng.
+- Q: Quy mô và thiết bị? → A: Tới 200 danh mục và 10.000 giao dịch vẫn dùng được; màn hình điện thoại 375px không tràn ngang.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001**: Hệ thống MUST cho tạo danh mục gốc/con, sửa tên, mô tả, danh mục cha của danh mục tự tạo, và lưu trữ; MUST ngăn tên trùng cùng cấp và vòng lặp cha-con (R55).
+- **FR-001**: Hệ thống MUST cho tạo danh mục con dưới một gốc hệ thống (độ sâu tối đa 4 cấp kể cả gốc), sửa tên, mô tả, danh mục cha, lưu trữ và khôi phục danh mục tự tạo; MUST ngăn tên trùng giữa các danh mục cùng cha và vòng lặp cha-con; tên 1–100 ký tự, mô tả ≤ 500 (R55).
 - **FR-002**: Danh mục nghiệp vụ gốc MUST giữ tên và cấp cha; chỉ sửa mô tả (R55).
-- **FR-003**: Danh mục MUST có lịch sử thay đổi (tên, cha, trạng thái, lý do); snapshot đã duyệt MUST giữ tên và đường dẫn tại thời điểm duyệt (R21).
+- **FR-003**: Danh mục MUST có lịch sử thay đổi (tên, cha, trạng thái; thời điểm, giá trị trước/sau, lý do — bắt buộc khi lưu trữ); snapshot đã duyệt MUST giữ tên và đường dẫn tại thời điểm duyệt (R21).
 - **FR-004**: Quy tắc nghiệp vụ liên kết đối tượng (khoản vay, tài sản) MUST kế thừa nhóm gốc của danh mục; đổi danh mục MUST xóa liên kết không còn phù hợp (R50).
 - **FR-005**: Mỗi danh mục MUST có màn lịch sử gồm các giao dịch cấu thành (kể cả của con) với mã nguồn, ngày, tài khoản, nội dung, đối tượng, trạng thái, vào/ra theo nguyên tệ và lối mở dòng nguồn (R58).
-- **FR-006**: Tổng của danh mục MUST gồm tổng vào, tổng ra, chênh vào–ra, số giao dịch theo từng nguyên tệ; MUST truy được về đúng tập dòng gốc; MUST NOT đếm đôi khi xem nhóm cha; hoàn tiền MUST NOT bị ẩn do bù trừ (R56, R58).
+- **FR-006**: Tổng của danh mục MUST gồm tổng vào, tổng ra, chênh vào–ra, số giao dịch theo từng nguyên tệ; MUST truy được về đúng tập dòng gốc; MUST NOT đếm đôi khi xem nhóm cha; hoàn tiền MUST NOT bị ẩn do bù trừ; tổng của cha MUST gồm cả danh mục đã lưu trữ (nhãn "đã lưu trữ") (R56, R58).
 - **FR-007**: Danh mục chưa có nguồn MUST hiển thị lịch sử rỗng kèm trạng thái thiếu dữ liệu, MUST NOT tạo giao dịch giả hoặc mặc định bằng không (R58).
 - **FR-008**: Lựa chọn danh mục khi phân loại MUST lấy từ cây hiện hành, loại danh mục đã lưu trữ khỏi lựa chọn mới; phân loại không được đổi tiền nguồn (R06, R45).
 - **FR-009**: Thay đổi này MUST NOT sửa dữ liệu tài chính đã ghi, MUST NOT đổi kết quả báo cáo, snapshot hay công nợ đã có; dữ liệu cũ dùng danh mục cố định MUST tiếp tục hiển thị đúng sau khi chuyển sang cây.
 
 ### Key Entities
-- **Danh mục**: tên, mô tả, danh mục cha, loại (hệ thống/tự tạo), trạng thái (hoạt động/lưu trữ), lịch sử thay đổi.
-- **Phần phân loại của giao dịch**: tham chiếu danh mục (và đối tượng), tiền của phần.
+- **Danh mục**: tên, mô tả, danh mục cha, loại (gốc hệ thống / tự tạo), trạng thái (hoạt động/lưu trữ), lịch sử thay đổi.
+- **Phần phân loại của giao dịch**: khóa gốc hệ thống (hiện có), tham chiếu danh mục con tùy chọn (mới), đối tượng (hồ sơ khoản vay/BĐS) và tiền của phần.
 - **Tổng danh mục**: dẫn xuất từ các phần phân loại, theo nguyên tệ.
 
 ## Success Criteria *(mandatory)*
