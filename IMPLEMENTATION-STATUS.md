@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P12 Hoàn chi tiêu — 11/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/010-expense-refund](specs/010-expense-refund/spec.md) (specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R70: tiền vào gán Chi tiêu là hoàn chi, báo cáo/danh mục/lịch sử hiển thị chi, hoàn chi, chi ròng; Thu nhập không tăng. Ví dụ cơm 1.000.000 + 2 × 300.000 → chi ròng 400.000. Test: 6 ca P12 + node + hồi quy = 93 ca đạt; PO dùng thử UI trên QA 8801; 49 file `outputs/p01-user-trial` giữ nguyên SHA256. Bàn giao: outputs/p12-handoff.md.
+
 ### P11 Cải thiện màn Phân loại — 11/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/009-classification-ux](specs/009-classification-ux/spec.md) (specify → plan → tasks → analyze → implement → nghiệm thu) theo 3 phản hồi của Thạch (R67–R69): lý do phân loại tùy chọn; sắp xếp theo số tiền (nhỏ→lớn, lớn→nhỏ, trị tuyệt đối, giữ chọn dòng/bộ lọc); tạo nhanh đối tượng trong dòng phân loại (khoản vay + người mới, BĐS, danh mục con, tự chọn sau khi tạo). Lý do khi duyệt phiên bản mới vẫn bắt buộc (R21). Test: 4 ca P11 + kiểm sắp xếp bằng node + hồi quy = 87 ca đạt (cập nhật 1 dòng test P01 cũ khẳng định lý do bắt buộc); PO dùng thử UI trên QA 8801 và 375px; 41 file `outputs/p01-user-trial` giữ nguyên SHA256. Bàn giao: outputs/p11-handoff.md.

@@ -162,11 +162,13 @@ class Categories:
                 for key in self.cat_keys(s,p):
                     a=acc.setdefault(key,dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set()))
                     a['in_' if incoming else 'out']+=amount;a['parts']+=1;a['tx'].add(t['id'])
-            def totals(key):
+            def totals(key,spend=False):
                 a=acc.get(key);a=a or dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set())
-                return dict(**{'in':S(a['in_']),'out':S(a['out']),'net':S(a['in_']-a['out']),'parts':a['parts'],'transactions':len(a['tx'])})
-            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),parentable=k in PARENTABLE,totals=totals(k)) for k,v in ROOTS.items()]
-            nodes=[dict(id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'])) for n in s['categories']]
+                out=dict(**{'in':S(a['in_']),'out':S(a['out']),'net':S(a['in_']-a['out']),'parts':a['parts'],'transactions':len(a['tx'])})
+                if spend:out['net_spend']=S(a['out']-a['in_'])
+                return out
+            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
+            nodes=[dict(id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
             return dict(roots=roots,nodes=nodes,max_depth=MAX_DEPTH,draft=True)
 
     def category_history(self,d,s=None):
@@ -190,4 +192,7 @@ class Categories:
             periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED']
             evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE')
             notice=('Kỳ nguồn đã ghi: '+'; '.join(display_day(a)+' → '+display_day(b) for a,b in sorted(set(periods)))+'. Ngoài các kỳ này chưa có bằng chứng.') if periods else 'Chưa có nguồn ngân hàng nào được ghi; không suy ra là không phát sinh.'
-            return dict(category=key,path=self.cat_path(s,key),evidence=evidence,source_notice=notice,totals={'in':S(inc),'out':S(out),'net':S(inc-out),'parts':len(rows),'transactions':len(tx)},rows=rows)
+            root=key if key in ROOTS else next(n['root'] for n in s['categories'] if n['id']==key)
+            totals={'in':S(inc),'out':S(out),'net':S(inc-out),'parts':len(rows),'transactions':len(tx)}
+            if root=='expense':totals['net_spend']=S(out-inc)
+            return dict(category=key,root=root,path=self.cat_path(s,key),evidence=evidence,source_notice=notice,totals=totals,rows=rows)

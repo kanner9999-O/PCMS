@@ -1,0 +1,5 @@
+# Quickstart — kiểm 010 expense-refund
+1. `PYTHONPATH=src:tests python3 -m unittest test_p12_acceptance test_p11_acceptance test_p10_acceptance test_p09_acceptance test_p08_acceptance test_p07_acceptance test_p06_acceptance test_p05_acceptance test_p04_acceptance test_p03_acceptance test_p02_acceptance test_p01_acceptance` · `node tests/js/expense_refund.test.cjs` · `node --check src/pcms/web/p01.js`
+2. Server QA bộ giả cổng 8801: `PYTHONPATH=src python3 -m pcms serve --p01 --data /tmp/pcms-ref-qa --port 8801`.
+3. PO UI: giả lập "cơm": ra 1.000.000, vào 300.000 ×2 → phân loại ba dòng vào Chi tiêu (tiền vào hiện nhãn Hoàn chi tiêu; hàng loạt cho hai dòng vào) → báo cáo duyệt: chi 1.000.000, hoàn chi 600.000, chi ròng 400.000, thu nhập 0 → Danh mục: Chi tiêu và danh mục con Ăn uống hiện chi/hoàn chi/chi ròng → lịch sử ghi "Hoàn" ở hai dòng vào → thử Thu nhập cho tiền ra (bị chặn) → duyệt, rồi điều chỉnh tiền vào đang là Thu nhập sang hoàn chi → snapshot cũ nguyên; 375px không tràn ngang.
+4. Đối chiếu SHA256 `outputs/p01-user-trial`; restart 8792; mở UI chính chỉ đọc; PR → merge.

@@ -542,3 +542,7 @@ Triển khai: [specs/006-trx-energy](specs/006-trx-energy/spec.md).
 | R69 | Khi chọn danh mục, tạo nhanh "đối tượng" ngay trong hộp thoại phân loại để gắn giao dịch (người/khoản vay, BĐS, danh mục con) mà không phải rời màn. |
 
 Triển khai: [specs/009-classification-ux](specs/009-classification-ux/spec.md).
+
+### R70 — Hoàn chi tiêu · 11/10/2026 (Thạch)
+
+Khi Thạch chi trả hộ nhiều người rồi những người còn lại hoàn tiền (ví dụ cơm 1.000.000, hai người trả lại 300.000), các khoản tiền vào là **hoàn chi tiêu**: giảm chi tiêu ròng, không phải thu nhập. Chi tiêu nhận cả tiền ra (chi) và tiền vào (hoàn chi); Thu nhập chỉ nhận tiền vào. Mọi báo cáo và tổng danh mục hiển thị riêng chi, hoàn chi và chi ròng (không bù trừ âm thầm, R56). Bản đầu chưa gắn từng khoản hoàn vào khoản chi cụ thể. Triển khai: [specs/010-expense-refund](specs/010-expense-refund/spec.md).

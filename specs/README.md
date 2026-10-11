@@ -13,6 +13,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 007 | [assets-crypto-realestate](007-assets-crypto-realestate/spec.md) | F05, BĐS | Draft (backlog) | R15, R18, R19, R23, R25–R27 |
 | 008 | [category-management](008-category-management/spec.md) | P10 (R06, R55, R56, R58) | Implemented (đã phát hành) | R06, R45, R46, R50, R55, R56, R58 |
 | 009 | [classification-ux](009-classification-ux/spec.md) | P11 (R67–R69, màn Phân loại) | Implemented (đã phát hành) | R45, R50, R55, R67–R69 |
+| 010 | [expense-refund](010-expense-refund/spec.md) | P12 (R70, hoàn chi tiêu) | Implemented (đã phát hành) | R06, R50, R53, R56, R58, R70 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

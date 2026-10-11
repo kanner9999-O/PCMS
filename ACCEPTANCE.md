@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P12 — R70, hoàn chi tiêu (spec 010)
+
+Tiêu chí ở `specs/010-expense-refund/spec.md` (SC-001…SC-005): ví dụ cơm 1.000.000 + hai khoản 300.000 → chi 1.000.000, hoàn chi 600.000, chi ròng 400.000, thu nhập 0; phân loại hoàn chi ≤3 thao tác; chi và hoàn chi luôn hiển thị riêng; snapshot/báo cáo/công nợ cũ không đổi; tổng cha khớp các dòng, mỗi giao dịch một lần.
+
 ### P11 — R67–R69, cải thiện màn Phân loại (spec 009)
 
 Tiêu chí ở `specs/009-classification-ux/spec.md` (SC-001…SC-005): phân loại một giao dịch ≤3 thao tác không bắt buộc gõ chữ; gom 10 giao dịch nhỏ nhất và phân loại hàng loạt ≤5 thao tác chỉ đổi đúng 10 dòng; tạo khoản vay cho người mới ngay trong hộp thoại ≤6 thao tác; snapshot/báo cáo/công nợ cũ không đổi; đổi sắp xếp luôn giữ bộ lọc và dòng đã chọn.

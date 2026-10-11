@@ -91,7 +91,7 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree','quick-object'], 'build':'P11-2026-10-11'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree','quick-object'], 'build':'P12-2026-10-11'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -433,7 +433,7 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
                 for p in parts:
                     category=p.get('category');require(category in {'income','expense','principal','interest','investment','transfer_pending','unknown'},'Loại phân bổ không hợp lệ.')
                     signed=D(t['signed_amount'])
-                    require(not(category=='income' and signed<0 or category=='expense' and signed>0),'Loại thu/chi không khớp chiều tiền.')
+                    require(not(category=='income' and signed<0),'Thu nhập chỉ dành cho tiền vào. Chi tiêu nhận cả tiền ra (chi) và tiền vào (hoàn chi).')
                     profile=p.get('profile') or None
                     if profile:
                         target=item(s['profiles'],profile)
