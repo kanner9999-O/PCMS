@@ -91,7 +91,7 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree'], 'build':'P10-2026-10-11'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree','quick-object'], 'build':'P11-2026-10-11'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -271,6 +271,7 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
 
     def change(self,s,action,d):
         if action.startswith('category-'):return self.change_category(s,action,d)
+        if action=='object-quick-create':return self.change_quick_object(s,d)
         if action.startswith('trx-'):return self.change_trx(s,action,d)
         if action in {'loan-complete','loan-reopen'}:return self.change_completion(s,action,d)
         if action in {'interest-draft','interest-reopen','interest-approve'}:return self.change_interest(s,action,d)
@@ -415,13 +416,13 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
         if action=='begin-adjustment':
             a=item(s['accounts'],d.get('account'))
             require(any(x['account']==a['id'] for x in s['snapshots']),'Chưa có bản duyệt cần điều chỉnh.')
-            require(str(d.get('reason','')).strip(),'Nhập lý do mở phiên điều chỉnh.')
-            a.update(adjustment_open=True,adjustment_reason=str(d['reason'])[:500])
-            return 'Mở phiên điều chỉnh: '+a['adjustment_reason']
+            a.update(adjustment_open=True,adjustment_reason=str(d.get('reason','')).strip()[:500])
+            return 'Mở phiên điều chỉnh'+(': '+a['adjustment_reason'] if a['adjustment_reason'] else '')
         if action=='classify':
             ids=d.get('ids',[]);parts=d.get('parts',[])
             require(isinstance(ids,list) and ids and len(ids)==len(set(ids)),'Chọn các giao dịch khác nhau.')
-            require(isinstance(parts,list) and 1<=len(parts)<=20 and str(d.get('reason','')).strip(),'Cần phần phân loại và lý do.')
+            require(isinstance(parts,list) and 1<=len(parts)<=20,'Cần ít nhất một phần phân loại.')
+            reason=str(d.get('reason','')).strip()[:500]
             require(len(ids)==1 or (len(parts)==1 and not parts[0].get('amount')),'Phân loại hàng loạt chỉ một loại, toàn bộ tiền mỗi dòng.')
             selected=[item(s['transactions'],i) for i in ids]
             require(len({t['account'] for t in selected})==1,'Chỉ phân loại các dòng trong cùng tài khoản.')
@@ -447,9 +448,9 @@ class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, Produc
                         part['node']=node['id']
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
-                t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':str(d['reason'])[:500]})
+                t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})
                 t['allocations']=[] if len(allocated)==1 and allocated[0]['category']=='unknown' else allocated
-            return f'Phân loại {len(selected)} giao dịch: '+str(d['reason'])[:500]
+            return f'Phân loại {len(selected)} giao dịch'+(': '+reason if reason else '')
         if action=='match-transfer':
             out=item(s['transactions'],d.get('outgoing'));inc=item(s['transactions'],d.get('incoming'))
             require(out['account']!=inc['account'] and D(out['signed_amount'])<0 and D(inc['signed_amount'])==-D(out['signed_amount']),'Chọn hai đầu khác tài khoản, ngược chiều và cùng số tiền.')

@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P11 — R67–R69, cải thiện màn Phân loại (spec 009)
+
+Tiêu chí ở `specs/009-classification-ux/spec.md` (SC-001…SC-005): phân loại một giao dịch ≤3 thao tác không bắt buộc gõ chữ; gom 10 giao dịch nhỏ nhất và phân loại hàng loạt ≤5 thao tác chỉ đổi đúng 10 dòng; tạo khoản vay cho người mới ngay trong hộp thoại ≤6 thao tác; snapshot/báo cáo/công nợ cũ không đổi; đổi sắp xếp luôn giữ bộ lọc và dòng đã chọn.
+
 ### P10 — R06, R45, R46, R50, R55, R56, R58, quản lý danh mục (spec 008)
 
 Tiêu chí chi tiết ở `specs/008-category-management/spec.md` (SC-001…SC-005): tạo và dùng danh mục con không cần sửa mã; tổng từng danh mục khớp tập dòng liệt kê, mỗi giao dịch một lần ở cha; từ tổng mở dòng nguồn ≤2 thao tác; danh mục rỗng không hiện số 0 như đã đối soát; snapshot/báo cáo/công nợ cũ không đổi, snapshot mới đóng băng tên danh mục.

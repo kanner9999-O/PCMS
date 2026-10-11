@@ -532,3 +532,13 @@ Approve vẫn được phép khi còn chưa phân loại theo quyết định tr
 | R66 | **Bán TRX và thưởng staking bản đầu chỉ ghi số lượng và tiền thu**; không tính lãi/lỗ khi chưa có giá vốn đáng tin. |
 
 Triển khai: [specs/006-trx-energy](specs/006-trx-energy/spec.md).
+
+### R67–R69 — Phản hồi màn Phân loại giao dịch · 11/10/2026 (Thạch)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R67 | Trường lý do khi phân loại chỉ là tùy chọn (lý do khi duyệt phiên bản mới vẫn theo R21). |
+| R68 | Danh sách giao dịch sắp xếp được theo số tiền để gom các giao dịch nhỏ đặc thù (thường là Chi tiêu) và phân loại hàng loạt. |
+| R69 | Khi chọn danh mục, tạo nhanh "đối tượng" ngay trong hộp thoại phân loại để gắn giao dịch (người/khoản vay, BĐS, danh mục con) mà không phải rời màn. |
+
+Triển khai: [specs/009-classification-ux](specs/009-classification-ux/spec.md).

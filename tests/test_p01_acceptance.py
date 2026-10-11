@@ -136,7 +136,7 @@ class P01Acceptance(unittest.TestCase):
         tx=self.tx('OUT-01')
         self.rejected('classify',ids=[tx['id']],parts=[dict(category='expense',amount='5000000')],reason='')
         self.rejected('classify',ids=[tx['id']],parts=[dict(category='expense',amount='5000000')],reason='Must open adjustment first')
-        self.rejected('begin-adjustment',account=self.a,reason='')
+        self.act('begin-adjustment',account=self.a,reason='')   # spec 009: lý do mở phiên điều chỉnh là tùy chọn (lý do khi duyệt bản mới vẫn bắt buộc)
         self.act('begin-adjustment',account=self.a,reason='Identify missing expense classification')
         self.act('classify',ids=[tx['id']],parts=[dict(category='expense',amount='5000000')],reason='Identified expense after approval')
         self.act('approve',account=self.a,confirm_unknown=True,reason='Correction of previous classification')

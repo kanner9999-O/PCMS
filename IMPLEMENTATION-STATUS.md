@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P11 Cải thiện màn Phân loại — 11/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/009-classification-ux](specs/009-classification-ux/spec.md) (specify → plan → tasks → analyze → implement → nghiệm thu) theo 3 phản hồi của Thạch (R67–R69): lý do phân loại tùy chọn; sắp xếp theo số tiền (nhỏ→lớn, lớn→nhỏ, trị tuyệt đối, giữ chọn dòng/bộ lọc); tạo nhanh đối tượng trong dòng phân loại (khoản vay + người mới, BĐS, danh mục con, tự chọn sau khi tạo). Lý do khi duyệt phiên bản mới vẫn bắt buộc (R21). Test: 4 ca P11 + kiểm sắp xếp bằng node + hồi quy = 87 ca đạt (cập nhật 1 dòng test P01 cũ khẳng định lý do bắt buộc); PO dùng thử UI trên QA 8801 và 375px; 41 file `outputs/p01-user-trial` giữ nguyên SHA256. Bàn giao: outputs/p11-handoff.md.
+
 ### P10 Quản lý danh mục — 11/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/008-category-management](specs/008-category-management/spec.md) (specify → clarify → plan → tasks → analyze → implement → nghiệm thu). Thêm màn **Danh mục**: bảy gốc hệ thống + danh mục con tự tạo (≤4 cấp, đổi tên/cha trong cùng gốc, lưu trữ/khôi phục có lịch sử), tổng vào/ra/chênh theo cây (mỗi giao dịch đếm một lần ở cha, danh mục lưu trữ vẫn tính), lịch sử từng danh mục truy về dòng sao kê, chọn danh mục con khi phân loại, bản duyệt đóng băng tên danh mục lúc duyệt. Test: 7 ca P10 (gồm 2.000 giao dịch) + hồi quy P01–P09 = 83 ca đạt; PO dùng thử UI trên QA 8801 và mobile 375px; 29 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: gốc tự do, tổng đa tiền tệ, đo 10.000 giao dịch. Bàn giao: outputs/p10-handoff.md.

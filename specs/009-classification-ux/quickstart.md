@@ -1,0 +1,5 @@
+# Quickstart — kiểm 009 classification-ux
+1. `PYTHONPATH=src:tests python3 -m unittest test_p11_acceptance test_p10_acceptance test_p09_acceptance test_p08_acceptance test_p07_acceptance test_p06_acceptance test_p05_acceptance test_p04_acceptance test_p03_acceptance test_p02_acceptance test_p01_acceptance` · `node tests/js/classification_sort.test.cjs` · `node --check src/pcms/web/p01.js`
+2. Server QA (bộ giả, cổng 8801): `PYTHONPATH=src python3 -m pcms serve --p01 --data /tmp/pcms-cls-qa --port 8801`.
+3. PO UI (đếm thao tác): sắp xếp "Số tiền nhỏ → lớn" → chọn 10 dòng đầu → Phân loại hàng loạt Chi tiêu, **không gõ lý do** (≤5 thao tác); đổi sắp xếp giữa chừng giữ ô lọc và dòng đã chọn; phân loại dòng chi Gốc vay → "+ Tạo nhanh khoản vay" → người mới → lưu (≤6 thao tác); Đầu tư BĐS → tạo nhanh BĐS; Chi tiêu → tạo nhanh danh mục con; đổi danh mục thì đối tượng không phù hợp bị bỏ chọn; tài khoản đã duyệt: Điều chỉnh không lý do → duyệt phiên bản mới vẫn đòi lý do; 375px không tràn ngang.
+4. Đối chiếu SHA256 `outputs/p01-user-trial` trước/sau; restart 8792; mở UI chính chỉ đọc.

@@ -102,6 +102,38 @@ class Categories:
             log(node,'RESTORE','ARCHIVED','ACTIVE',d.get('reason',''));node['status']='ACTIVE';return 'Khôi phục danh mục '+node['name']
         require(False,'Hành động không hợp lệ.')
 
+    # ---- quick object creation (one atomic step from the classify dialog) ----
+    def change_quick_object(self,s,d):
+        from .product import uid as new_id
+        kind=d.get('kind');profiles=s['profiles']
+        def unique(label,name,of_kind):
+            require(not any(p['kind']==of_kind and norm_name(p['name'])==norm_name(name) for p in profiles),f'Đã có {label} cùng tên; hãy chọn cái có sẵn.')
+        def clean(name,message):
+            name=str(name or '').strip();require(1<=len(name)<=100,message);return name
+        if kind=='PROPERTY':
+            name=clean(d.get('name'),'Tên BĐS dài 1–100 ký tự.');unique('BĐS',name,'PROPERTY')
+            profiles.append({'id':new_id(),'kind':'PROPERTY','name':name,'party':None});return 'Tạo nhanh BĐS '+name
+        if kind=='LOAN':
+            if d.get('party'):
+                person=next((p for p in profiles if p['id']==d['party']),None);require(person is not None and person['kind']=='PERSON','Chọn người có sẵn hoặc nhập tên người mới.')
+                created=None
+            else:
+                pname=clean(d.get('party_name'),'Tên người dài 1–100 ký tự.');unique('người / tổ chức',pname,'PERSON')
+                person={'id':new_id(),'kind':'PERSON','name':pname,'party':None};created=person
+            raw=str(d.get('name') or '').strip();base=raw or 'Khoản '+person['name']
+            require(len(base)<=100,'Tên khoản vay tối đa 100 ký tự.')
+            name=base
+            if not raw:
+                n=2
+                while any(p['kind']=='LOAN' and norm_name(p['name'])==norm_name(name) for p in profiles):name=f'{base} ({n})';n+=1;require(len(name)<=100,'Tên khoản vay tối đa 100 ký tự.')
+            else:unique('khoản vay',name,'LOAN')
+            if created:profiles.append(created)
+            profiles.append({'id':new_id(),'kind':'LOAN','name':name,'party':person['id']})
+            return 'Tạo nhanh khoản vay '+name+(' và người '+person['name'] if created else '')
+        if kind=='CATEGORY':
+            return self.change_category(s,'category-create',dict(parent=d.get('parent'),name=d.get('name'),description=''))
+        require(False,'Loại đối tượng không hợp lệ.')
+
     def cat_descendants(self,s,node):
         out=[];stack=[node['id']]
         while stack:
