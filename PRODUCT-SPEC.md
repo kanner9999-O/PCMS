@@ -556,3 +556,13 @@ Khi Thạch chi trả hộ nhiều người rồi những người còn lại ho
 | R73 | Vốn đã thanh toán và giá trị hiện tại hiện **cạnh nhau**; chênh lệch có nhãn "chưa thực hiện", không gọi là lãi/lỗ (R18). |
 
 Triển khai: [specs/011-realty](specs/011-realty/spec.md).
+
+### R74–R76 — Chốt phạm vi Crypto / ví bản đầu · 12/10/2026 (Thạch trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R74 | Số lượng coin theo từng nơi giữ (ví riêng, Binance, BingX) được cập nhật bằng **xác nhận số dư theo ngày** (số lượng, ngày, nguồn); app giữ lịch sử từng lần xác nhận, không tự cộng trừ từ giao dịch. Theo dõi từ một mốc bắt đầu, không nhập lại toàn bộ lịch sử (R25, R26). |
+| R75 | Bản đầu gồm **giá hiện tại nhập tay** (USDT, kèm ngày và nguồn, không lấy giá tự động) và **tách trạng thái trên sàn**: đang giữ, đang Earn/khóa, ký quỹ, vị thế đang mở, nợ margin — hiển thị riêng, không cộng đôi tổng sàn với thành phần (R19). Vốn bỏ vào ghi theo từng coin nếu biết; thiếu vốn là "chưa xác định", không tính lãi/lỗ (R18). |
+| R76 | Giá trị hiển thị bằng **USDT**; tỷ trọng theo nơi giữ và theo coin, chỉ trong phạm vi tài sản crypto có giá; không đặt ngưỡng rủi ro. Không gộp tài sản chỉ vì trùng ticker (khác mạng thì tách). |
+
+Triển khai: [specs/012-crypto-wallets](specs/012-crypto-wallets/spec.md).

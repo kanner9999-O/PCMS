@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P14 Crypto / ví bản đầu — 12/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/012-crypto-wallets](specs/012-crypto-wallets/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R74–R76: nơi giữ (ví riêng, Binance, BingX), xác nhận số dư theo ngày (lịch sử, hủy có lý do), tách trạng thái trên sàn (đang giữ, Earn/khóa, ký quỹ, vị thế, nợ margin — vị thế và nợ hiển thị riêng, không cộng trừ), giá USDT nhập tay, giá trị và tỷ trọng theo nơi giữ/coin chỉ trên coin có giá, vốn theo coin với chênh lệch "chưa thực hiện", coin khác mạng tách riêng. Test: 6 ca P14 + hồi quy = 105 ca đạt; PO dùng thử UI trên QA 8801 và 375px; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: mua/bán/chuyển, giá tự động, tổng tài sản hợp nhất, chung cư tiến độ. Bàn giao: outputs/p14-handoff.md.
+
 ### P13 Bất động sản bản đầu — 11/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/011-realty](specs/011-realty/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R71–R73: màn Bất động sản với vốn đã thanh toán có nguồn (từ phân loại Đầu tư BĐS gắn BĐS, lịch sử truy dòng sao kê), chi phí gắn BĐS, giá trị hiện tại nhập tay (ngày, nguồn, hủy có lý do), vốn cạnh giá trị và chênh lệch "chưa thực hiện", thế chấp (khoản vay + mục đích, không trừ nợ), góp vốn (số tiền từng người, không tỷ lệ). Test: 6 ca P13 + hồi quy = 99 ca đạt; PO dùng thử UI trên QA 8801 và 375px; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: chung cư theo tiến độ, tổng tài sản/định giá, crypto. Bàn giao: outputs/p13-handoff.md.

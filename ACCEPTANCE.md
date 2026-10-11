@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P14 — R01, R15, R18, R19, R25, R26, R74–R76, Crypto / ví bản đầu (spec 012)
+
+Tiêu chí ở `specs/012-crypto-wallets/spec.md` (SC-001…SC-005): xác nhận số dư theo ngày, hủy quay về bản trước; BTC 0,5 @ 60.000 + ETH 10 @ 2.500 → 55.000 USDT, tỷ trọng 54,55/45,45, coin chưa giá ngoài mẫu số; vị thế đang mở và nợ margin không cộng/trừ vào giá trị; coin khác mạng tách riêng, không tỷ lệ/lãi/lỗ khi thiếu vốn hoặc giá; dữ liệu cũ không đổi.
+
 ### P13 — R18, R27, R58, R71–R73, Bất động sản bản đầu (spec 011)
 
 Tiêu chí ở `specs/011-realty/spec.md` (SC-001…SC-005): Đất A 200 + 150 + 250 triệu → vốn 600 triệu, đủ ba dòng, mở dòng nguồn ≤2 thao tác; vốn cạnh giá trị hiện tại (ngày, nguồn) với chênh lệch có nhãn, không gọi lãi/lỗ; một khoản vay chỉ thế chấp một BĐS và không bị trừ vào giá trị; góp vốn từng người riêng, không tỷ lệ; snapshot/báo cáo/công nợ/danh mục cũ không đổi.
