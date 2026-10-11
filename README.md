@@ -1,6 +1,6 @@
 # PCMS — Quản lý tài chính và tài sản cá nhân
 
-**11/10/2026: P03–P07 đã phát hành** — ngân hàng VND, công nợ từng người/từng khoản, lãi dự tính, bảng kê lãi và miễn giảm có duyệt, tất toán có căn cứ, báo cáo dòng tiền tuần/tháng/quý.
+**11/10/2026: P03–P09 đã phát hành (P08 hành trình công nợ, P09 TRX/Energy bản đầu)** — gồm ngân hàng VND, công nợ từng người/từng khoản, lãi dự tính, bảng kê lãi và miễn giảm có duyệt, tất toán có căn cứ, báo cáo dòng tiền tuần/tháng/quý.
 
 **Tiếp quản dự án:** đọc [HANDOFF.md](HANDOFF.md) trước, sau đó đối chiếu yêu cầu trong PRODUCT-SPEC và ACCEPTANCE. Không cần lịch sử chat để bắt đầu.
 

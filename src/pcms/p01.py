@@ -37,8 +37,9 @@ from .interest_settlement import InterestSettlement
 
 
 from .loan_completion import LoanCompletion
+from .trx_energy import TrxEnergy
 
-class P01Store(LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -89,7 +90,7 @@ class P01Store(LoanCompletion, InterestSettlement, ProductStore):
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'capabilities':['loan-completion','loan-cash-report'], 'build':'P07-2026-10-11'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy'], 'build':'P09-2026-10-11'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -268,6 +269,7 @@ class P01Store(LoanCompletion, InterestSettlement, ProductStore):
         return issues,new,duplicates
 
     def change(self,s,action,d):
+        if action.startswith('trx-'):return self.change_trx(s,action,d)
         if action in {'loan-complete','loan-reopen'}:return self.change_completion(s,action,d)
         if action in {'interest-draft','interest-reopen','interest-approve'}:return self.change_interest(s,action,d)
         guarded={'import','approve','begin-adjustment','account-edit'}

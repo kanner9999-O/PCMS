@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P09 — R33–R41, R48, R63–R66, TRX/Energy bản đầu (spec 006)
+
+Tiêu chí chi tiết ở `specs/006-trx-energy/spec.md` (SC-001…SC-005): 3 kỳ × 100 USDT → phải thu 300, thu 200 còn 100; thu VND lưu VND + tỷ giá + USDT cấn và không đổi theo lần sau; một giao dịch ngân hàng gắn đúng một lần, không gắn giao dịch đã thuộc khoản vay; báo cáo chỉ tiền thực thu, không lãi/lỗ, không tự quá hạn; hủy giữ lịch sử; dữ liệu cũ không đổi.
+
 ### P08 — R47/R53, hoàn thiện hành trình công nợ (spec 005)
 
 Tiêu chí chi tiết ở `specs/005-debt-journey-polish/spec.md` (SC-001…SC-005): báo cáo dòng tiền mở ra kỳ có dữ liệu hoặc cảnh báo chưa có nguồn; Tổng quan công nợ ở đầu màn không bù trừ phải thu/phải trả; khoản hết gốc chưa tất toán hiện lý do; đi lại tài khoản ↔ công nợ ≤2 thao tác; dữ liệu và báo cáo cũ không đổi.

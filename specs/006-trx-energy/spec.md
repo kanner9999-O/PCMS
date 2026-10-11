@@ -33,7 +33,9 @@ Ghi thưởng theo ngày/nguồn/claim; APY chỉ tham khảo có nhãn (R33–R
 - **FR-002**: Điều khoản thanh toán MUST lưu theo từng đơn; hạn thu sau phải là ngày cụ thể (R38).
 - **FR-003**: Kỳ dịch vụ, hạn thanh toán, ngày thu thực MUST là ba mốc tách; quá hạn chỉ khi có hạn cam kết (R40).
 - **FR-004**: Tiền thu MUST phân bổ vào nhiều dòng/đơn nhưng tổng khớp nguồn; không ghi tiền lần hai.
-- **FR-005**: Tái dùng cơ chế phân bổ nguồn, snapshot bất biến, bảng kê đã có ở spec 001–004.
+- **FR-005**: Công nợ khách tính bằng USDT; thu VND quy đổi bằng tỷ giá người dùng nhập tại lần thu (R64, R39).
+- **FR-006**: Báo cáo theo tiền thực thu, không chia theo thời gian dịch vụ; không lãi/lỗ bán TRX; thưởng chỉ ghi số lượng (R65, R66).
+- **FR-007**: Gói tháng chỉ ghi nhận tài chính: tên gói, mức cấp, phí, khoảng dịch vụ; không điều khiển cấp/thu hồi (R41, R63).
 
 ### Key Entities
 Khách · Đơn (dòng Energy/Bán TRX) · Điều khoản · Khoản thu & phân bổ · Thưởng stake.
@@ -52,4 +54,8 @@ Ghi nhận thủ công: khách → đơn (dòng Energy một lần / gói tháng
 Chưa làm ở bản đầu (backlog): snapshot/duyệt riêng cho TRX, lãi/lỗ bán TRX, nguồn USDT tự động từ ví/sàn (khoản thu USDT nhập tay kèm ghi chú bằng chứng).
 
 ## Success Criteria
-- **SC-001**: PO kiểm bằng dữ liệu giả toàn luồng khách → đơn → thu → phân bổ → báo cáo → điều chỉnh (tiêu chí chi tiết chờ chốt ở ACCEPTANCE).
+- **SC-001**: Ba kỳ gói tháng × 100 USDT cho một khách → phải thu 300 USDT; thu 200 USDT phân bổ hai dòng → còn nợ 100; tiền chỉ ghi một lần ở ngày nhận.
+- **SC-002**: Khách trả VND: lưu VND thực nhận, tỷ giá, USDT cấn; đổi tỷ giá lần sau không đổi lần trước; ngân hàng không tăng USDT.
+- **SC-003**: Gắn một giao dịch ngân hàng vào khoản thu chỉ một lần cho số tiền của nó; vượt số tiền bị chặn.
+- **SC-004**: Báo cáo tuần/tháng/quý chỉ hiện tiền thực thu theo ngày nhận, tách loại dòng, VND riêng, số TRX bán/thưởng; không có chỉ tiêu lãi/lỗ; không có "quá hạn" khi đơn không có hạn.
+- **SC-005**: Void có lý do hoàn số liệu và giữ bản ghi; dữ liệu `outputs/p01-user-trial` không đổi checksum.

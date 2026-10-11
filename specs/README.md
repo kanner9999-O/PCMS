@@ -9,7 +9,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 003 | [interest-statements](003-interest-statements/spec.md) | P05–P06 | Implemented | R21, R31, R42, R43 |
 | 004 | [loan-completion-reporting](004-loan-completion-reporting/spec.md) | P07 | Implemented | R53 |
 | 005 | [debt-journey-polish](005-debt-journey-polish/spec.md) | P08 (từ rà hành trình 11/10) | Implemented (đã phát hành) | R47, R53 |
-| 006 | [trx-energy](006-trx-energy/spec.md) | F07 | Draft (backlog) | R33–R41, R48 |
+| 006 | [trx-energy](006-trx-energy/spec.md) | P09 (F07 bản đầu) | Implemented (đã phát hành) | R33–R41, R48 |
 | 007 | [assets-crypto-realestate](007-assets-crypto-realestate/spec.md) | F05, BĐS | Draft (backlog) | R15, R18, R19, R23, R25–R27 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
