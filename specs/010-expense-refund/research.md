@@ -1,0 +1,7 @@
+# Research — 010 expense-refund
+- **R1 Rào cản duy nhất ở backend**: `classify` có `require(not(category=='income' and signed<0 or category=='expense' and signed>0),...)`. Chỉ bỏ vế `expense and signed>0`; giữ vế `income and signed<0`. Các nơi khác đã dùng chiều theo dấu giao dịch: `_report` (`expense_in`/`expense_out`), `loan_cash_report` (`expense_refunds`), `category_view` (`in`/`out`).
+- **R2 Không đổi schema/snapshot**: allocation không thêm trường; "hoàn chi" là diễn giải của (`expense`, tiền vào). Snapshot đã lưu allocation + giao dịch nên nhãn tính được khi xem.
+- **R3 Chi ròng**: định nghĩa `chi ròng = chi (out) − hoàn chi (in)` của gốc/nút Chi tiêu. Backend: `totals.net_spend` (chuỗi Decimal, có thể âm) chỉ cho `root == expense`; UI báo cáo duyệt tính bằng BigInt từ `expense_out`/`expense_in` (không thêm khóa vào `report()` để không đổi snapshot).
+- **R4 Nhãn**: hàm UI `catLabel(category, incoming)` trả "Hoàn chi tiêu" khi `expense` + tiền vào; dùng ở bảng giao dịch, báo cáo duyệt (đổi "Chi tiêu · tiền vào" → "Hoàn chi tiêu", "Chi tiêu · tiền ra" → "Chi tiêu"), xem snapshot, hộp thoại (nhãn lựa chọn + ghi chú), lịch sử danh mục (`Hoàn` thay `Vào` cho nhánh expense).
+- **R5 Phân loại lại tiền vào đã là Thu nhập**: không tự động; dùng luồng điều chỉnh hiện có (`begin-adjustment`, lý do tùy chọn từ spec 009).
+- **R6 Không ghép**: không thêm liên kết khoản hoàn ↔ khoản chi (FR-008).
