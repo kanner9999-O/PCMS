@@ -1,0 +1,44 @@
+{
+  "id": "5126e9cb-52bb-5502-994e-ff81083f855c",
+  "type": "OPENING",
+  "effective_date": "2026-09-01",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "opening",
+  "lines": [
+    {
+      "id": "540b99f7-18ce-5fc2-a8ce-d44bdbe3b68a",
+      "class": "ASSET",
+      "debit": "10000",
+      "credit": "0",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    },
+    {
+      "id": "775bee83-d128-54fa-a7a0-fe5b1790cc83",
+      "class": "ASSET",
+      "debit": "500000",
+      "credit": "0",
+      "account_id": "7a618aea-2f05-5a7e-8847-2a7a6f4a2ac1"
+    },
+    {
+      "id": "15451063-09a3-5ec9-bb28-f02c515a3856",
+      "class": "ASSET",
+      "debit": "100000",
+      "credit": "0",
+      "account_id": "d1a4df91-ddac-50f5-8641-faf82d206598"
+    },
+    {
+      "id": "261ec557-29ac-5cd1-8c42-cadb79afac1e",
+      "class": "LIABILITY",
+      "debit": "0",
+      "credit": "200000",
+      "account_id": "b4898236-822d-55c6-9775-329aa27eef46"
+    },
+    {
+      "id": "9fd682f7-006e-5052-80b3-88609a68afda",
+      "class": "EQUITY",
+      "debit": "0",
+      "credit": "410000"
+    }
+  ]
+}

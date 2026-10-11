@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pcms:pilot:entry:0.1",
+  "title": "PCMS synthetic pilot journal entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "effective_date",
+    "currency",
+    "source",
+    "source_record_id",
+    "lines"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "enum": [
+        "OPENING",
+        "INCOME",
+        "EXPENSE",
+        "TRANSFER",
+        "TRADE",
+        "LOAN",
+        "CORRECTION"
+      ]
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "currency": {
+      "const": "USD"
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lines": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "class",
+          "debit",
+          "credit"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "class": {
+            "enum": [
+              "ASSET",
+              "LIABILITY",
+              "EQUITY",
+              "INCOME",
+              "EXPENSE"
+            ]
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "debit": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "description": "Plain decimal text, at most 38 digits; runtime validates limits."
+          },
+          "credit": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "description": "Plain decimal text, at most 38 digits; runtime validates limits."
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$",
+            "description": "Plain decimal text, at most 38 digits; runtime validates limits."
+          }
+        }
+      }
+    },
+    "import_batch_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "decision_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reverses": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "replaces": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correction_decision_id": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

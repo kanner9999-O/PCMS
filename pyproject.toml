@@ -1,0 +1,8 @@
+[project]
+name = "pcms"
+version = "0.3.0"
+description = "PCMS local personal capital management trial"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

@@ -1,0 +1,24 @@
+{
+  "id": "c81d0bb0-9a22-5f9e-820c-c7b3f1ab6a61",
+  "type": "TRANSFER",
+  "effective_date": "2026-09-10",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "transfer",
+  "lines": [
+    {
+      "id": "b8a726f3-9e92-5484-92cf-7790f798b018",
+      "class": "ASSET",
+      "debit": "0",
+      "credit": "2000",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    },
+    {
+      "id": "997a5e10-dbca-5bdf-bdae-b8cb8d23b643",
+      "class": "ASSET",
+      "debit": "2000",
+      "credit": "0",
+      "account_id": "91e62492-e0bd-55cf-af4a-6ea7b51c92d3"
+    }
+  ]
+}

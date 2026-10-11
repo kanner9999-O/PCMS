@@ -1,0 +1,31 @@
+{
+  "id": "bfca4628-b70c-59e8-be65-1f6b5587b1d4",
+  "type": "TRADE",
+  "effective_date": "2026-09-10",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "trade",
+  "lines": [
+    {
+      "id": "ba77c87d-e0c1-5f98-b018-d580d802ac39",
+      "class": "ASSET",
+      "debit": "3000",
+      "credit": "0",
+      "account_id": "85b974c5-e5f7-5fbf-8133-18ac857ed19e",
+      "quantity": "1"
+    },
+    {
+      "id": "25288d01-6017-53b7-b474-2fb3c4075c32",
+      "class": "EXPENSE",
+      "debit": "10",
+      "credit": "0"
+    },
+    {
+      "id": "c3276ac9-60ee-5868-a99d-ba411bc4dc08",
+      "class": "ASSET",
+      "debit": "0",
+      "credit": "3010",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    }
+  ]
+}

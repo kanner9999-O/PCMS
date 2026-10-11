@@ -1,0 +1,24 @@
+{
+  "id": "42c5d038-bfdf-58be-8ed1-dbca861cc160",
+  "type": "LOAN",
+  "effective_date": "2026-09-10",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "loan-draw",
+  "lines": [
+    {
+      "id": "2ddb6a02-3fa5-5daf-997a-45b949a5d5dc",
+      "class": "ASSET",
+      "debit": "10000",
+      "credit": "0",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    },
+    {
+      "id": "f84b1092-d845-58a2-a5dd-004f14bb0f9a",
+      "class": "LIABILITY",
+      "debit": "0",
+      "credit": "10000",
+      "account_id": "10ead7b3-975f-51d1-bab1-4ef42c281611"
+    }
+  ]
+}

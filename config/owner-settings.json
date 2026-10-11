@@ -1,0 +1,22 @@
+{
+  "version": "owner-settings-1",
+  "recorded_on": "2026-09-28",
+  "source": "User clarification in current task",
+  "approval_responsible": "Dũng",
+  "account_reporting": "NATIVE_CURRENCY_OR_ASSET",
+  "examples": [
+    "VND account stays VND",
+    "USDT account stays USDT"
+  ],
+  "consolidation": {
+    "target": "USDT",
+    "status": "FUTURE_DIRECTION",
+    "fx_source": null,
+    "valuation_cutoff": null,
+    "conversion_policy": null
+  },
+  "scope_approved": false,
+  "opening_date": null,
+  "timezone_approved": null,
+  "milestones_accepted": []
+}

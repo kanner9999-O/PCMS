@@ -1,0 +1,23 @@
+{
+  "id": "abc55e86-8f73-5fb7-976c-f680a6692e84",
+  "type": "INCOME",
+  "effective_date": "2026-09-10",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "salary",
+  "lines": [
+    {
+      "id": "818f0691-2c24-50cd-b3e4-8572b5f1d47b",
+      "class": "ASSET",
+      "debit": "5000",
+      "credit": "0",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    },
+    {
+      "id": "647691d3-38fa-528b-bad7-cc9b4ba06852",
+      "class": "INCOME",
+      "debit": "0",
+      "credit": "5000"
+    }
+  ]
+}

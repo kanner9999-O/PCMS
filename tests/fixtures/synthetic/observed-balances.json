@@ -1,0 +1,30 @@
+{
+  "10d13a29-1e0d-5bdb-b3ff-098299113556": {
+    "value": "17890",
+    "source": "synthetic closing statement: bank-a"
+  },
+  "91e62492-e0bd-55cf-af4a-6ea7b51c92d3": {
+    "value": "2000",
+    "source": "synthetic closing statement: bank-b"
+  },
+  "85b974c5-e5f7-5fbf-8133-18ac857ed19e": {
+    "value": "1",
+    "source": "synthetic closing statement: broker"
+  },
+  "7a618aea-2f05-5a7e-8847-2a7a6f4a2ac1": {
+    "value": "500000",
+    "source": "synthetic closing statement: house"
+  },
+  "d1a4df91-ddac-50f5-8641-faf82d206598": {
+    "value": "100000",
+    "source": "synthetic closing statement: business"
+  },
+  "b4898236-822d-55c6-9775-329aa27eef46": {
+    "value": "200000",
+    "source": "synthetic closing statement: mortgage"
+  },
+  "10ead7b3-975f-51d1-bab1-4ef42c281611": {
+    "value": "9000",
+    "source": "synthetic closing statement: loan"
+  }
+}

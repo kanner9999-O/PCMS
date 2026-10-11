@@ -1,0 +1,30 @@
+{
+  "id": "388a326c-cff6-5058-b6b6-ffc721ab248b",
+  "type": "LOAN",
+  "effective_date": "2026-09-10",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "loan-repay",
+  "lines": [
+    {
+      "id": "3094e2d3-1b66-5fe3-8dcf-de16730de526",
+      "class": "LIABILITY",
+      "debit": "1000",
+      "credit": "0",
+      "account_id": "10ead7b3-975f-51d1-bab1-4ef42c281611"
+    },
+    {
+      "id": "64d1dff1-0132-59a4-9617-c2c82941b2d3",
+      "class": "EXPENSE",
+      "debit": "100",
+      "credit": "0"
+    },
+    {
+      "id": "ef66af18-bff5-57d8-a5bd-6591eedbc662",
+      "class": "ASSET",
+      "debit": "0",
+      "credit": "1100",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    }
+  ]
+}

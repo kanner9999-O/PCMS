@@ -1,0 +1,54 @@
+{
+  "schema_version": "0.1-pilot",
+  "mode": "SYNTHETIC",
+  "base_currency": "USD",
+  "owner_actor": "synthetic-owner",
+  "opening_date": "2026-09-01",
+  "accounts": [
+    {
+      "id": "10d13a29-1e0d-5bdb-b3ff-098299113556",
+      "name": "Bank A",
+      "kind": "CASH",
+      "pool": "RESERVE"
+    },
+    {
+      "id": "91e62492-e0bd-55cf-af4a-6ea7b51c92d3",
+      "name": "Bank B",
+      "kind": "CASH",
+      "pool": "RESERVE"
+    },
+    {
+      "id": "85b974c5-e5f7-5fbf-8133-18ac857ed19e",
+      "name": "Investment position",
+      "kind": "INVESTMENT",
+      "pool": "INVESTMENT"
+    },
+    {
+      "id": "7a618aea-2f05-5a7e-8847-2a7a6f4a2ac1",
+      "name": "Property \u2014 100% synthetic ownership",
+      "kind": "PROPERTY",
+      "pool": "INVESTMENT"
+    },
+    {
+      "id": "d1a4df91-ddac-50f5-8641-faf82d206598",
+      "name": "Owned business equity",
+      "kind": "BUSINESS",
+      "pool": "INVESTMENT"
+    },
+    {
+      "id": "b4898236-822d-55c6-9775-329aa27eef46",
+      "name": "Personal mortgage",
+      "kind": "DEBT",
+      "pool": "RESERVE",
+      "treatment": "EMBEDDED_IN_PROPERTY_EQUITY",
+      "secured_account": "7a618aea-2f05-5a7e-8847-2a7a6f4a2ac1"
+    },
+    {
+      "id": "10ead7b3-975f-51d1-bab1-4ef42c281611",
+      "name": "Personal loan",
+      "kind": "DEBT",
+      "pool": "RESERVE",
+      "treatment": "DEDUCT_SEPARATELY"
+    }
+  ]
+}

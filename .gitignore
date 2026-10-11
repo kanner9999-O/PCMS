@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.DS_Store
+outputs/
+private-data/
+.env
+
+node_modules/
+
+# symlink tới runtime cục bộ của Codex
+node_modules
+.DS_Store

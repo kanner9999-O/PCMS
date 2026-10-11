@@ -1,0 +1,23 @@
+{
+  "id": "0956e7d7-16f0-5821-afbd-db994f69ee1f",
+  "type": "EXPENSE",
+  "effective_date": "2026-09-10",
+  "currency": "USD",
+  "source": "synthetic-statement",
+  "source_record_id": "expense",
+  "lines": [
+    {
+      "id": "7423a719-0360-5667-8f33-778784416c1c",
+      "class": "EXPENSE",
+      "debit": "1000",
+      "credit": "0"
+    },
+    {
+      "id": "be4459ae-5ca7-5bdb-a32b-e62f6ed85c56",
+      "class": "ASSET",
+      "debit": "0",
+      "credit": "1000",
+      "account_id": "10d13a29-1e0d-5bdb-b3ff-098299113556"
+    }
+  ]
+}
