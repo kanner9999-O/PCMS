@@ -89,9 +89,9 @@ class P01Store(LoanCompletion, InterestSettlement, ProductStore):
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s), 'interest_statements':self.interest_statement_view(s), 'capabilities':['loan-completion','loan-cash-report'], 'build':'P07-2026-10-11'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'capabilities':['loan-completion','loan-cash-report'], 'build':'P07-2026-10-11'}
 
-    def debt_register(self,s):
+    def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
         with localcontext() as ctx:
             ctx.prec=60
@@ -138,7 +138,13 @@ class P01Store(LoanCompletion, InterestSettlement, ProductStore):
             for person in people:
                 statuses=[x['completion_status'] for x in person['loans']]
                 person['completion_status']='NEEDS_REVIEW' if 'NEEDS_REVIEW' in statuses else ('COMPLETED' if statuses and all(x=='COMPLETED' for x in statuses) else 'ACTIVE')
-            return {'people':people,'loans':loans,'draft':True}
+            result={'people':people,'loans':loans,'draft':True}
+            if extras:
+                for loan in loans:loan['completion_blocker']=self.completion_blocker(s,loan['id'])
+                counts={k:sum(x['completion_status']==k for x in loans) for k in ('ACTIVE','COMPLETED','NEEDS_REVIEW')}
+                result['summary']={'receivable_total':S(sum((D(x['receivable']) for x in people),Decimal(0))),'payable_total':S(sum((D(x['payable']) for x in people),Decimal(0))),
+                    'people':len(people),'loans_by_status':counts,'needs_setup':sum(not x['setup'] for x in loans),'excluded':sum(x['excluded_count'] for x in people),'draft':True}
+            return result
 
     def interest_preview(self,d,s=None):
         """Read-only daily closing principal projection; no receivable or event is booked."""

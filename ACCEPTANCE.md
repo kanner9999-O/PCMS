@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P08 — R47/R53, hoàn thiện hành trình công nợ (spec 005)
+
+Tiêu chí chi tiết ở `specs/005-debt-journey-polish/spec.md` (SC-001…SC-005): báo cáo dòng tiền mở ra kỳ có dữ liệu hoặc cảnh báo chưa có nguồn; Tổng quan công nợ ở đầu màn không bù trừ phải thu/phải trả; khoản hết gốc chưa tất toán hiện lý do; đi lại tài khoản ↔ công nợ ≤2 thao tác; dữ liệu và báo cáo cũ không đổi.
+
 ### P07 — R53/A49, tất toán và báo cáo theo kỳ
 
 - Hết gốc còn lãi/thiếu kỳ bảng kê/chưa duyệt/nguồn sai thì không tất toán. Đủ điều kiện, xác nhận có căn cứ thì hoàn thành; không tạo tiền. Mở lại giữ lịch sử, nguồn thay đổi không còn hiện hoàn thành hợp lệ.

@@ -45,6 +45,18 @@ class LoanCompletion:
         basis=self.closure_basis(s,profile)
         return dict(profile=profile,closing_date=closing,basis=basis,basis_hash=digest(basis),review_token=digest(dict(basis=basis,closing_date=closing)))
 
+    def completion_blocker(self,s,profile):
+        """Read-only hint for the debt screen; reuses closure_preview so the rules cannot drift."""
+        p=item(s['profiles'],profile);setup=p.get('debt_setup')
+        if p['kind']!='LOAN' or self.completion_status(s,profile)!='ACTIVE':return None
+        if not setup:return dict(code='NEEDS_SETUP')
+        loan=next(x for x in self.debt_register(s)['loans'] if x['id']==profile)
+        if loan['current_principal'] is None or D(loan['current_principal'])!=0:return None
+        dates=[t['date'] for t in s['transactions'] if any(a.get('profile')==profile for a in t['allocations'])]
+        try:self.closure_preview(dict(profile=profile,closing_date=max(dates+[setup['effective_date']])),s)
+        except ValidationError as e:return dict(code='BLOCKED',message=str(e))
+        return dict(code='READY')
+
     def change_completion(self,s,action,d):
         from .p01 import now
         p=item(s['profiles'],d.get('profile'));require(p['kind']=='LOAN','Chọn khoản vay.')

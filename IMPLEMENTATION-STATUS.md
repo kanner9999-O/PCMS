@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P08 hoàn thiện hành trình công nợ — 11/10/2026 (đã làm xong, chờ Thạch đồng ý restart 8792)
+
+Làm theo Spec Kit: [specs/005-debt-journey-polish](specs/005-debt-journey-polish/spec.md) (spec → plan → tasks → implement). Nguồn: rà hành trình bằng dữ liệu giả, R47/R53. Chỉ đổi hiển thị/mặc định/liên kết, không đổi quy tắc tiền. Kết quả trên QA 8801 (dữ liệu giả): đầu màn Công nợ có Tổng quan (phải thu 100.000.000, phải trả 0, 3 người, 2 đang hoạt động/1 hoàn tất); khoản "hết gốc còn lãi" hiện lý do chưa hoàn tất kèm nút tới bảng kê lãi; nhãn trạng thái không còn lặp; báo cáo dòng tiền mở ngày nguồn mới nhất 30/09/2026 (hôm nay 11/10 chưa có nguồn) và cảnh báo "Kỳ này chưa có nguồn" khi chọn 11/2026; số tháng 09 không đổi (lãi 2,7 triệu, chi phí 0,2 triệu, chênh 2,5 triệu, thu gốc 200 triệu); liên kết tài khoản ↔ công nợ đi được hai chiều. Test: 5 ca P08 + hồi quy P03–P07 (30 ca) đạt, `node --check` đạt, 7 ca node cho kỳ mặc định/cảnh báo đạt. 27 file `outputs/p01-user-trial` giữ nguyên SHA256 trước/sau. Chưa kiểm mobile riêng, dữ liệu lớn; các tổng vẫn là NHÁP. Chưa restart 8792.
+
 ### P07 đã phát hành11/10/2026 — R53/A49
 
 PO chọn hoàn thiện tất toán có căn cứ và báo cáo tiền thực thu theo tuần/tháng/quý, trước mở rộng sang business khác. Một coder thực hiện; PO đã kiểm nghiệp vụ và dùng UI trước phát hành. Không tự coi hết gốc là hết nợ.

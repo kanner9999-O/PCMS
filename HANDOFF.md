@@ -18,6 +18,10 @@ Cập nhật11/10/2026 sau phát hànhP07. Đây là tóm tắt trạng thái c�
 
 `outputs/design-review-v1` là bản mẫu thiết kế, không phải app vận hành. `docs/archive` là lịch sử, không phải yêu cầu mới. README đã cập nhật tớiP07.
 
+## 2b. Quy trình Spec Kit (từ 11/10/2026)
+
+Tính năng mới đi theo `/speckit-specify → plan → tasks → implement` trong `specs/NNN-…` (index: `specs/README.md`; quy tắc: `.specify/memory/constitution.md`), sau đó PO nghiệm thu bằng dữ liệu giả. P01–P07 đã migrate thành spec 001–004; TRX/Energy (006) và tài sản/crypto/BĐS (007) là backlog Draft. P08 = spec 005 (hành trình công nợ): đã code và kiểm xong trên QA 8801, **chưa restart 8792** (cần Thạch đồng ý). Script Spec Kit chạy bằng `bash`, không dùng `sh`. Mã trên GitHub kanner9999-O/PCMS (outputs/ và private-data/ không đẩy lên).
+
 ## 3. Bản vận hành và mã
 
 Thư mục dự án: `/Users/nerkan/Documents/Working/PCMS`.
