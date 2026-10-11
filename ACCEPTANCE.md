@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P10 — R06, R45, R46, R50, R55, R56, R58, quản lý danh mục (spec 008)
+
+Tiêu chí chi tiết ở `specs/008-category-management/spec.md` (SC-001…SC-005): tạo và dùng danh mục con không cần sửa mã; tổng từng danh mục khớp tập dòng liệt kê, mỗi giao dịch một lần ở cha; từ tổng mở dòng nguồn ≤2 thao tác; danh mục rỗng không hiện số 0 như đã đối soát; snapshot/báo cáo/công nợ cũ không đổi, snapshot mới đóng băng tên danh mục.
+
 ### P09 — R33–R41, R48, R63–R66, TRX/Energy bản đầu (spec 006)
 
 Tiêu chí chi tiết ở `specs/006-trx-energy/spec.md` (SC-001…SC-005): 3 kỳ × 100 USDT → phải thu 300, thu 200 còn 100; thu VND lưu VND + tỷ giá + USDT cấn và không đổi theo lần sau; một giao dịch ngân hàng gắn đúng một lần, không gắn giao dịch đã thuộc khoản vay; báo cáo chỉ tiền thực thu, không lãi/lỗ, không tự quá hạn; hủy giữ lịch sử; dữ liệu cũ không đổi.

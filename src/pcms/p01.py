@@ -38,8 +38,9 @@ from .interest_settlement import InterestSettlement
 
 from .loan_completion import LoanCompletion
 from .trx_energy import TrxEnergy
+from .categories import Categories, root_key
 
-class P01Store(TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -90,7 +91,7 @@ class P01Store(TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy'], 'build':'P09-2026-10-11'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree'], 'build':'P10-2026-10-11'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -269,6 +270,7 @@ class P01Store(TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
         return issues,new,duplicates
 
     def change(self,s,action,d):
+        if action.startswith('category-'):return self.change_category(s,action,d)
         if action.startswith('trx-'):return self.change_trx(s,action,d)
         if action in {'loan-complete','loan-reopen'}:return self.change_completion(s,action,d)
         if action in {'interest-draft','interest-reopen','interest-approve'}:return self.change_interest(s,action,d)
@@ -438,7 +440,12 @@ class P01Store(TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
                         if category=='investment':require(target['kind']=='PROPERTY','Đầu tư P01 phải gắn hồ sơ BĐS.')
                     require(category not in {'principal','interest','investment'} or profile,'Cần hồ sơ tương ứng cho gốc/lãi/đầu tư.')
                     amount=money(p.get('amount') or S(abs(signed)));require(amount>0,'Số phân bổ phải dương.')
-                    allocated.append({'category':category,'amount':S(amount),'profile':profile})
+                    part={'category':category,'amount':S(amount),'profile':profile}
+                    if p.get('node'):
+                        node=next((n for n in s.get('categories',[]) if n['id']==p['node']),None)
+                        require(node is not None and node['status']=='ACTIVE' and node['root']==root_key(category),'Danh mục con không tồn tại, đã lưu trữ hoặc không thuộc loại phân bổ đã chọn.')
+                        part['node']=node['id']
+                    allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':str(d['reason'])[:500]})
                 t['allocations']=[] if len(allocated)==1 and allocated[0]['category']=='unknown' else allocated
@@ -467,6 +474,7 @@ class P01Store(TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
                  'report':report,'account_details':copy.deepcopy(item(s['accounts'],account)),'profiles':copy.deepcopy(s['profiles']),'reason':str(d.get('reason','Duyệt đợt đầu'))[:500],
                  'restates':previous['id'] if previous else None,'confirmed_unknown':bool(d.get('confirm_unknown')),
                  'confirmed_gaps':copy.deepcopy(report['coverage_gaps']) if d.get('confirm_gaps') is True else []}
+            if s.get('categories'):snap['category_tree']=[dict(id=n['id'],name=n['name'],parent=n['parent'],root=n['root'],status=n['status'],path=self.cat_path(s,n['id'])) for n in s['categories']]
             snap['hash']=digest(snap);s['snapshots'].append(snap)
             item(s['accounts'],account)['adjustment_open']=False
             return 'Đã lưu bản duyệt '+str(snap['version'])

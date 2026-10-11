@@ -8,7 +8,7 @@
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Quản lý cây danh mục (Priority: P1)
-Thạch có một nơi để xem toàn bộ cây danh mục, tạo danh mục gốc/con, sửa tên, mô tả, danh mục cha và lưu trữ danh mục không dùng nữa; các danh mục nghiệp vụ gốc (Thu nhập, Chi tiêu, Gốc vay, Lãi vay, Đầu tư BĐS, Chuyển nội bộ) giữ tên và cấp cha, chỉ sửa mô tả (R55).
+Thạch có một nơi để xem toàn bộ cây danh mục, tạo danh mục con dưới một gốc hệ thống, sửa tên, mô tả, danh mục cha (trong cùng gốc) và lưu trữ danh mục không dùng nữa; các danh mục nghiệp vụ gốc (Thu nhập, Chi tiêu, Gốc vay, Lãi vay, Đầu tư BĐS, Chuyển nội bộ) giữ tên và cấp cha, chỉ sửa mô tả (R55).
 
 **Why this priority**: là phần R06 còn thiếu; phân loại hiện bị khóa vào danh sách cứng nên không thêm được việc/đối tượng mới như Đất E.
 
@@ -41,7 +41,7 @@ Danh sách danh mục khi phân loại lấy từ cây; phân loại hàng loạ
 - Đổi danh mục của giao dịch đã duyệt → qua điều chỉnh có lý do, không sửa snapshot (R21).
 - Danh mục lưu trữ đang gắn giao dịch cũ vẫn hiển thị trong lịch sử, không chọn được cho dòng mới.
 - Chuyển danh mục con sang cha khác: lịch sử các giao dịch đã duyệt giữ đường dẫn cũ trong snapshot.
-- Danh mục cổ phiếu (R24) và Shop pending: không tạo sẵn; người dùng có thể tự tạo nhưng không có nghiệp vụ riêng.
+- Danh mục cổ phiếu (R24) và Shop pending: không tạo sẵn; Thạch có thể tạo nhóm con dưới gốc phù hợp nhưng chúng không có nghiệp vụ riêng.
 
 ## Clarifications
 
@@ -53,6 +53,7 @@ Danh sách danh mục khi phân loại lấy từ cây; phân loại hàng loạ
 - Q: Sửa nhầm thì quay lại thế nào? → A: Không có "hoàn tác"; sửa lại bằng một thay đổi mới, lịch sử giữ cả hai.
 - Q: Danh mục cũ (khóa cố định) chuyển sang cây thế nào? → A: Khóa cũ trở thành bảy gốc hệ thống; mọi phân loại hiện có giữ nguyên (không gắn danh mục con); không đổi dữ liệu đã ghi.
 - Q: Liên kết đối tượng kế thừa thế nào? → A: Gốc quyết định đối tượng bắt buộc như hiện nay: Gốc vay/Lãi vay → khoản vay; Đầu tư BĐS → hồ sơ BĐS; các gốc còn lại không bắt buộc. Danh mục con chỉ là nhóm quản lý thêm, không thay đối tượng.
+- Q: Đổi cha sang gốc khác và gốc nào có nhóm con? → A: Chỉ đổi cha trong cùng một gốc. Chỉ các gốc dùng được khi phân loại (Thu nhập, Chi tiêu, Gốc vay, Lãi vay, Đầu tư BĐS) cho tạo nhóm con; Chuyển nội bộ và Chưa phân loại không có nhóm con.
 - Q: Quy mô và thiết bị? → A: Tới 200 danh mục và 10.000 giao dịch vẫn dùng được; màn hình điện thoại 375px không tràn ngang.
 
 ## Requirements *(mandatory)*
@@ -62,9 +63,9 @@ Danh sách danh mục khi phân loại lấy từ cây; phân loại hàng loạ
 - **FR-002**: Danh mục nghiệp vụ gốc MUST giữ tên và cấp cha; chỉ sửa mô tả (R55).
 - **FR-003**: Danh mục MUST có lịch sử thay đổi (tên, cha, trạng thái; thời điểm, giá trị trước/sau, lý do — bắt buộc khi lưu trữ); snapshot đã duyệt MUST giữ tên và đường dẫn tại thời điểm duyệt (R21).
 - **FR-004**: Quy tắc nghiệp vụ liên kết đối tượng (khoản vay, tài sản) MUST kế thừa nhóm gốc của danh mục; đổi danh mục MUST xóa liên kết không còn phù hợp (R50).
-- **FR-005**: Mỗi danh mục MUST có màn lịch sử gồm các giao dịch cấu thành (kể cả của con) với mã nguồn, ngày, tài khoản, nội dung, đối tượng, trạng thái, vào/ra theo nguyên tệ và lối mở dòng nguồn (R58).
+- **FR-005**: Mỗi danh mục MUST có màn lịch sử (trạng thái dòng: Nháp = chưa vào bản duyệt nào, Đã duyệt = nằm trong ít nhất một snapshot; đối tượng = người/khoản vay/BĐS gắn với phần phân loại, trống nếu không có) gồm các giao dịch cấu thành (kể cả của con) với mã nguồn, ngày, tài khoản, nội dung, đối tượng, trạng thái, vào/ra theo nguyên tệ và lối mở dòng nguồn (R58).
 - **FR-006**: Tổng của danh mục MUST gồm tổng vào, tổng ra, chênh vào–ra, số giao dịch theo từng nguyên tệ; MUST truy được về đúng tập dòng gốc; MUST NOT đếm đôi khi xem nhóm cha; hoàn tiền MUST NOT bị ẩn do bù trừ; tổng của cha MUST gồm cả danh mục đã lưu trữ (nhãn "đã lưu trữ") (R56, R58).
-- **FR-007**: Danh mục chưa có nguồn MUST hiển thị lịch sử rỗng kèm trạng thái thiếu dữ liệu, MUST NOT tạo giao dịch giả hoặc mặc định bằng không (R58).
+- **FR-007**: Danh mục chưa có giao dịch MUST hiển thị lịch sử rỗng kèm trạng thái thiếu dữ liệu ("chưa có nguồn" khi chưa tài khoản nào ghi nguồn; "chưa có giao dịch trong các kỳ nguồn đã ghi" kèm các kỳ đó khi đã có nguồn), MUST NOT tạo giao dịch giả hoặc mặc định bằng không (R58).
 - **FR-008**: Lựa chọn danh mục khi phân loại MUST lấy từ cây hiện hành, loại danh mục đã lưu trữ khỏi lựa chọn mới; phân loại không được đổi tiền nguồn (R06, R45).
 - **FR-009**: Thay đổi này MUST NOT sửa dữ liệu tài chính đã ghi, MUST NOT đổi kết quả báo cáo, snapshot hay công nợ đã có; dữ liệu cũ dùng danh mục cố định MUST tiếp tục hiển thị đúng sau khi chuyển sang cây.
 
