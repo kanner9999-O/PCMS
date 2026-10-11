@@ -10,10 +10,11 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 004 | [loan-completion-reporting](004-loan-completion-reporting/spec.md) | P07 | Implemented | R53 |
 | 005 | [debt-journey-polish](005-debt-journey-polish/spec.md) | P08 (từ rà hành trình 11/10) | Implemented (đã phát hành) | R47, R53 |
 | 006 | [trx-energy](006-trx-energy/spec.md) | P09 (F07 bản đầu) | Implemented (đã phát hành) | R33–R41, R48 |
-| 007 | [assets-crypto-realestate](007-assets-crypto-realestate/spec.md) | F05, BĐS | Draft (backlog) | R15, R18, R19, R23, R25–R27 |
+| 007 | [assets-crypto-realestate](007-assets-crypto-realestate/spec.md) | F05 (BĐS bản đầu đã tách sang 011; còn chung cư tiến độ, crypto, tổng tài sản) | Draft (backlog) | R15, R18, R19, R23, R25–R27 |
 | 008 | [category-management](008-category-management/spec.md) | P10 (R06, R55, R56, R58) | Implemented (đã phát hành) | R06, R45, R46, R50, R55, R56, R58 |
 | 009 | [classification-ux](009-classification-ux/spec.md) | P11 (R67–R69, màn Phân loại) | Implemented (đã phát hành) | R45, R50, R55, R67–R69 |
 | 010 | [expense-refund](010-expense-refund/spec.md) | P12 (R70, hoàn chi tiêu) | Implemented (đã phát hành) | R06, R50, R53, R56, R58, R70 |
+| 011 | [realty](011-realty/spec.md) | P13 (R71–R73, Bất động sản bản đầu) | Implemented (đã phát hành) | R18, R27, R58, R71–R73 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

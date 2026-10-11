@@ -146,6 +146,7 @@ def serve(directory='private-data/product-demo', port=8787, p01=False):
                 elif p01 and self.path=='/api/loan-cash-report':result=store.loan_cash_report(data)
                 elif p01 and self.path=='/api/trx-report':result=store.trx_report(data)
                 elif p01 and self.path=='/api/category-history':result=store.category_history(data)
+                elif p01 and self.path=='/api/realty-history':result=store.realty_history(data)
                 elif p01 and self.path=='/api/interest-settlement':result=store.settlement_preview(data)
                 elif p01 and self.path=='/api/interest-preview':result=store.interest_preview(data)
                 elif p01 and self.path=='/api/select-dataset':

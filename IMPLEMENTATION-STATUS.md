@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P13 Bất động sản bản đầu — 11/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/011-realty](specs/011-realty/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R71–R73: màn Bất động sản với vốn đã thanh toán có nguồn (từ phân loại Đầu tư BĐS gắn BĐS, lịch sử truy dòng sao kê), chi phí gắn BĐS, giá trị hiện tại nhập tay (ngày, nguồn, hủy có lý do), vốn cạnh giá trị và chênh lệch "chưa thực hiện", thế chấp (khoản vay + mục đích, không trừ nợ), góp vốn (số tiền từng người, không tỷ lệ). Test: 6 ca P13 + hồi quy = 99 ca đạt; PO dùng thử UI trên QA 8801 và 375px; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: chung cư theo tiến độ, tổng tài sản/định giá, crypto. Bàn giao: outputs/p13-handoff.md.
+
 ### P12 Hoàn chi tiêu — 11/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/010-expense-refund](specs/010-expense-refund/spec.md) (specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R70: tiền vào gán Chi tiêu là hoàn chi, báo cáo/danh mục/lịch sử hiển thị chi, hoàn chi, chi ròng; Thu nhập không tăng. Ví dụ cơm 1.000.000 + 2 × 300.000 → chi ròng 400.000. Test: 6 ca P12 + node + hồi quy = 93 ca đạt; PO dùng thử UI trên QA 8801; 49 file `outputs/p01-user-trial` giữ nguyên SHA256. Bàn giao: outputs/p12-handoff.md.

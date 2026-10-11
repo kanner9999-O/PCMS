@@ -1,0 +1,9 @@
+# Research — 011 realty
+- **R1 Nguồn vốn**: tính từ `transactions[].allocations[]` có `profile == BĐS`: `category=='investment'` → vốn (ra) / tiền nhận lại (vào); `category=='expense'` → chi phí (ra) / hoàn chi (vào, spec 010). Không thêm khóa vào allocation → báo cáo, snapshot, danh mục không đổi. Một giao dịch tách nhiều phần chỉ tính phần gắn BĐS.
+- **R2 Sổ phụ `realty`**: `valuations`, `mortgages`, `contributions` — mỗi bản ghi `{id, property, …, status ACTIVE|VOID|ENDED, created_at, void_reason?}`; append-only, hủy giữ bản ghi. Chọn lưu cạnh `profiles` thay vì sửa hồ sơ để không đụng cấu trúc hồ sơ hiện có.
+- **R3 Giá trị hiện tại**: bản ACTIVE có `date` lớn nhất (hòa → bản tạo sau). Chênh lệch = `value − (capital_paid − capital_received)` kèm chuỗi nhãn cố định; chỉ có khi có giá trị. Không trừ chi phí/nợ.
+- **R4 Thế chấp**: `loan` phải là hồ sơ `LOAN`; chặn nếu khoản vay đã có liên kết ACTIVE (với bất kỳ BĐS); `purpose` bắt buộc ≤500; kết thúc cần lý do (`ENDED`). Dư gốc lấy từ `debt_register(s)` (`current_principal`, `issues`) chỉ để hiển thị.
+- **R5 Góp vốn**: `party` phải là hồ sơ `PERSON`; `amount` VND nguyên dương; `evidence` bắt buộc ≤500; `date` tùy chọn; không tính tỷ lệ; Thạch = vốn từ sao kê (hiển thị cạnh, không cộng gộp thành "sở hữu").
+- **R6 Lịch sử**: `realty_history({property})` trả các phần phân loại (vốn/chi phí) kèm `kind` CAPITAL|COST, trạng thái DRAFT|APPROVED (có trong snapshot nào), nguồn; `evidence` (HAS_DATA|EMPTY|EMPTY_NO_SOURCE) + `source_notice` như spec 008.
+- **R7 Cảnh báo chưa phân loại**: `view['realty'].unclassified` = số giao dịch chưa phân loại toàn hệ thống; UI nhắc "vốn chỉ tính giao dịch đã phân loại và gắn BĐS".
+- **R8 UI**: `realtyMode` như `catMode`/`trxMode`; nút "Bất động sản"; tạo BĐS nhanh bằng action `object-quick-create` có sẵn (kind PROPERTY).
