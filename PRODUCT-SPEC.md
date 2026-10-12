@@ -619,3 +619,11 @@ Triển khai: [specs/016-loan-category-management](specs/016-loan-category-manag
 | R94 | Lịch sử giao dịch của **mọi danh mục và đối tượng** (danh mục, gốc/lãi của khoản vay, BĐS) dùng **một định dạng chuẩn giống màn Kiểm tra phân loại**: tóm tắt tổng ở đầu, mỗi giao dịch một dòng kiểu sao kê (ngày + mã tham chiếu, nội dung + "Xem nguồn · n liên kết", số tiền ra/vào có màu, nhãn danh mục/đối tượng + trạng thái nháp/đã duyệt), mới nhất lên trên, tổng cuối. PO chốt chi tiết (Thạch ủy quyền). |
 
 Triển khai: [specs/017-history-format](specs/017-history-format/spec.md).
+
+### R95 — Lịch sử rộng, mỗi giao dịch một dòng · 12/10/2026 (Thạch phản hồi sau khi xem R94)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R95 | Hộp lịch sử (danh mục, khoản vay, BĐS) **rộng hơn** và **mỗi giao dịch nằm trọn trên một dòng**: ngày, mã tham chiếu, nội dung (kèm tài khoản), Xem nguồn, số tiền, nhãn/trạng thái. Chỗ hẹp (điện thoại, màn nhỏ) tự xếp hai ba dòng. |
+
+Triển khai: [specs/018-history-wide](specs/018-history-wide/spec.md).

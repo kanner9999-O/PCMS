@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P20 — R95, Lịch sử rộng một dòng (spec 018)
+
+Tiêu chí ở `specs/018-history-wide/spec.md`: màn ≥ 1300px mỗi giao dịch một hàng; 768px và 375px không tràn ngang; số liệu không đổi.
+
 ### P19 — R94, Định dạng lịch sử chuẩn (spec 017)
 
 Tiêu chí ở `specs/017-history-format/spec.md`: bốn nơi hiển thị lịch sử (danh mục, lịch sử theo tài khoản, khoản vay, BĐS) dùng cùng định dạng; tổng ở tóm tắt bằng tổng các dòng; mới nhất trước; 375px không tràn ngang; số liệu không đổi.

@@ -21,6 +21,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 015 | [classification-review](015-classification-review/spec.md) | P17 (R84–R86, Kiểm tra phân loại) | Implemented (đã phát hành) | R46, R50, R58, R83, R84–R86 |
 | 016 | [loan-category-management](016-loan-category-management/spec.md) | P18 (R87–R93, quản lý khoản vay và danh mục) | Implemented | R84–R93 |
 | 017 | [history-format](017-history-format/spec.md) | P19 (R94, định dạng lịch sử chuẩn) | Implemented | R94 |
+| 018 | [history-wide](018-history-wide/spec.md) | P20 (R95, lịch sử rộng một dòng) | Implemented | R94, R95 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 
