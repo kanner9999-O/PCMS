@@ -597,3 +597,17 @@ Triển khai: [specs/014-category-completion](specs/014-category-completion/spec
 | R86 | Hiển thị **kiểu sao kê ngân hàng**: mỗi dòng gồm ngày kèm mã tham chiếu, nội dung kèm "Xem nguồn", số tiền (ra/vào), trạng thái phân loại; **mặc định mở sẵn mọi giao dịch**; chỉ cần thấy tên danh mục, giao dịch và **tổng** (từng nhóm, tổng toàn bộ, kiểm khớp đủ số giao dịch và tiền). Chỉ xem, không sửa ở màn này; không có nút "đã kiểm" ở bản đầu. |
 
 Triển khai: [specs/015-classification-review](specs/015-classification-review/spec.md).
+
+### R87–R93 — Phỏng vấn quản lý danh mục, đối tượng, khoản vay · 12/10/2026 (Thạch trả lời trực tiếp)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R87 | **Danh mục con của Gốc/Lãi/Đầu tư là tùy chọn** (không bắt buộc). Có thể tạo cây danh mục theo cách Thạch vận hành thực tế, ví dụ nhóm "Loans" chứa "Long debt" (khoản cho người cần vay lâu dài 2–3 năm hoặc chưa có hướng trả). Nhóm này do Thạch tự quyết theo tình hình thực tế, hệ thống không tự suy ra. |
+| R88 | **Một người có thể có nhiều khoản vay**, mỗi khoản có điều khoản lãi và ngày phát sinh riêng. Khi phân loại, **Thạch tự chọn khoản có sẵn hoặc tạo khoản mới** (hệ thống chỉ gợi ý khoản của người đã chọn; không tự gộp). |
+| R89 | **Tên hiển thị khoản vay** khi chọn: tên người · ngày · gốc · dư hiện tại (không hiện chữ PERSON/LOAN). |
+| R90 | **Không cần loại/kỳ hạn riêng** cho khoản vay (giữ tên + lãi như hiện tại). Phân biệt dài hạn/ngắn hạn là việc của danh mục (R87). |
+| R91 | **Đối tượng chỉ dành cho khoản vay và BĐS.** Chi tiêu/Thu nhập không gắn đối tượng người. |
+| R92 | **Màn Kiểm tra phân loại**: khi có đối tượng, gom nhóm theo **danh mục gốc + đối tượng**, danh mục con chỉ là nhãn trên dòng (thay quy tắc gom theo đường dẫn ở R84–R86 cho giao dịch có đối tượng). |
+| R93 | **Chuyển cả khoản vay sang danh mục khác** (ví dụ từ nhóm Loans sang Long debt khi thành nợ dài hạn): một thao tác có lý do và ngày, mọi giao dịch của khoản đó hiện dưới danh mục mới; dư gốc, lãi, lịch sử không đổi; giữ lịch sử chuyển. **Xóa hẳn danh mục chưa từng dùng** (kể cả lịch sử); danh mục đã dùng chỉ lưu trữ. *(Mặc định đề xuất cho phần xóa, Thạch chưa xác nhận riêng.)* |
+
+Triển khai: [specs/016-loan-category-management](specs/016-loan-category-management/spec.md). Điều chỉnh khi làm: Chi tiêu vẫn gắn được khoản vay/BĐS (chi hộ khoản vay, chi phí BĐS — hành vi từ spec 004/010/011); R91 chỉ chặn hồ sơ người gắn trực tiếp và Thu nhập/Chuyển nội bộ có đối tượng. Chuyển nhóm chỉ áp dụng phần Gốc vay; Lãi vay giữ ở Lãi vay.

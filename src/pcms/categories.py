@@ -3,6 +3,7 @@
 Totals come only from classified parts of source transactions; nothing here creates or edits money.
 """
 import copy
+import json
 import unicodedata
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, localcontext
@@ -89,7 +90,13 @@ class Categories:
             require(depth<=MAX_DEPTH,f'Tối đa {MAX_DEPTH} cấp kể cả danh mục gốc.')
             node=dict(id=uid(),name=name,description=desc,parent=parent,root=root,status='ACTIVE',created_at=now(),history=[])
             log(node,'CREATE',None,dict(name=name,parent=parent));s['categories'].append(node);return 'Tạo danh mục '+name
+        if action=='loan-regroup':return self.change_loan_group(s,d)
         node=self.cat_find(s,d.get('category'))
+        if action=='category-delete':
+            reason=str(d.get('reason','')).strip();require(reason,'Cần lý do xóa.')
+            why=self.cat_in_use(s,node);require(why is None,why or '')
+            s.setdefault('category_deleted',[]).append(dict(id=node['id'],name=node['name'],path=self.cat_path(s,node['id']),root=node['root'],reason=reason[:500],at=now()))
+            s['categories']=[n for n in s['categories'] if n['id']!=node['id']];return 'Xóa hẳn danh mục '+node['name']
         if action=='category-edit':
             changed=False;reason=d.get('reason','')
             if 'parent' in d and d['parent']!=node['parent'] and not (node['parent'] is None and not d['parent']):
@@ -108,6 +115,7 @@ class Categories:
         if action=='category-archive':
             require(node['status']=='ACTIVE','Danh mục đã lưu trữ.');reason=str(d.get('reason','')).strip();require(reason,'Cần lý do lưu trữ.')
             require(not any(n['parent']==node['id'] and n['status']=='ACTIVE' for n in s['categories']),'Còn danh mục con đang hoạt động; lưu trữ các danh mục con trước.')
+            require(not any(p['kind']=='LOAN' and p.get('group')==node['id'] for p in s['profiles']),'Còn khoản vay đang gắn danh mục này; chuyển các khoản vay sang danh mục khác trước.')
             log(node,'ARCHIVE','ACTIVE','ARCHIVED',reason);node['status']='ARCHIVED';return 'Lưu trữ danh mục '+node['name']
         if action=='category-restore':
             require(node['status']=='ARCHIVED','Danh mục đang hoạt động.')
@@ -155,6 +163,56 @@ class Categories:
                 if n['parent']==cid:out.append(n);stack.append(n['id'])
         return out
 
+    def cat_in_use(self,s,node):
+        """Why the category cannot be deleted for good, or None when it was never used anywhere."""
+        return self.cat_in_use_fast(s,node,self.cat_usage_blob(s))
+
+    def cat_in_use_fast(self,s,node,blob):
+        nid=node['id']
+        if any(n['parent']==nid for n in s['categories']):return 'Còn danh mục con; xóa hoặc chuyển các danh mục con trước.'
+        if any(p['kind']=='LOAN' and (p.get('group')==nid or any(nid in (h.get('from'),h.get('to')) for h in p.get('group_history',[]))) for p in s['profiles']):return 'Đã có khoản vay gắn danh mục này; chỉ có thể lưu trữ.'
+        if nid in blob:return 'Danh mục đã từng được dùng để phân loại; chỉ có thể lưu trữ.'
+        return None
+
+    def cat_usage_blob(self,s):
+        return json.dumps([[t['allocations'],t.get('classification_history') or []] for t in s['transactions']],ensure_ascii=False)+json.dumps([[t['allocations'] for t in sn['report']['transactions']] for sn in s['snapshots']],ensure_ascii=False)
+
+    def change_loan_group(self,s,d):
+        from .p01 import day,now
+        loan=next((p for p in s['profiles'] if p['id']==d.get('profile')),None);require(loan is not None and loan['kind']=='LOAN','Chọn một khoản vay.')
+        target=d.get('node') or None
+        if target=='principal':target=None
+        if target is not None:
+            node=self.cat_find(s,target);require(node['root']=='principal' and node['status']=='ACTIVE','Chỉ chuyển sang danh mục Gốc vay đang hoạt động.')
+        require((loan.get('group') or None)!=target,'Khoản vay đã ở danh mục này.')
+        when=day(d.get('effective_date'));reason=str(d.get('reason','')).strip();require(reason,'Cần lý do chuyển danh mục.')
+        loan.setdefault('group_history',[]).append(dict(at=now(),effective_date=when,**{'from':loan.get('group') or None,'to':target},reason=reason[:500]));loan['group']=target
+        return 'Chuyển khoản vay '+loan['name']+' sang '+(self.cat_path(s,target) if target else ROOTS['principal'])
+
+    def cat_eff(self,s,p):
+        """The part as the category screens see it: principal of a loan moved to a group counts under that group."""
+        if p.get('category')=='principal' and p.get('profile'):
+            loan=next((x for x in s['profiles'] if x['id']==p['profile']),None)
+            if loan and loan['kind']=='LOAN' and loan.get('group'):return dict(p,node=loan['group'],own_node=p.get('node'))
+        return p
+
+    def loan_options(self,s):
+        with localcontext() as ctx:
+            ctx.prec=60
+            people={p['id']:p['name'] for p in s['profiles']};by={p['id']:p for p in s['profiles']};rows=[]
+            for l in self.debt_register(s)['loans']:
+                setup=l['setup'];first=min((e['date'] for e in l['entries']),default=None);gross=None
+                if setup:
+                    gross=D(setup['opening']);receivable=setup['direction']=='RECEIVABLE'
+                    for e in l['entries']:
+                        if e['pre_opening']:continue
+                        for part in e['parts']:
+                            if part['category']=='principal' and (D(e['signed_amount'])<0)==receivable:gross+=D(part['amount'])
+                prof=by[l['id']];group=prof.get('group')
+                rows.append(dict(id=l['id'],party=l['party'],party_name=people.get(l['party'],''),name=l['name'],date=setup['effective_date'] if setup else first,gross=S(gross) if gross is not None else None,
+                    current=l['current_principal'],direction=setup['direction'] if setup else None,setup=bool(setup),group=group,group_path=self.cat_path(s,group) if group else ROOTS['principal'],history=prof.get('group_history',[])))
+        return rows
+
     # ---- totals & history --------------------------------------------
     def cat_period(self,d):
         from .p01 import day
@@ -169,7 +227,7 @@ class Categories:
         for t in s['transactions']:
             if (start and t['date']<start) or (end and t['date']>end) or (account and t['account']!=account):continue
             parts=t['allocations'] or [{'category':'unknown','amount':S(abs(D(t['signed_amount']))),'profile':None}]
-            for p in parts:yield t,p
+            for p in parts:yield t,self.cat_eff(s,p)
 
     def cat_keys(self,s,p):
         key=root_key(p['category']);node=p.get('node')
@@ -195,8 +253,11 @@ class Categories:
                 if spend:out['net_spend']=S(a['out']-a['in_'])
                 return out
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
-            nodes=[dict(id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            blob=self.cat_usage_blob(s);attached={}
+            for pr in s['profiles']:
+                if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
+            nodes=[dict(deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
+            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
@@ -299,9 +360,13 @@ class Categories:
                 parts=t['allocations'] or [{'category':'unknown','amount':S(abs(signed)),'profile':None}]
                 if t['allocations'] and not any(p['category']=='unknown' for p in t['allocations']):classified+=1
                 for p in parts:
-                    unknown=p['category']=='unknown';node=p.get('node')
-                    base='Chưa phân loại' if unknown else (self.cat_path(s,node) if node else ROOTS[root_key(p['category'])])
+                    unknown=p['category']=='unknown';own=p.get('node');eff=self.cat_eff(s,p);node=eff.get('node')
+                    own_path=self.cat_path(s,own) if own else ROOTS[root_key(p['category'])]
                     obj=profiles.get(p.get('profile')) if p.get('profile') else None
+                    if unknown:base='Chưa phân loại'
+                    elif obj and eff is p:
+                        top=self.cat_top(s,p);base=ROOTS[top] if top in ROOTS else self.cat_find(s,top)['name']
+                    else:base=self.cat_path(s,node) if node else ROOTS[root_key(p['category'])]
                     name=base if unknown or not obj else f'{base} · {obj}'
                     typ=root_key(p['category']) if not node else self.cat_find(s,node)['root']
                     amount=D(p['amount']);g=groups.setdefault(name,dict(key=name,name=name,type=typ,unclassified=unknown,tx=set(),in_=Decimal(0),out=Decimal(0),latest=None,rows=[]))
@@ -309,7 +374,7 @@ class Categories:
                     if incoming:g_in+=amount
                     else:g_out+=amount
                     if at and (g['latest'] is None or at>g['latest']):g['latest']=at
-                    label='Hoàn chi tiêu' if (p['category']=='expense' and incoming) else base
+                    label='Hoàn chi tiêu' if (p['category']=='expense' and incoming) else own_path
                     g['rows'].append(dict(transaction=t['id'],date=t['date'],reference=t['reference'],description=t['description'],amount=S(amount),tx_amount=S(abs(signed)),direction='IN' if incoming else 'OUT',
                         label=label,object=obj,split=len(parts)>1,classified_at=at,recent=bool(at and at>=cutoff),status='APPROVED' if t['id'] in approved else 'DRAFT',sources=len(t.get('sources',[])),_order=t.get('order',0)))
             out=[]
