@@ -1,0 +1,5 @@
+# Quickstart — kiểm 013 asset-overview
+1. `PYTHONPATH=src:tests python3 -m unittest test_p15_acceptance test_p14_acceptance … test_p01_acceptance` · `node --check src/pcms/web/p01.js` · `for f in tests/js/*.test.cjs; do node $f; done`
+2. Server QA bộ giả cổng 8801: `PYTHONPATH=src python3 -m pcms serve --p01 --data /tmp/pcms-assets-qa --port 8801` (seed: tài khoản 200 triệu, khoản cho vay phải thu 100 triệu, vay phải trả 300 triệu thế chấp BĐS, BĐS A giá trị 900 triệu + BĐS B chỉ có vốn 200 triệu, crypto 73.150 USDT, khách TRX phải thu 300 và nhận trước 100).
+3. PO UI: Tổng tài sản → khối VND: tài sản 1.400.000.000 (ngân hàng 200 + phải thu 100 + BĐS 900 giá trị hiện tại + 200 giá gốc), nợ 300 triệu, ròng; khối USDT: tài sản 73.450, nợ 100, ròng 73.350; không có số hợp nhất; cảnh báo BĐS B theo giá gốc, giao dịch chưa phân loại; bấm Mở sang màn nguồn → Lưu bản chụp S1 → đổi dữ liệu → so sánh với S1 → S1 nguyên → 375px.
+4. SHA256 `outputs/p01-user-trial` trước/sau; PR → merge; restart 8792; mở UI chính chỉ đọc.

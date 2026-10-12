@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P15 — R09, R15, R77–R80, Tổng hợp tài sản bản đầu (spec 013)
+
+Tiêu chí ở `specs/013-asset-overview/spec.md` (SC-001…SC-005): VND tài sản 1,2 tỷ/nợ 300 triệu/ròng 900 triệu và USDT 73.450/100/73.350 (ví dụ spec), không có số hợp nhất hai đồng tiền; BĐS theo giá gốc luôn có nhãn cơ sở và được liệt kê, thế chấp không trừ BĐS; nhóm không dữ liệu hiện "chưa có dữ liệu"; bản chụp bất biến, chênh lệch đúng; các phân hệ nguồn không đổi.
+
 ### P14 — R01, R15, R18, R19, R25, R26, R74–R76, Crypto / ví bản đầu (spec 012)
 
 Tiêu chí ở `specs/012-crypto-wallets/spec.md` (SC-001…SC-005): xác nhận số dư theo ngày, hủy quay về bản trước; BTC 0,5 @ 60.000 + ETH 10 @ 2.500 → 55.000 USDT, tỷ trọng 54,55/45,45, coin chưa giá ngoài mẫu số; vị thế đang mở và nợ margin không cộng/trừ vào giá trị; coin khác mạng tách riêng, không tỷ lệ/lãi/lỗ khi thiếu vốn hoặc giá; dữ liệu cũ không đổi.

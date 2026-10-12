@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P15 Tổng hợp tài sản bản đầu — 12/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/013-asset-overview](specs/013-asset-overview/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R77–R80: màn Tổng tài sản với hai khối VND và USDT độc lập (không quy đổi), tài sản/nợ/ròng, tỷ trọng theo nhóm, cơ sở tính (BĐS chưa có giá trị theo giá gốc có nhãn — PO quyết định theo nghiệp vụ kế toán), cảnh báo độ tin cậy, nút mở màn nguồn, bản chụp bất biến có hash và chênh lệch. Không tính đôi (thế chấp chỉ ở nợ, nợ margin/vị thế không cộng trừ), không dồn tích lãi. Test: 6 ca P15 + hồi quy = 111 ca đạt; PO dùng thử UI trên QA 8801 và mobile; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: quy đổi tiền tệ, cổ phiếu/shop/chung cư tiến độ, biểu đồ diễn biến. Bàn giao: outputs/p15-handoff.md.
+
 ### P14 Crypto / ví bản đầu — 12/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/012-crypto-wallets](specs/012-crypto-wallets/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R74–R76: nơi giữ (ví riêng, Binance, BingX), xác nhận số dư theo ngày (lịch sử, hủy có lý do), tách trạng thái trên sàn (đang giữ, Earn/khóa, ký quỹ, vị thế, nợ margin — vị thế và nợ hiển thị riêng, không cộng trừ), giá USDT nhập tay, giá trị và tỷ trọng theo nơi giữ/coin chỉ trên coin có giá, vốn theo coin với chênh lệch "chưa thực hiện", coin khác mạng tách riêng. Test: 6 ca P14 + hồi quy = 105 ca đạt; PO dùng thử UI trên QA 8801 và 375px; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: mua/bán/chuyển, giá tự động, tổng tài sản hợp nhất, chung cư tiến độ. Bàn giao: outputs/p14-handoff.md.
