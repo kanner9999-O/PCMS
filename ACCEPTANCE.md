@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P18 — R87–R93, Quản lý khoản vay và danh mục (spec 016)
+
+Tiêu chí ở `specs/016-loan-category-management/spec.md` (SC-001…SC-005): chọn một trong hai khoản vay của cùng người ≤ 4 thao tác; hai nhóm "Kết" gộp một và vẫn khớp sao kê; chuyển khoản vay làm tổng danh mục đích tăng đúng bằng gốc của khoản, dư gốc/phải thu không đổi, snapshot cũ không đổi; Thu nhập có đối tượng và hồ sơ người gắn trực tiếp bị chặn; danh mục đã dùng không bao giờ bị xóa hẳn.
+
 ### P17 — R84–R86, Kiểm tra phân loại (spec 015)
 
 Tiêu chí ở `specs/015-classification-review/spec.md`: ba giao dịch "Kết" (-500tr, +200tr, +300tr) nằm trong nhóm "Gốc vay · Kết" với vào 500tr/ra 500tr/ròng 0; mọi giao dịch trong phạm vi hiện đủ, tổng nhóm = tổng dòng, kiểm khớp báo đủ số giao dịch và tiền, cố ý lệch thì báo không khớp; khoản vừa phân loại lên đầu; chỉ đọc (số sự kiện không đổi); 375px không tràn ngang.

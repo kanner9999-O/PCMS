@@ -94,7 +94,7 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'capabilities':['loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P17-2026-10-12'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P18-2026-10-12'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -277,6 +277,7 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
         if action.startswith('crypto-'):return self.change_crypto(s,action,d)
         if action.startswith('realty-'):return self.change_realty(s,action,d)
         if action.startswith('category-'):return self.change_category(s,action,d)
+        if action=='loan-regroup':return self.change_category(s,action,d)
         if action=='object-quick-create':return self.change_quick_object(s,d)
         if action.startswith('trx-'):return self.change_trx(s,action,d)
         if action in {'loan-complete','loan-reopen'}:return self.change_completion(s,action,d)
@@ -441,8 +442,10 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
                     signed=D(t['signed_amount'])
                     require(not(category=='income' and signed<0),'Thu nhập chỉ dành cho tiền vào. Chi tiêu nhận cả tiền ra (chi) và tiền vào (hoàn chi).')
                     profile=p.get('profile') or None
+                    require(not profile or category in {'principal','interest','investment','expense'},'Đối tượng chỉ dành cho gốc/lãi vay (khoản vay), đầu tư và chi tiêu liên quan khoản vay/BĐS; Thu nhập và Chuyển nội bộ không gắn đối tượng.')
                     if profile:
                         target=item(s['profiles'],profile)
+                        require(target['kind']!='PERSON','Hồ sơ người không gắn trực tiếp vào phân loại; chọn khoản vay của người đó hoặc BĐS.')
                         if category in {'principal','interest'}:require(target['kind']=='LOAN','Gốc/lãi phải gắn hồ sơ khoản vay.')
                         if category=='investment':require(target['kind']=='PROPERTY','Đầu tư P01 phải gắn hồ sơ BĐS.')
                     require(category not in {'principal','interest','investment'} or profile,'Cần hồ sơ tương ứng cho gốc/lãi/đầu tư.')
