@@ -1,0 +1,10 @@
+Ran 196 tests in 31.513s
+
+OK
+category_period: OK
+classification_check: OK
+classification_sort: OK
+vnTime: OK
+expense_refund: OK
+history_format: OK
+loan_label: OK

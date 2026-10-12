@@ -1,0 +1,2 @@
+# Plan 018
+Chỉ đổi `web/p01.css` (lưới 6 cột dùng container query: ≥1060px một hàng, hẹp hơn hai tầng, điện thoại ba tầng; hộp `dialog.wide` rộng 1280px) và `web/p01.js` (`stmtRowHtml` tách ngày/mã/Xem nguồn thành ô riêng; `wideNext` bật hộp rộng cho lịch sử danh mục, BĐS, chi tiết khoản vay). Không đổi backend, số liệu, snapshot. Test: `tests/js/history_format.test.cjs` cập nhật; dùng thử QA 8801 (≥1300px, 768px, 375px).
