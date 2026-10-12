@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P16 — R46, R55, R56, R58, R81–R83, Hoàn thiện Danh mục (spec 014)
+
+Tiêu chí ở `specs/014-category-completion/spec.md` (SC-001…SC-005): tạo và dùng gốc mới ≤4 thao tác, tổng gốc hệ thống cùng loại không bị đếm thêm; lọc tháng cho tổng bằng đúng tổng các dòng lịch sử; báo cáo duyệt theo danh mục khớp số giao dịch gốc và tổng tiền vào/ra, cố ý lệch thì báo không khớp; từ dòng báo cáo mở dòng nguồn ≤2 thao tác; snapshot/báo cáo/công nợ/BĐS/crypto/TRX cũ không đổi.
+
 ### P15 — R09, R15, R77–R80, Tổng hợp tài sản bản đầu (spec 013)
 
 Tiêu chí ở `specs/013-asset-overview/spec.md` (SC-001…SC-005): VND tài sản 1,2 tỷ/nợ 300 triệu/ròng 900 triệu và USDT 73.450/100/73.350 (ví dụ spec), không có số hợp nhất hai đồng tiền; BĐS theo giá gốc luôn có nhãn cơ sở và được liệt kê, thế chấp không trừ BĐS; nhóm không dữ liệu hiện "chưa có dữ liệu"; bản chụp bất biến, chênh lệch đúng; các phân hệ nguồn không đổi.
