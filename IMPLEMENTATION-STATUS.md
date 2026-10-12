@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P17 Kiểm tra phân loại — 12/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/015-classification-review](specs/015-classification-review/spec.md) (mockup → Thạch chốt → specify → plan → tasks → implement → nghiệm thu → PR). Theo R84–R86: màn chỉ xem mở từ bước Phân loại, gom giao dịch theo danh mục (và "Danh mục · Đối tượng", ví dụ "Gốc vay · Kết"), nhóm "Chưa phân loại" riêng, dòng kiểu sao kê (ngày + mã, nội dung + Xem nguồn, số tiền, nhãn), mở sẵn mọi giao dịch, phạm vi mặc định cả tài khoản (24 giờ qua / khoảng ngày), khoản vừa phân loại lên đầu kèm nhãn "Mới", thanh tóm tắt và kiểm khớp số giao dịch/tiền vào/ra với sao kê. Không sửa dữ liệu, không đổi snapshot/báo cáo. Test: 5 ca P17 + node + hồi quy = 185 ca Python đạt, 5 bộ node đạt; PO dùng thử UI trên QA 8801 (desktop + 375px); 56 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: nút "đã kiểm", sửa ngay trên màn. Bàn giao: outputs/p17-handoff.md.
+
 ### P16 Hoàn thiện Danh mục — 12/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/014-category-completion](specs/014-category-completion/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R81–R83: tự tạo danh mục gốc mới (loại nhóm thu/chi/đầu tư kế thừa quy tắc, tổng riêng, không trùng tên gốc nào), xem tổng và lịch sử theo kỳ (tháng/quý/tùy chọn), báo cáo duyệt theo danh mục (số giao dịch, số đối tượng, vào/ra/chi ròng, kiểm đối chiếu khớp, mở chi tiết). Không đổi snapshot/báo cáo cũ. Test: 6 ca P16 + node + hồi quy = 117 ca đạt; PO dùng thử UI trên QA 8801 và mobile; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: gộp danh mục, loại trung tính. Bàn giao: outputs/p16-handoff.md.

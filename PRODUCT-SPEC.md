@@ -587,3 +587,13 @@ Triển khai: [specs/013-asset-overview](specs/013-asset-overview/spec.md).
 | R83 | **Báo cáo duyệt theo danh mục** (R46): từng danh mục và danh mục con kèm số giao dịch, số đối tượng liên quan, tiền vào/ra (Chi tiêu: chi, hoàn chi, chi ròng), mở được chi tiết; có kiểm đối chiếu đủ số giao dịch gốc và tổng tiền, không trùng/thiếu. |
 
 Triển khai: [specs/014-category-completion](specs/014-category-completion/spec.md).
+
+### R84–R86 — Màn Kiểm tra phân loại · 12/10/2026 (Thạch phản hồi qua bản nháp)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R84 | Sau khi phân loại, có **màn chỉ xem "Kiểm tra phân loại"** để rà xem giao dịch đã vào danh mục nào và gắn đúng đối tượng chưa: mỗi danh mục (và đối tượng như người/khoản vay/BĐS) là một nhóm liệt kê **tất cả giao dịch kèm theo**; ví dụ nhóm "Gốc vay · Kết" chứa 3 giao dịch 500 triệu, 200 triệu, 300 triệu. |
+| R85 | **Phạm vi mặc định là cả tài khoản**; **ưu tiên giao dịch vừa được phân loại lên đầu** (nhóm và dòng sắp theo thời điểm phân loại mới nhất) vì Thạch thường xuyên rà lại việc mình phân loại. Có thể chọn "24 giờ qua" hoặc khoảng ngày. |
+| R86 | Hiển thị **kiểu sao kê ngân hàng**: mỗi dòng gồm ngày kèm mã tham chiếu, nội dung kèm "Xem nguồn", số tiền (ra/vào), trạng thái phân loại; **mặc định mở sẵn mọi giao dịch**; chỉ cần thấy tên danh mục, giao dịch và **tổng** (từng nhóm, tổng toàn bộ, kiểm khớp đủ số giao dịch và tiền). Chỉ xem, không sửa ở màn này; không có nút "đã kiểm" ở bản đầu. |
+
+Triển khai: [specs/015-classification-review](specs/015-classification-review/spec.md).
