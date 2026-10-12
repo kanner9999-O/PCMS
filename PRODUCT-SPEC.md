@@ -577,3 +577,13 @@ Triển khai: [specs/012-crypto-wallets](specs/012-crypto-wallets/spec.md).
 | R80 | Có **lưu bản chụp tổng tài sản** theo ngày: bấm lưu để ghi bất biến tổng, từng thành phần, cơ sở tính, cảnh báo và ngày; xem lại các lần và chênh lệch so với lần trước. |
 
 Triển khai: [specs/013-asset-overview](specs/013-asset-overview/spec.md).
+
+### R81–R83 — Hoàn thiện Danh mục · 12/10/2026 (Thạch trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R81 | Cho tự tạo **danh mục gốc mới**, bắt buộc chọn loại kế thừa quy tắc: nhóm thu (như Thu nhập), nhóm chi (như Chi tiêu, có hoàn chi), nhóm đầu tư (gắn hồ sơ BĐS). Gốc mới hiển thị ngang hàng 7 gốc hệ thống, tổng riêng; loại không đổi sau khi tạo. (Loại "trung tính" nhận cả hai chiều: Chi tiêu đã nhận cả chi và hoàn chi nên chưa thêm loại riêng.) |
+| R82 | **Xem tổng theo kỳ**: bộ lọc tháng/quý/tùy chọn trên màn Danh mục và lịch sử từng danh mục (theo ngày giao dịch). |
+| R83 | **Báo cáo duyệt theo danh mục** (R46): từng danh mục và danh mục con kèm số giao dịch, số đối tượng liên quan, tiền vào/ra (Chi tiêu: chi, hoàn chi, chi ròng), mở được chi tiết; có kiểm đối chiếu đủ số giao dịch gốc và tổng tiền, không trùng/thiếu. |
+
+Triển khai: [specs/014-category-completion](specs/014-category-completion/spec.md).

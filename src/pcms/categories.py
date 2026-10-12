@@ -11,6 +11,7 @@ from .product import D, S, uid
 ROOTS={'income':'Thu nhập','expense':'Chi tiêu','principal':'Gốc vay','interest':'Lãi vay','investment':'Đầu tư BĐS','transfer':'Chuyển nội bộ','unknown':'Chưa phân loại'}
 PARENTABLE={'income','expense','principal','interest','investment'}
 MAX_DEPTH=4
+ROOT_TYPES={'income':'Nhóm thu','expense':'Nhóm chi','investment':'Nhóm đầu tư'}
 
 def root_key(category):
     return 'transfer' if category=='transfer_pending' else category
@@ -30,9 +31,12 @@ class Categories:
         return found
 
     def cat_depth(self,s,node):
-        depth=2;parent=node['parent']
-        while parent not in ROOTS:
-            parent=self.cat_find(s,parent)['parent'];depth+=1
+        """Levels counted from the top: a user-created root is 1, a child of any root is 2, and so on."""
+        depth=1;cur=node
+        while cur['parent'] is not None:
+            depth+=1
+            if cur['parent'] in ROOTS:break
+            cur=self.cat_find(s,cur['parent'])
         return depth
 
     def cat_chain(self,s,cid):
@@ -48,10 +52,12 @@ class Categories:
     def cat_path(self,s,cid):
         names=[];by={n['id']:n for n in cat_state(s)['categories']}
         while cid in by:names.append(by[cid]['name']);cid=by[cid]['parent']
-        names.append(ROOTS.get(cid,cid));return ' › '.join(reversed(names))
+        if cid is not None:names.append(ROOTS.get(cid,cid))
+        return ' › '.join(reversed(names))
 
     def cat_name_ok(self,s,name,parent,own=None):
         name=str(name or '').strip();require(1<=len(name)<=100,'Tên danh mục dài 1–100 ký tự.')
+        if parent is None:require(not any(norm_name(v)==norm_name(name) for v in ROOTS.values()),'Tên trùng một danh mục gốc hệ thống.')
         require(not any(n['parent']==parent and n['id']!=own and norm_name(n['name'])==norm_name(name) for n in s['categories']),'Đã có danh mục cùng tên trong cùng danh mục cha (kể cả đã lưu trữ).')
         return name
 
@@ -70,6 +76,11 @@ class Categories:
             key=d.get('root');require(key in ROOTS,'Chọn một danh mục gốc.')
             text=str(d.get('description','')).strip();require(len(text)<=500,'Mô tả tối đa 500 ký tự.')
             s['category_roots'][key]=text;return 'Cập nhật mô tả '+ROOTS[key]
+        if action=='category-create' and not d.get('parent'):
+            typ=d.get('type');require(typ in ROOT_TYPES,'Chọn loại cho danh mục gốc: nhóm thu, nhóm chi hoặc nhóm đầu tư.')
+            name=self.cat_name_ok(s,d.get('name'),None);desc=str(d.get('description','')).strip();require(len(desc)<=500,'Mô tả tối đa 500 ký tự.')
+            node=dict(id=uid(),name=name,description=desc,parent=None,root=typ,status='ACTIVE',created_at=now(),history=[])
+            log(node,'CREATE',None,dict(name=name,type=typ));s['categories'].append(node);return 'Tạo danh mục gốc '+name
         if action=='category-create':
             parent=d.get('parent');root=self.cat_parent_ok(s,parent)
             name=self.cat_name_ok(s,d.get('name'),parent);desc=str(d.get('description','')).strip();require(len(desc)<=500,'Mô tả tối đa 500 ký tự.')
@@ -80,7 +91,8 @@ class Categories:
         node=self.cat_find(s,d.get('category'))
         if action=='category-edit':
             changed=False;reason=d.get('reason','')
-            if 'parent' in d and d['parent']!=node['parent']:
+            if 'parent' in d and d['parent']!=node['parent'] and not (node['parent'] is None and not d['parent']):
+                require(node['parent'] is not None,'Danh mục gốc tự tạo không đổi cấp cha.')
                 parent=d['parent'];root=self.cat_parent_ok(s,parent);require(root==node['root'],'Chỉ đổi cha trong cùng một danh mục gốc.')
                 require(parent!=node['id'] and parent not in {n['id'] for n in self.cat_descendants(s,node)},'Không thể đặt danh mục làm con của chính nó hoặc của danh mục con của nó.')
                 new_depth=2 if parent in ROOTS else self.cat_depth(s,self.cat_find(s,parent))+1
@@ -98,7 +110,7 @@ class Categories:
             log(node,'ARCHIVE','ACTIVE','ARCHIVED',reason);node['status']='ARCHIVED';return 'Lưu trữ danh mục '+node['name']
         if action=='category-restore':
             require(node['status']=='ARCHIVED','Danh mục đang hoạt động.')
-            require(node['parent'] in ROOTS or self.cat_find(s,node['parent'])['status']=='ACTIVE','Khôi phục danh mục cha trước.')
+            require(node['parent'] is None or node['parent'] in ROOTS or self.cat_find(s,node['parent'])['status']=='ACTIVE','Khôi phục danh mục cha trước.')
             log(node,'RESTORE','ARCHIVED','ACTIVE',d.get('reason',''));node['status']='ACTIVE';return 'Khôi phục danh mục '+node['name']
         require(False,'Hành động không hợp lệ.')
 
@@ -143,21 +155,35 @@ class Categories:
         return out
 
     # ---- totals & history --------------------------------------------
-    def cat_parts(self,s):
+    def cat_period(self,d):
+        from .p01 import day
+        start=d.get('start') or None;end=d.get('end') or None
+        if start:day(start)
+        if end:day(end)
+        require(not(start and end) or start<=end,'Ngày kết thúc không được trước ngày bắt đầu.')
+        return start,end
+
+    def cat_parts(self,s,start=None,end=None,account=None):
         """Yield (transaction, part) for every classified part; unclassified money goes to the 'unknown' root."""
         for t in s['transactions']:
+            if (start and t['date']<start) or (end and t['date']>end) or (account and t['account']!=account):continue
             parts=t['allocations'] or [{'category':'unknown','amount':S(abs(D(t['signed_amount']))),'profile':None}]
             for p in parts:yield t,p
 
     def cat_keys(self,s,p):
         key=root_key(p['category']);node=p.get('node')
-        return [key]+(self.cat_chain(s,node) if node else [])
+        if not node:return [key]
+        chain=self.cat_chain(s,node)
+        return chain if self.cat_find(s,chain[-1])['parent'] is None else [key]+chain      # user-created root: own totals, not the system root's
 
-    def category_view(self,s):
+    def cat_top(self,s,p):
+        keys=self.cat_keys(s,p);return keys[-1] if p.get('node') and keys[0]!=root_key(p['category']) else keys[0]
+
+    def category_view(self,s,start=None,end=None):
         with localcontext() as ctx:
             ctx.prec=60
             s=cat_state(copy.deepcopy(s));acc={}
-            for t,p in self.cat_parts(s):
+            for t,p in self.cat_parts(s,start,end):
                 incoming=D(t['signed_amount'])>0;amount=D(p['amount'])
                 for key in self.cat_keys(s,p):
                     a=acc.setdefault(key,dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set()))
@@ -169,18 +195,18 @@ class Categories:
                 return out
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
             nodes=[dict(id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,max_depth=MAX_DEPTH,draft=True)
+            return dict(roots=roots,nodes=nodes,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
         with localcontext() as ctx:
             ctx.prec=60
-            s=cat_state(copy.deepcopy(s or self.state()));key=d.get('category')
+            s=cat_state(copy.deepcopy(s or self.state()));key=d.get('category');start,end=self.cat_period(d);account=d.get('account') or None
             require(key in ROOTS or any(n['id']==key for n in s['categories']),'Chọn danh mục.')
             approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']}
             accounts={a['id']:a['name'] for a in s['accounts']};profiles={p['id']:p['name'] for p in s['profiles']}
             rows=[];tx=set();inc=out=Decimal(0)
-            for t,p in self.cat_parts(s):
+            for t,p in self.cat_parts(s,start,end,account):
                 if key not in self.cat_keys(s,p):continue
                 incoming=D(t['signed_amount'])>0;amount=D(p['amount']);tx.add(t['id'])
                 if incoming:inc+=amount
@@ -195,4 +221,48 @@ class Categories:
             root=key if key in ROOTS else next(n['root'] for n in s['categories'] if n['id']==key)
             totals={'in':S(inc),'out':S(out),'net':S(inc-out),'parts':len(rows),'transactions':len(tx)}
             if root=='expense':totals['net_spend']=S(out-inc)
-            return dict(category=key,root=root,path=self.cat_path(s,key),evidence=evidence,source_notice=notice,totals=totals,rows=rows)
+            return dict(category=key,root=root,path=self.cat_path(s,key),evidence=evidence,source_notice=notice,totals=totals,rows=rows,period=dict(start=start,end=end) if (start or end) else None)
+
+    def category_review(self,d,s=None):
+        """Approval-step breakdown by category for one account, with a reconciliation against the source rows."""
+        with localcontext() as ctx:
+            ctx.prec=60
+            s=cat_state(copy.deepcopy(s or self.state()));account=d.get('account')
+            require(any(a['id']==account for a in s['accounts']),'Chọn tài khoản.')
+            txs=[t for t in s['transactions'] if t['account']==account];acc={};top={}
+            def bucket(table,key):return table.setdefault(key,dict(in_=Decimal(0),out=Decimal(0),tx=set(),objs=set()))
+            src_in=src_out=Decimal(0)
+            for t in txs:
+                incoming=D(t['signed_amount'])>0
+                if incoming:src_in+=abs(D(t['signed_amount']))
+                else:src_out+=abs(D(t['signed_amount']))
+            for t,p in self.cat_parts(s,account=account):
+                incoming=D(t['signed_amount'])>0;amount=D(p['amount'])
+                for key in self.cat_keys(s,p)+['@'+self.cat_top(s,p)]:
+                    b=bucket(top if key.startswith('@') else acc,key[1:] if key.startswith('@') else key)
+                    b['in_' if incoming else 'out']+=amount;b['tx'].add(t['id'])
+                    if p.get('profile'):b['objs'].add(p['profile'])
+            def stats(key,typ):
+                b=acc.get(key) or dict(in_=Decimal(0),out=Decimal(0),tx=set(),objs=set())
+                row=dict(transactions=len(b['tx']),objects=len(b['objs']),**{'in':S(b['in_']),'out':S(b['out'])})
+                if typ=='expense':row['net_spend']=S(b['out']-b['in_'])
+                return row
+            def children(parent):
+                out=[]
+                for n in s['categories']:
+                    if n['parent']!=parent:continue
+                    row=dict(key=n['id'],name=n['name'],type=n['root'],system=False,status=n['status'],**stats(n['id'],n['root']));row['children']=children(n['id'])
+                    if row['transactions'] or row['children'] or n['status']=='ACTIVE':out.append(row)
+                return out
+            groups=[]
+            for k,v in ROOTS.items():
+                row=dict(key=k,name=v,type=k,system=True,status='ACTIVE',**stats(k,k));row['children']=children(k);groups.append(row)
+            for n in s['categories']:
+                if n['parent'] is None:
+                    row=dict(key=n['id'],name=n['name'],type=n['root'],system=False,status=n['status'],**stats(n['id'],n['root']));row['children']=children(n['id'])
+                    if row['transactions'] or row['children'] or n['status']=='ACTIVE':groups.append(row)
+            grouped_tx=set().union(*[b['tx'] for b in top.values()]) if top else set()
+            g_in=sum((b['in_'] for b in top.values()),Decimal(0));g_out=sum((b['out'] for b in top.values()),Decimal(0))
+            def check(source,grouped):return dict(source=S(source) if isinstance(source,Decimal) else source,grouped=S(grouped) if isinstance(grouped,Decimal) else grouped,ok=source==grouped,difference=S(grouped-source) if isinstance(source,Decimal) else grouped-source)
+            checks=dict(transactions=check(len(txs),len(grouped_tx)),money_in=check(src_in,g_in),money_out=check(src_out,g_out))
+            return dict(account=account,groups=groups,checks=checks,reconciled=all(c['ok'] for c in checks.values()),empty=not txs,draft=True)

@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P16 Hoàn thiện Danh mục — 12/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/014-category-completion](specs/014-category-completion/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R81–R83: tự tạo danh mục gốc mới (loại nhóm thu/chi/đầu tư kế thừa quy tắc, tổng riêng, không trùng tên gốc nào), xem tổng và lịch sử theo kỳ (tháng/quý/tùy chọn), báo cáo duyệt theo danh mục (số giao dịch, số đối tượng, vào/ra/chi ròng, kiểm đối chiếu khớp, mở chi tiết). Không đổi snapshot/báo cáo cũ. Test: 6 ca P16 + node + hồi quy = 117 ca đạt; PO dùng thử UI trên QA 8801 và mobile; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: gộp danh mục, loại trung tính. Bàn giao: outputs/p16-handoff.md.
+
 ### P15 Tổng hợp tài sản bản đầu — 12/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/013-asset-overview](specs/013-asset-overview/spec.md) (phỏng vấn Thạch → specify → plan → tasks → analyze → implement → nghiệm thu → PR). Theo R77–R80: màn Tổng tài sản với hai khối VND và USDT độc lập (không quy đổi), tài sản/nợ/ròng, tỷ trọng theo nhóm, cơ sở tính (BĐS chưa có giá trị theo giá gốc có nhãn — PO quyết định theo nghiệp vụ kế toán), cảnh báo độ tin cậy, nút mở màn nguồn, bản chụp bất biến có hash và chênh lệch. Không tính đôi (thế chấp chỉ ở nợ, nợ margin/vị thế không cộng trừ), không dồn tích lãi. Test: 6 ca P15 + hồi quy = 111 ca đạt; PO dùng thử UI trên QA 8801 và mobile; 53 file `outputs/p01-user-trial` giữ nguyên SHA256. Chưa làm: quy đổi tiền tệ, cổ phiếu/shop/chung cư tiến độ, biểu đồ diễn biến. Bàn giao: outputs/p15-handoff.md.
