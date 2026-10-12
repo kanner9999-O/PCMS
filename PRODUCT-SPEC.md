@@ -611,3 +611,11 @@ Triển khai: [specs/015-classification-review](specs/015-classification-review/
 | R93 | **Chuyển cả khoản vay sang danh mục khác** (ví dụ từ nhóm Loans sang Long debt khi thành nợ dài hạn): một thao tác có lý do và ngày, mọi giao dịch của khoản đó hiện dưới danh mục mới; dư gốc, lãi, lịch sử không đổi; giữ lịch sử chuyển. **Xóa hẳn danh mục chưa từng dùng** (kể cả lịch sử); danh mục đã dùng chỉ lưu trữ. *(Mặc định đề xuất cho phần xóa, Thạch chưa xác nhận riêng.)* |
 
 Triển khai: [specs/016-loan-category-management](specs/016-loan-category-management/spec.md). Điều chỉnh khi làm: Chi tiêu vẫn gắn được khoản vay/BĐS (chi hộ khoản vay, chi phí BĐS — hành vi từ spec 004/010/011); R91 chỉ chặn hồ sơ người gắn trực tiếp và Thu nhập/Chuyển nội bộ có đối tượng. Chuyển nhóm chỉ áp dụng phần Gốc vay; Lãi vay giữ ở Lãi vay.
+
+### R94 — Định dạng lịch sử giao dịch chuẩn · 12/10/2026 (Thạch: "mày chốt một định dạng tiêu chuẩn")
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R94 | Lịch sử giao dịch của **mọi danh mục và đối tượng** (danh mục, gốc/lãi của khoản vay, BĐS) dùng **một định dạng chuẩn giống màn Kiểm tra phân loại**: tóm tắt tổng ở đầu, mỗi giao dịch một dòng kiểu sao kê (ngày + mã tham chiếu, nội dung + "Xem nguồn · n liên kết", số tiền ra/vào có màu, nhãn danh mục/đối tượng + trạng thái nháp/đã duyệt), mới nhất lên trên, tổng cuối. PO chốt chi tiết (Thạch ủy quyền). |
+
+Triển khai: [specs/017-history-format](specs/017-history-format/spec.md).

@@ -275,8 +275,9 @@ class Categories:
                 else:out+=amount
                 node=p.get('node');row_path=self.cat_path(s,node) if node else ROOTS[root_key(p['category'])]
                 rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',
+                    label=('Hoàn chi tiêu' if (p['category']=='expense' and incoming) else row_path)+(' · '+profiles[p['profile']] if p.get('profile') in profiles else ''),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
                     category_path=row_path,object=profiles.get(p.get('profile')),status='APPROVED' if t['id'] in approved else 'DRAFT',node_status=next((n['status'] for n in s['categories'] if n['id']==node),None) if node else None,sources=copy.deepcopy(t.get('sources',[]))))
-            rows.sort(key=lambda r:(r['date'],r['reference']))
+            rows.sort(key=lambda r:(r['date'],r['reference']),reverse=True)
             periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED']
             evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE')
             notice=('Kỳ nguồn đã ghi: '+'; '.join(display_day(a)+' → '+display_day(b) for a,b in sorted(set(periods)))+'. Ngoài các kỳ này chưa có bằng chứng.') if periods else 'Chưa có nguồn ngân hàng nào được ghi; không suy ra là không phát sinh.'

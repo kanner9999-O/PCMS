@@ -114,8 +114,9 @@ class Realty:
                     else:paid+=amount
                 elif incoming:refunded+=amount
                 else:spent+=amount
-                rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',kind='CAPITAL' if capital else 'COST',status='APPROVED' if t['id'] in approved else 'DRAFT',sources=copy.deepcopy(t.get('sources',[]))))
-            rows.sort(key=lambda r:(r['date'],r['reference']))
+                rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',kind='CAPITAL' if capital else 'COST',status='APPROVED' if t['id'] in approved else 'DRAFT',sources=copy.deepcopy(t.get('sources',[])),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
+                    label=('Vốn nhận lại' if incoming else 'Vốn đã thanh toán') if capital else ('Hoàn chi phí' if incoming else 'Chi phí')))
+            rows.sort(key=lambda r:(r['date'],r['reference']),reverse=True)
             periods=sorted({(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED'})
             notice=('Kỳ nguồn đã ghi: '+'; '.join(display_day(a)+' → '+display_day(b) for a,b in periods)+'. Vốn chỉ tính giao dịch đã phân loại Đầu tư BĐS gắn BĐS này.') if periods else 'Chưa có nguồn ngân hàng nào được ghi; không suy ra là chưa thanh toán.'
             return dict(property=p['id'],name=p['name'],evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE'),source_notice=notice,
