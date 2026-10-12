@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P17 — R84–R86, Kiểm tra phân loại (spec 015)
+
+Tiêu chí ở `specs/015-classification-review/spec.md`: ba giao dịch "Kết" (-500tr, +200tr, +300tr) nằm trong nhóm "Gốc vay · Kết" với vào 500tr/ra 500tr/ròng 0; mọi giao dịch trong phạm vi hiện đủ, tổng nhóm = tổng dòng, kiểm khớp báo đủ số giao dịch và tiền, cố ý lệch thì báo không khớp; khoản vừa phân loại lên đầu; chỉ đọc (số sự kiện không đổi); 375px không tràn ngang.
+
 ### P16 — R46, R55, R56, R58, R81–R83, Hoàn thiện Danh mục (spec 014)
 
 Tiêu chí ở `specs/014-category-completion/spec.md` (SC-001…SC-005): tạo và dùng gốc mới ≤4 thao tác, tổng gốc hệ thống cùng loại không bị đếm thêm; lọc tháng cho tổng bằng đúng tổng các dòng lịch sử; báo cáo duyệt theo danh mục khớp số giao dịch gốc và tổng tiền vào/ra, cố ý lệch thì báo không khớp; từ dòng báo cáo mở dòng nguồn ≤2 thao tác; snapshot/báo cáo/công nợ/BĐS/crypto/TRX cũ không đổi.

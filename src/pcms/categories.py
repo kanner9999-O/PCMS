@@ -4,6 +4,7 @@ Totals come only from classified parts of source transactions; nothing here crea
 """
 import copy
 import unicodedata
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, localcontext
 from .core import require
 from .product import D, S, uid
@@ -266,3 +267,65 @@ class Categories:
             def check(source,grouped):return dict(source=S(source) if isinstance(source,Decimal) else source,grouped=S(grouped) if isinstance(grouped,Decimal) else grouped,ok=source==grouped,difference=S(grouped-source) if isinstance(source,Decimal) else grouped-source)
             checks=dict(transactions=check(len(txs),len(grouped_tx)),money_in=check(src_in,g_in),money_out=check(src_out,g_out))
             return dict(account=account,groups=groups,checks=checks,reconciled=all(c['ok'] for c in checks.values()),empty=not txs,draft=True)
+
+    def classification_review(self,d,s=None):
+        """Read-only statement-style listing of every transaction grouped by category / category · object."""
+        from .p01 import now
+        with localcontext() as ctx:
+            ctx.prec=60
+            s=cat_state(copy.deepcopy(s or self.state()));account=d.get('account')
+            require(any(a['id']==account for a in s['accounts']),'Chọn tài khoản.')
+            mode=d.get('scope') or 'all';require(mode in {'all','recent','range'},'Phạm vi không hợp lệ.')
+            start=end=None
+            if mode=='range':
+                start,end=self.cat_period(d);require(start or end,'Chọn ngày bắt đầu hoặc kết thúc.')
+            moment=now();cutoff=(datetime.fromisoformat(moment)-timedelta(hours=24)).isoformat()
+            approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']};profiles={p['id']:p['name'] for p in s['profiles']}
+            def when(t):
+                h=t.get('classification_history') or []
+                return h[-1]['at'] if h and t['allocations'] else None
+            txs=[]
+            for t in s['transactions']:
+                if t['account']!=account:continue
+                at=when(t)
+                if mode=='recent' and not(at and at>=cutoff):continue
+                if mode=='range' and ((start and t['date']<start) or (end and t['date']>end)):continue
+                txs.append(t)
+            groups={};src_in=src_out=g_in=g_out=Decimal(0);seen=set();classified=0
+            for t in txs:
+                signed=D(t['signed_amount']);incoming=signed>0;at=when(t)
+                if incoming:src_in+=abs(signed)
+                else:src_out+=abs(signed)
+                parts=t['allocations'] or [{'category':'unknown','amount':S(abs(signed)),'profile':None}]
+                if t['allocations'] and not any(p['category']=='unknown' for p in t['allocations']):classified+=1
+                for p in parts:
+                    unknown=p['category']=='unknown';node=p.get('node')
+                    base='Chưa phân loại' if unknown else (self.cat_path(s,node) if node else ROOTS[root_key(p['category'])])
+                    obj=profiles.get(p.get('profile')) if p.get('profile') else None
+                    name=base if unknown or not obj else f'{base} · {obj}'
+                    typ=root_key(p['category']) if not node else self.cat_find(s,node)['root']
+                    amount=D(p['amount']);g=groups.setdefault(name,dict(key=name,name=name,type=typ,unclassified=unknown,tx=set(),in_=Decimal(0),out=Decimal(0),latest=None,rows=[]))
+                    g['in_' if incoming else 'out']+=amount;g['tx'].add(t['id']);seen.add(t['id'])
+                    if incoming:g_in+=amount
+                    else:g_out+=amount
+                    if at and (g['latest'] is None or at>g['latest']):g['latest']=at
+                    label='Hoàn chi tiêu' if (p['category']=='expense' and incoming) else base
+                    g['rows'].append(dict(transaction=t['id'],date=t['date'],reference=t['reference'],description=t['description'],amount=S(amount),tx_amount=S(abs(signed)),direction='IN' if incoming else 'OUT',
+                        label=label,object=obj,split=len(parts)>1,classified_at=at,recent=bool(at and at>=cutoff),status='APPROVED' if t['id'] in approved else 'DRAFT',sources=len(t.get('sources',[])),_order=t.get('order',0)))
+            out=[]
+            for g in groups.values():
+                g['rows'].sort(key=lambda r:(r['classified_at'] or '',r['date'],r['_order']),reverse=True)
+                for r in g['rows']:r.pop('_order')
+                row=dict(key=g['key'],name=g['name'],type=g['type'],unclassified=g['unclassified'],transactions=len(g['tx']),latest=g['latest'],rows=g['rows'],**{'in':S(g['in_']),'out':S(g['out'])})
+                if g['type']=='expense':row['net_spend']=S(g['out']-g['in_'])
+                out.append(row)
+            out.sort(key=lambda g:(g['unclassified'],_neg(g['latest']),g['name']))
+            def check(source,grouped):return dict(source=source if isinstance(source,int) else S(source),grouped=grouped if isinstance(grouped,int) else S(grouped),ok=source==grouped,difference=(grouped-source) if isinstance(source,int) else S(grouped-source))
+            checks=dict(transactions=check(len(txs),len(seen)),money_in=check(src_in,g_in),money_out=check(src_out,g_out))
+            return dict(account=account,scope=dict(mode=mode,start=start,end=end,cutoff=cutoff if mode=='recent' else None),now=moment,
+                summary=dict(transactions=len(txs),classified=classified,unclassified=len(txs)-classified,**{'in':S(src_in),'out':S(src_out),'net':S(src_in-src_out)}),
+                checks=checks,reconciled=all(c['ok'] for c in checks.values()),groups=out,empty=not txs,draft=True)
+
+def _neg(value):
+    """Sort key making later ISO timestamps come first; groups without a timestamp go last."""
+    return tuple(-ord(c) for c in value) if value else (1,)
