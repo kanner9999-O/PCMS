@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P19 — R94, Định dạng lịch sử chuẩn (spec 017)
+
+Tiêu chí ở `specs/017-history-format/spec.md`: bốn nơi hiển thị lịch sử (danh mục, lịch sử theo tài khoản, khoản vay, BĐS) dùng cùng định dạng; tổng ở tóm tắt bằng tổng các dòng; mới nhất trước; 375px không tràn ngang; số liệu không đổi.
+
 ### P18 — R87–R93, Quản lý khoản vay và danh mục (spec 016)
 
 Tiêu chí ở `specs/016-loan-category-management/spec.md` (SC-001…SC-005): chọn một trong hai khoản vay của cùng người ≤ 4 thao tác; hai nhóm "Kết" gộp một và vẫn khớp sao kê; chuyển khoản vay làm tổng danh mục đích tăng đúng bằng gốc của khoản, dư gốc/phải thu không đổi, snapshot cũ không đổi; Thu nhập có đối tượng và hồ sơ người gắn trực tiếp bị chặn; danh mục đã dùng không bao giờ bị xóa hẳn.

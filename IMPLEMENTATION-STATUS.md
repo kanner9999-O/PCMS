@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P19 Định dạng lịch sử chuẩn — 12/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/017-history-format](specs/017-history-format/spec.md) (Thạch giao PO chốt định dạng, R94). Lịch sử của danh mục, khoản vay và BĐS dùng cùng một dòng kiểu sao kê như màn Kiểm tra phân loại: tóm tắt đầu, mỗi giao dịch một dòng (ngày + mã, nội dung + Xem nguồn, số tiền ra/vào màu, nhãn + trạng thái), mới nhất trước, tổng cuối. Chỉ đổi hiển thị và thêm trường hiển thị; số liệu không đổi. Test: 4 ca P19 + node `history_format` + hồi quy = 196 ca Python, 7 bộ node đạt (2 kỳ vọng thứ tự cũ ở P10 đổi sang mới nhất trước). PO dùng thử QA 8801. Bàn giao: outputs/p19-handoff.md.
+
 ### P18 Quản lý khoản vay và danh mục — 12/10/2026 (chờ phát hành)
 
 Làm theo Spec Kit: [specs/016-loan-category-management](specs/016-loan-category-management/spec.md) (phỏng vấn Thạch → specify → plan → tasks → implement → nghiệm thu). Theo R87–R93: chọn người rồi khoản vay (nhãn "người · ngày · gốc · dư", tạo khoản mới ngay trong ô chọn, không hiện PERSON/LOAN), danh mục con tùy chọn, chặn Thu nhập/Chuyển nội bộ có đối tượng và hồ sơ người gắn trực tiếp, màn Kiểm tra gom theo danh mục + đối tượng (danh mục con là nhãn dòng), chuyển cả khoản vay sang danh mục Gốc vay khác (Loans › Long debt) có lý do và ngày, giữ lịch sử, dư gốc/công nợ/snapshot không đổi, xóa hẳn danh mục chưa từng dùng. Test: 7 ca P18 + node `loan_label` + hồi quy = 192 ca Python, 6 bộ node đạt; PO dùng thử UI trên QA 8801 (desktop + 375px). Chưa làm: chuyển nhóm cho Lãi vay, nhóm cho BĐS. Bàn giao: outputs/p18-handoff.md.

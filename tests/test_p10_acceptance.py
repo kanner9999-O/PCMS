@@ -91,12 +91,12 @@ class P10Acceptance(unittest.TestCase):
         self.classify(['C-1'],'expense',eat);self.classify(['C-2'],'expense',go)
         h=self.store.category_history(dict(category='expense'));self.assertEqual((h['evidence'],len(h['rows']),h['path']),('HAS_DATA',2,'Chi tiêu'))
         self.assertEqual({r['status'] for r in h['rows']},{'DRAFT'});self.assertTrue(all(r['sources'] for r in h['rows']))
-        self.assertEqual([r['reference'] for r in h['rows']],['C-1','C-2'])
+        self.assertEqual([r['reference'] for r in h['rows']],['C-2','C-1'])
         self.assertEqual(self.store.category_history(dict(category=eat))['path'],'Chi tiêu › Ăn uống')
         self.act('category-create',name='Trống',description='',parent='expense');empty=self.node('Trống')['id']
         e=self.store.category_history(dict(category=empty));self.assertEqual((e['evidence'],e['rows']),('EMPTY',[]));self.assertIn('Kỳ nguồn',e['source_notice'])
         self.act('category-archive',category=go,reason='x');self.assertEqual(D_(self.root('expense')['totals']['out']),80000)   # đã lưu trữ vẫn tính
-        self.assertEqual(self.store.category_history(dict(category='expense'))['rows'][1]['node_status'],'ARCHIVED')
+        self.assertEqual(self.store.category_history(dict(category='expense'))['rows'][0]['node_status'],'ARCHIVED')
         self.err('classify',ids=[self.tx('C-3')['id']],parts=[dict(category='expense',node=go)],reason='x')
         fresh=P01Store(self.tmp.name+'/fresh');self.assertEqual(fresh.category_history(dict(category='expense'))['evidence'],'EMPTY_NO_SOURCE')
         with self.assertRaises(ValidationError):self.store.category_history(dict(category='nope'))
