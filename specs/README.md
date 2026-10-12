@@ -16,6 +16,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 010 | [expense-refund](010-expense-refund/spec.md) | P12 (R70, hoàn chi tiêu) | Implemented (đã phát hành) | R06, R50, R53, R56, R58, R70 |
 | 011 | [realty](011-realty/spec.md) | P13 (R71–R73, Bất động sản bản đầu) | Implemented (đã phát hành) | R18, R27, R58, R71–R73 |
 | 012 | [crypto-wallets](012-crypto-wallets/spec.md) | P14 (R74–R76, Crypto / ví bản đầu) | Implemented (đã phát hành) | R01, R15, R18, R19, R25, R26, R74–R76 |
+| 013 | [asset-overview](013-asset-overview/spec.md) | P15 (R77–R80, Tổng hợp tài sản bản đầu) | Implemented (đã phát hành) | R09, R15, R18, R19, R42, R77–R80 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

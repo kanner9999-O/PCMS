@@ -566,3 +566,14 @@ Triển khai: [specs/011-realty](specs/011-realty/spec.md).
 | R76 | Giá trị hiển thị bằng **USDT**; tỷ trọng theo nơi giữ và theo coin, chỉ trong phạm vi tài sản crypto có giá; không đặt ngưỡng rủi ro. Không gộp tài sản chỉ vì trùng ticker (khác mạng thì tách). |
 
 Triển khai: [specs/012-crypto-wallets](specs/012-crypto-wallets/spec.md).
+
+### R77–R80 — Chốt phạm vi Tổng hợp tài sản bản đầu · 12/10/2026 (Thạch trả lời phỏng vấn; PO quyết định phần giao theo nghiệp vụ kế toán)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R77 | **Không quy đổi tiền tệ**: hiển thị hai tổng riêng, tổng VND và tổng USDT, không có một con số hợp nhất và không cần tỷ giá (R09 giữ nguyên). |
+| R78 | **Tài sản, nợ và tài sản ròng hiển thị riêng** trong từng đồng tiền. Tài sản VND = tiền ngân hàng + phải thu (gốc cho vay) + bất động sản; nợ VND = phải trả (gốc đi vay); tài sản USDT = crypto có giá + phải thu khách TRX/Energy; nợ USDT = tiền khách nhận trước chờ phân bổ. Khoản vay thế chấp chỉ tính ở phần nợ, không trừ vào giá trị BĐS (không trừ hai lần); nợ margin và vị thế sàn không cộng/trừ (R19). |
+| R79 | Thạch giao PO quyết định theo nghiệp vụ kế toán cách tính BĐS chưa có giá trị hiện tại: **theo nguyên tắc giá gốc**, dùng vốn đã thanh toán ròng làm giá trị ghi sổ và ghi rõ cơ sở "theo giá gốc, chưa định giá"; khi có giá trị hiện tại do Thạch nhập thì dùng giá trị đó, cơ sở "giá trị hiện tại". Tổng hiển thị tách theo cơ sở để thấy phần nào theo giá gốc. Không dồn tích lãi cho vay (lãi ghi theo tiền thực thu, R42). |
+| R80 | Có **lưu bản chụp tổng tài sản** theo ngày: bấm lưu để ghi bất biến tổng, từng thành phần, cơ sở tính, cảnh báo và ngày; xem lại các lần và chênh lệch so với lần trước. |
+
+Triển khai: [specs/013-asset-overview](specs/013-asset-overview/spec.md).
