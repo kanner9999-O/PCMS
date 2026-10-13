@@ -1,0 +1,2 @@
+# Plan 019
+`src/pcms/categories.py` `cat_eff`: áp dụng cho `principal` và `interest` gắn khoản vay có `group`; với lãi trả `category='principal'` (để cây nhóm đếm một lần) và `own_category='interest'`; `category_history` gắn nhãn "Lãi vay" cho dòng lãi; `classification_review` giữ nhãn gốc. Cập nhật spec 016 (giả định), `tests/test_p18_acceptance.py`, thêm ca trong `tests/test_p19_acceptance.py`. Không đổi UI ngoài chữ mô tả hộp "Chuyển danh mục".

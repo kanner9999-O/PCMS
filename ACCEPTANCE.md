@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P21 — R96, Lãi vay đi cùng khoản vay (spec 019)
+
+Tiêu chí ở `specs/019-loan-interest-follows/spec.md`: tổng danh mục đích tăng đúng bằng gốc + lãi của khoản; dư gốc, công nợ, bảng kê lãi, báo cáo theo loại và snapshot không đổi; chuyển về Gốc vay thì lãi trở lại Lãi vay.
+
 ### P20 — R95, Lịch sử rộng một dòng (spec 018)
 
 Tiêu chí ở `specs/018-history-wide/spec.md`: màn ≥ 1300px mỗi giao dịch một hàng; 768px và 375px không tràn ngang; số liệu không đổi.

@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P21 Lãi vay đi cùng khoản vay — 13/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/019-loan-interest-follows](specs/019-loan-interest-follows/spec.md) (Thạch xác nhận R96). Khi chuyển khoản vay sang danh mục khác, phần lãi vay của khoản cũng hiện dưới danh mục mới (nhãn "Lãi vay" trên dòng); Lãi vay gốc hệ thống không còn đếm khoản đó, tiền không mất chỉ đổi chỗ; dư gốc, công nợ, bảng kê lãi, báo cáo theo loại và snapshot không đổi. Test: 197 ca Python đạt (P18 cập nhật theo R96, thêm 1 ca). Bàn giao: outputs/p21-handoff.md.
+
 ### P20 Lịch sử rộng, một dòng một giao dịch — 12/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/018-history-wide](specs/018-history-wide/spec.md) (Thạch phản hồi sau P19, R95). Hộp lịch sử (danh mục, BĐS, chi tiết khoản vay) rộng tới 1280px; mỗi giao dịch một hàng gồm ngày, mã, nội dung + tài khoản, Xem nguồn, số tiền, nhãn/trạng thái khi khung ≥ 1060px, hẹp hơn tự xếp hai hoặc ba tầng (container query). Màn Kiểm tra dùng cùng lưới. Chỉ đổi hiển thị. Test: 196 ca Python + 7 bộ node đạt; PO dùng thử QA 8801 ở 1500, 768 và 375px (không tràn ngang; 1500px mỗi giao dịch cao đúng một hàng). Bàn giao: outputs/p20-handoff.md.

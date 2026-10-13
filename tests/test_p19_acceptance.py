@@ -32,6 +32,16 @@ class P19Acceptance(base.P18Acceptance):
         self.assertEqual([r['label'] for r in h['rows']],['Vốn nhận lại','Chi phí','Vốn đã thanh toán']);self.assertTrue(all(r['source_count']>=1 for r in h['rows']))
         self.assertEqual((D_(h['capital']['paid']),D_(h['capital']['received']),D_(h['costs']['spent'])),(5000000,20000000,10000000))
 
+    def test_interest_follows_loan_but_type_report_unchanged(self):
+        v0=self.store.view();by0={r['key']:r['totals'] for r in v0['categories']['roots']};rep0=self.store.report(self.store.state(),self.account)['totals']
+        self.act('loan-regroup',profile=self.l10,node=self.nodes()['Long debt']['id'],effective_date='2026-10-01',reason='x')
+        v=self.store.view();by={r['key']:r['totals'] for r in v['categories']['roots']}
+        self.assertEqual((D_(by['interest']['in']),by['interest']['transactions']),(0,0));self.assertEqual(D_(by0['interest']['in']),200000)
+        self.assertEqual(D_(by['principal']['in'])+D_(by['interest']['in']),D_(by0['principal']['in'])+D_(by0['interest']['in']))      # tiền không mất, chỉ đổi chỗ
+        self.assertEqual(self.store.report(self.store.state(),self.account)['totals'],rep0)                                            # báo cáo theo loại không đổi
+        h=self.store.category_history(dict(category=self.nodes()['Long debt']['id']));self.assertEqual({r['reference']:r['label'] for r in h['rows']}['K4'],'Lãi vay · Kết 10tr')
+        self.assertEqual(v['debts'],v0['debts'])
+
     def test_read_only(self):
         n=len(self.store.events());self.store.category_history(dict(category='principal'));self.assertEqual(len(self.store.events()),n)
 

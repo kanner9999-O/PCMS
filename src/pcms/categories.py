@@ -190,10 +190,10 @@ class Categories:
         return 'Chuyển khoản vay '+loan['name']+' sang '+(self.cat_path(s,target) if target else ROOTS['principal'])
 
     def cat_eff(self,s,p):
-        """The part as the category screens see it: principal of a loan moved to a group counts under that group."""
-        if p.get('category')=='principal' and p.get('profile'):
+        """The part as the category screens see it: principal and interest of a loan moved to a group count under that group."""
+        if p.get('category') in {'principal','interest'} and p.get('profile'):
             loan=next((x for x in s['profiles'] if x['id']==p['profile']),None)
-            if loan and loan['kind']=='LOAN' and loan.get('group'):return dict(p,node=loan['group'],own_node=p.get('node'))
+            if loan and loan['kind']=='LOAN' and loan.get('group'):return dict(p,category='principal',node=loan['group'],own_node=p.get('node'),own_category=p['category'])
         return p
 
     def loan_options(self,s):
@@ -275,7 +275,7 @@ class Categories:
                 else:out+=amount
                 node=p.get('node');row_path=self.cat_path(s,node) if node else ROOTS[root_key(p['category'])]
                 rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',
-                    label=('Hoàn chi tiêu' if (p['category']=='expense' and incoming) else row_path)+(' · '+profiles[p['profile']] if p.get('profile') in profiles else ''),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
+                    label=('Hoàn chi tiêu' if (p['category']=='expense' and incoming) else ('Lãi vay' if p.get('own_category')=='interest' else row_path))+(' · '+profiles[p['profile']] if p.get('profile') in profiles else ''),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
                     category_path=row_path,object=profiles.get(p.get('profile')),status='APPROVED' if t['id'] in approved else 'DRAFT',node_status=next((n['status'] for n in s['categories'] if n['id']==node),None) if node else None,sources=copy.deepcopy(t.get('sources',[]))))
             rows.sort(key=lambda r:(r['date'],r['reference']),reverse=True)
             periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED']
