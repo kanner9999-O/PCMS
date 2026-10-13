@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P22 Mua/bán/chuyển crypto — 13/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/020-crypto-movements](specs/020-crypto-movements/spec.md) (phỏng vấn Thạch → specify → plan → tasks → implement → nghiệm thu → PR). Theo R97–R100: số lượng "đang giữ" = mốc xác nhận gần nhất + mua/bán/chuyển có ngày sau mốc; chỉ USDT, không liên kết sao kê VND, chưa tính lãi/lỗ; phí nhập riêng (USDT hoặc coin); chuyển giữa hai nơi giữ (số gửi/nhận, chênh là phí mạng). Cảnh báo "chưa có mốc" và số âm (không vào giá trị), đối chiếu khi xác nhận lại (không tự sửa), hủy giữ bản ghi, tổng tài sản dùng số lượng sổ cái. Test: 7 ca P22 + hồi quy = 204 ca Python đạt; PO dùng thử QA 8801: mua 0.1 BTC giá 60.000 phí 6 USDT → BTC 0,6 và USDT 3.994 (đúng ví dụ spec); chuyển 0,3 BTC nhận 0,2995 hiện cảnh báo chưa có mốc ở ví nhận; hủy giao dịch; chặn dấu phẩy thập phân; 375px không tràn ngang. Chưa làm: lãi/lỗ đã thực hiện, liên kết sao kê VND, tự lấy dữ liệu sàn. Bàn giao: outputs/p22-handoff.md.
+
 ### P21 Lãi vay đi cùng khoản vay — 13/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/019-loan-interest-follows](specs/019-loan-interest-follows/spec.md) (Thạch xác nhận R96). Khi chuyển khoản vay sang danh mục khác, phần lãi vay của khoản cũng hiện dưới danh mục mới (nhãn "Lãi vay" trên dòng); Lãi vay gốc hệ thống không còn đếm khoản đó, tiền không mất chỉ đổi chỗ; dư gốc, công nợ, bảng kê lãi, báo cáo theo loại và snapshot không đổi. Test: 197 ca Python đạt (P18 cập nhật theo R96, thêm 1 ca). Bàn giao: outputs/p21-handoff.md.

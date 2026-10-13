@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P22 — R97–R100, Mua/bán/chuyển crypto (spec 020)
+
+Tiêu chí ở `specs/020-crypto-movements/spec.md` (SC-001…SC-003): ví dụ số (BTC 0,5 + mua 0,1 phí 6 USDT → BTC 0,6, USDT 3.994; bán 0,2 giá 65.000 → BTC 0,4, USDT 16.994; chuyển 0,3 nhận 0,2995) khớp 100%; không có giao dịch thì số liệu y như trước; ghi một giao dịch trong một hộp thoại.
+
 ### P21 — R96, Lãi vay đi cùng khoản vay (spec 019)
 
 Tiêu chí ở `specs/019-loan-interest-follows/spec.md`: tổng danh mục đích tăng đúng bằng gốc + lãi của khoản; dư gốc, công nợ, bảng kê lãi, báo cáo theo loại và snapshot không đổi; chuyển về Gốc vay thì lãi trở lại Lãi vay.

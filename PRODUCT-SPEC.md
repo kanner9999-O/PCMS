@@ -635,3 +635,14 @@ Triển khai: [specs/018-history-wide](specs/018-history-wide/spec.md).
 | R96 | Khi chuyển khoản vay sang danh mục khác (R93), **cả phần lãi vay của khoản đó cũng đi cùng** và hiện dưới danh mục mới; danh mục đích có thể chứa cả gốc lẫn lãi. Thay giả định "lãi ở lại Lãi vay" của spec 016. Dư gốc, công nợ, bảng kê lãi và báo cáo đã duyệt không đổi. |
 
 Triển khai: [specs/019-loan-interest-follows](specs/019-loan-interest-follows/spec.md).
+
+### R97–R100 — Mua/bán/chuyển crypto · 13/10/2026 (Thạch trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R97 | **Sổ cái số lượng**: số dư coin ở một nơi giữ = **mốc xác nhận gần nhất + các giao dịch mua/bán/chuyển có ngày sau mốc**. Thạch vẫn xác nhận số dư theo ngày làm mốc; xác nhận mới lệch với số sổ cái thì **báo chênh lệch, không tự sửa**. |
+| R98 | Giao dịch **chỉ bằng USDT** (cặp coin/USDT), **không liên kết sao kê ngân hàng VND**, không quy đổi VND/USDT. Mua/bán/chuyển là nhập tay kèm ngày và nguồn, hủy được (giữ bản ghi). |
+| R99 | **Chưa tính lãi/lỗ đã thực hiện**: bán chỉ ghi số lượng, giá và USDT nhận/trả. Nguyên tắc cũ giữ: giá và vốn nhập tay, chênh lệch chưa thực hiện không phải lãi/lỗ. |
+| R100 | **Phí** nhập riêng cho từng lần (USDT hoặc bằng chính coin), trừ vào số dư của tài sản đó và hiển thị riêng, không cộng vào giá. Chuyển giữa hai nơi giữ: nhập số gửi và số nhận, phần chênh là phí mạng. |
+
+Triển khai: [specs/020-crypto-movements](specs/020-crypto-movements/spec.md).
