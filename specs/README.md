@@ -23,6 +23,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 017 | [history-format](017-history-format/spec.md) | P19 (R94, định dạng lịch sử chuẩn) | Implemented | R94 |
 | 018 | [history-wide](018-history-wide/spec.md) | P20 (R95, lịch sử rộng một dòng) | Implemented | R94, R95 |
 | 019 | [loan-interest-follows](019-loan-interest-follows/spec.md) | P21 (R96, lãi đi cùng khoản vay) | Implemented | R93, R96 |
+| 020 | [crypto-movements](020-crypto-movements/spec.md) | P22 (R97–R100, mua/bán/chuyển crypto) | Implemented | R19, R74–R76, R97–R100 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 
