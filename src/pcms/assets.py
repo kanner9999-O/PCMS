@@ -89,7 +89,9 @@ class AssetOverview:
                 prev=snaps[i-1] if i else None
                 listed.append(dict(sn,delta_vs_previous=self.asset_delta(sn['data'],prev['data']) if prev else None))
             latest=snaps[-1] if snaps else None
-            return dict(core,snapshots=list(reversed(listed)),delta=dict(vs=latest['id'],vs_at=latest['at'],**self.asset_delta(core,latest['data'])) if latest else None,draft=True)
+            commit=[(x['name'],D(x['progress']['summary']['remaining'])) for x in self.realty_view(s)['properties'] if x['progress']['summary']['remaining'] not in ('0',0)]
+            commitments=dict(VND=N(sum((v for _,v in commit),Decimal(0))),properties=[dict(name=n,remaining=N(v)) for n,v in commit if v>0],note='Cam kết chưa thanh toán theo hợp đồng BĐS; không cộng vào nợ và không trừ giá trị BĐS.')
+            return dict(core,commitments=commitments,snapshots=list(reversed(listed)),delta=dict(vs=latest['id'],vs_at=latest['at'],**self.asset_delta(core,latest['data'])) if latest else None,draft=True)
 
     def change_assets(self,s,action,d):
         from .p01 import now

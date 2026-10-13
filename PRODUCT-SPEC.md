@@ -646,3 +646,14 @@ Triển khai: [specs/019-loan-interest-follows](specs/019-loan-interest-follows/
 | R100 | **Phí** nhập riêng cho từng lần (USDT hoặc bằng chính coin), trừ vào số dư của tài sản đó và hiển thị riêng, không cộng vào giá. Chuyển giữa hai nơi giữ: nhập số gửi và số nhận, phần chênh là phí mạng. |
 
 Triển khai: [specs/020-crypto-movements](specs/020-crypto-movements/spec.md).
+
+### R101–R104 — Chung cư theo tiến độ · 13/10/2026 (Thạch trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R101 | Mỗi BĐS có **giá hợp đồng nhập có ngày và lý do, cập nhật được, giữ lịch sử** (phụ lục, chiết khấu), kèm **ngày bàn giao dự kiến tùy chọn** (chỉ hiển thị). |
+| R102 | **Lịch thanh toán nhập từng đợt**: tên đợt, ngày dự kiến, số tiền, ghi chú. Một đợt được coi là đã trả khi Thạch **gắn giao dịch ngân hàng đã phân loại Đầu tư BĐS vào đúng đợt**; có thể trả từng phần (nhiều giao dịch một đợt). Hệ thống không tự gắn. |
+| R103 | **Phần chưa thanh toán theo hợp đồng là cam kết, hiển thị riêng, không cộng vào nợ** và không trừ giá trị BĐS (không bù trừ). Đợt quá ngày dự kiến mà chưa đủ hiển thị "quá hạn" (chỉ nhắc). Tổng các đợt khác giá hợp đồng thì hiện chênh lệch, không tự sửa. |
+| R104 | Khoản vay ngân hàng giải ngân theo tiến độ **dùng liên kết thế chấp hiện có**, không gắn từng đợt. |
+
+Triển khai: [specs/021-realty-progress](specs/021-realty-progress/spec.md).
