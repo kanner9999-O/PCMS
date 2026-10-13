@@ -610,7 +610,7 @@ Triển khai: [specs/015-classification-review](specs/015-classification-review/
 | R92 | **Màn Kiểm tra phân loại**: khi có đối tượng, gom nhóm theo **danh mục gốc + đối tượng**, danh mục con chỉ là nhãn trên dòng (thay quy tắc gom theo đường dẫn ở R84–R86 cho giao dịch có đối tượng). |
 | R93 | **Chuyển cả khoản vay sang danh mục khác** (ví dụ từ nhóm Loans sang Long debt khi thành nợ dài hạn): một thao tác có lý do và ngày, mọi giao dịch của khoản đó hiện dưới danh mục mới; dư gốc, lãi, lịch sử không đổi; giữ lịch sử chuyển. **Xóa hẳn danh mục chưa từng dùng** (kể cả lịch sử); danh mục đã dùng chỉ lưu trữ. *(Mặc định đề xuất cho phần xóa, Thạch chưa xác nhận riêng.)* |
 
-Triển khai: [specs/016-loan-category-management](specs/016-loan-category-management/spec.md). Điều chỉnh khi làm: Chi tiêu vẫn gắn được khoản vay/BĐS (chi hộ khoản vay, chi phí BĐS — hành vi từ spec 004/010/011); R91 chỉ chặn hồ sơ người gắn trực tiếp và Thu nhập/Chuyển nội bộ có đối tượng. Chuyển nhóm chỉ áp dụng phần Gốc vay; Lãi vay giữ ở Lãi vay.
+Triển khai: [specs/016-loan-category-management](specs/016-loan-category-management/spec.md). Điều chỉnh khi làm: Chi tiêu vẫn gắn được khoản vay/BĐS (chi hộ khoản vay, chi phí BĐS — hành vi từ spec 004/010/011); R91 chỉ chặn hồ sơ người gắn trực tiếp và Thu nhập/Chuyển nội bộ có đối tượng. Chuyển nhóm ban đầu chỉ áp dụng phần Gốc vay; lãi cũng đi cùng khoản vay từ R96.
 
 ### R94 — Định dạng lịch sử giao dịch chuẩn · 12/10/2026 (Thạch: "mày chốt một định dạng tiêu chuẩn")
 
@@ -627,3 +627,11 @@ Triển khai: [specs/017-history-format](specs/017-history-format/spec.md).
 | R95 | Hộp lịch sử (danh mục, khoản vay, BĐS) **rộng hơn** và **mỗi giao dịch nằm trọn trên một dòng**: ngày, mã tham chiếu, nội dung (kèm tài khoản), Xem nguồn, số tiền, nhãn/trạng thái. Chỗ hẹp (điện thoại, màn nhỏ) tự xếp hai ba dòng. |
 
 Triển khai: [specs/018-history-wide](specs/018-history-wide/spec.md).
+
+### R96 — Lãi vay đi cùng khoản vay khi chuyển danh mục · 13/10/2026 (Thạch trả lời)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R96 | Khi chuyển khoản vay sang danh mục khác (R93), **cả phần lãi vay của khoản đó cũng đi cùng** và hiện dưới danh mục mới; danh mục đích có thể chứa cả gốc lẫn lãi. Thay giả định "lãi ở lại Lãi vay" của spec 016. Dư gốc, công nợ, bảng kê lãi và báo cáo đã duyệt không đổi. |
+
+Triển khai: [specs/019-loan-interest-follows](specs/019-loan-interest-follows/spec.md).

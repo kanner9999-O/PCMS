@@ -110,7 +110,7 @@ Danh mục chưa từng được dùng (không giao dịch, không lịch sử p
 - **SC-005**: dữ liệu `outputs/p01-user-trial` không đổi (so sánh SHA256) trong suốt kiểm thử.
 
 ## Assumptions
-- Chuyển nhóm chỉ áp dụng phần **Gốc vay**; Lãi vay giữ ở cây Lãi vay vì khác loại (Thạch nói "mọi giao dịch của khoản"; đề xuất này tránh trộn loại, có thể mở rộng sau nếu Thạch muốn).
+- Chuyển nhóm ban đầu chỉ áp dụng phần **Gốc vay**; từ 13/10/2026 lãi vay cũng đi cùng khoản vay (R96, spec 019).
 - "Ngày" của lần chuyển là ngày Thạch ghi nhận quyết định; không đổi cách tính tổng theo kỳ (mọi giao dịch của khoản đi theo danh mục hiện tại).
 - "Gốc" trong tên khoản vay = gốc đầu mốc + tổng gốc đã giải ngân theo chiều của khoản; "dư" = dư gốc hiện tại của Công nợ.
 - Không thêm loại/kỳ hạn khoản vay (R90).
