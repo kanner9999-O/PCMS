@@ -22,6 +22,8 @@ Cập nhật11/10/2026 sau phát hànhP07. Đây là tóm tắt trạng thái c�
 
 Tính năng mới đi theo `/speckit-specify → plan → tasks → implement` trong `specs/NNN-…` (index: `specs/README.md`; quy tắc: `.specify/memory/constitution.md`), sau đó PO nghiệm thu bằng dữ liệu giả. P01–P07 đã migrate thành spec 001–004; TRX/Energy (006) và tài sản/crypto/BĐS (007) là backlog Draft. P08 = spec 005 (hành trình công nợ): đã code và kiểm xong trên QA 8801, đã phát hành, 8792 đã restart. Script Spec Kit chạy bằng `bash`, không dùng `sh`. Mã trên GitHub kanner9999-O/PCMS (outputs/ và private-data/ không đẩy lên).
 
+P27 (spec 025, Phân loại theo danh mục → con → đối tượng; mỗi danh mục khai loại đối tượng; ✕ ở popup) hoàn thành 14/10/2026. Lưu ý: giao dịch gắn người trong Gốc vay/Lãi vay chưa vào Công nợ cho tới khi tích hợp nghiệp vụ.
+
 P26 (spec 024, Xem trước giao dịch sẽ nhập: mốc + các giao dịch mới nối tiếp với số dư tính/file và ✔/✘) hoàn thành 14/10/2026.
 
 P25 (spec 023, Lịch sử sao kê theo mốc snapshot: mốc + 10 giao dịch cuối, toàn bộ lịch sử có lọc, đối chiếu file mới với mốc) hoàn thành 14/10/2026.

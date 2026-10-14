@@ -691,3 +691,15 @@ Triển khai: [specs/023-account-history](specs/023-account-history/spec.md).
 | R117 | **File bị chặn (không liền mạch) không có xem trước**; chỉ hiện danh sách lỗi như hiện nay. |
 
 Triển khai: [specs/024-import-preview](specs/024-import-preview/spec.md).
+
+### R118–R122 — Phân loại theo danh mục, danh mục con, đối tượng · 14/10/2026 (Thạch yêu cầu và trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R118 | Giao diện **phân loại / phiên điều chỉnh phân loại** chỉ quan tâm: chọn **danh mục cha → danh mục con (nếu có) → đối tượng (nếu danh mục có đối tượng, hiện hết ra để chọn)**. Không đưa nghiệp vụ tài chính (vay, cho vay, tách gốc/lãi, mua bán) vào giao diện này. |
+| R119 | **Mỗi danh mục tự khai báo loại đối tượng của mình** (Không có / Người / Khoản vay / BĐS) ở **bất kỳ cấp nào**; danh mục con **kế thừa từ cha** trừ khi tự đặt. **Mặc định mọi danh mục hệ thống không có đối tượng**; Thạch tự khai. Ví dụ: danh mục cho vay có Kết, Tươi, Thái; danh mục vay có Mama, Papa, người A, người B (đối tượng là người). |
+| R120 | **Tạm tách nghiệp vụ**: giao dịch thuộc (danh mục, đối tượng); quy tắc nghiệp vụ cũ giữ nguyên nhưng **không còn bắt buộc đối tượng khi phân loại**; đối tượng phải đúng loại danh mục đã khai (danh mục chưa khai thì giữ quy tắc cũ cho dữ liệu đã có). Công nợ/vốn BĐS tích hợp sau: giao dịch gắn người chưa tự cập nhật Công nợ. Dữ liệu đã phân loại không đổi. |
+| R121 | **Tách phần giữ chức năng** nhưng **ẩn ở giao diện phân loại** (chỉ hiện khi giao dịch đã được tách trước đó). |
+| R122 | **Mọi popup có nút ✕ ở góc trên bên phải** (UX); màn Kiểm tra phân loại có nút "✕ Đóng" góc trên phải. |
+
+Triển khai: [specs/025-classify-objects](specs/025-classify-objects/spec.md).

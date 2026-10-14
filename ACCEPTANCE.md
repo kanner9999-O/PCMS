@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P27 — R118–R122, Phân loại theo danh mục, danh mục con, đối tượng (spec 025)
+
+Tiêu chí ở `specs/025-classify-objects/spec.md` (SC-001…SC-003): phân loại một giao dịch vào (danh mục, đối tượng) trong ≤ 3 lựa chọn không cần khoản vay; loại đối tượng khai/kế thừa/đặt riêng đúng ở mọi cấp, đối tượng sai loại bị chặn; dữ liệu đã phân loại không đổi; ✕ ở mọi popup; 375px không tràn ngang.
+
 ### P26 — R115–R117, Xem trước giao dịch sẽ nhập (spec 024)
 
 Tiêu chí ở `specs/024-import-preview/spec.md`: số dòng preview bằng số dòng mới mà bước kiểm tra báo và bằng số dòng thực sự được ghi; số dư cuối dự kiến bằng số dư cuối sau khi ghi; lệch số dư ở dòng nào thì ✘; file bị chặn không có preview; dữ liệu thật không đổi.

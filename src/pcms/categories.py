@@ -13,6 +13,7 @@ from .product import D, S, uid
 ROOTS={'income':'Thu nhập','expense':'Chi tiêu','principal':'Gốc vay','interest':'Lãi vay','investment':'Đầu tư BĐS','transfer':'Chuyển nội bộ','unknown':'Chưa phân loại'}
 PARENTABLE={'income','expense','principal','interest','investment'}
 MAX_DEPTH=4
+OBJECT_KINDS={'PERSON':'Người','LOAN':'Khoản vay','PROPERTY':'BĐS'}
 ROOT_TYPES={'income':'Nhóm thu','expense':'Nhóm chi','investment':'Nhóm đầu tư'}
 
 def root_key(category):
@@ -22,7 +23,7 @@ def norm_name(value):
     return unicodedata.normalize('NFC',str(value or '').strip()).casefold()
 
 def cat_state(s):
-    s.setdefault('categories',[]);s.setdefault('category_roots',{})
+    s.setdefault('categories',[]);s.setdefault('category_roots',{});s.setdefault('category_object_kinds',{})
     return s
 
 class Categories:
@@ -68,12 +69,36 @@ class Categories:
             require(parent in PARENTABLE,'Gốc này không có danh mục con.');return parent
         p=self.cat_find(s,parent);require(p['status']=='ACTIVE','Danh mục cha đang lưu trữ.');return p['root']
 
+    def cat_object_kind(self,s,key,node=None):
+        """Object kind a category declares (inherited from its parent unless set on itself); None = no objects (R119)."""
+        cat_state(s);by={n['id']:n for n in s['categories']};cid=node
+        while cid in by:
+            n=by[cid];kind=n.get('object_kind')
+            if kind:return None if kind=='NONE' else kind
+            if n['parent'] is None:return None
+            if n['parent'] in ROOTS:return s['category_object_kinds'].get(n['parent']) or None
+            cid=n['parent']
+        kind=s['category_object_kinds'].get(key);return None if kind in (None,'NONE') else kind
+
     # ---- actions ------------------------------------------------------
     def change_category(self,s,action,d):
         from .p01 import now
         cat_state(s)
         def log(node,kind,before,after,reason=''):
             node['history'].append(dict(at=now(),action=kind,before=before,after=after,reason=str(reason or '').strip()[:500]))
+        if action=='category-object-kind':
+            kind=d.get('kind');key=d.get('category');reason=str(d.get('reason','')).strip()[:500]
+            require(kind in {'NONE','PERSON','LOAN','PROPERTY','INHERIT'},'Chọn loại đối tượng: không có, người, khoản vay hoặc BĐS.')
+            if key in ROOTS:
+                require(key!='unknown' and kind!='INHERIT','Danh mục gốc chọn một loại đối tượng cụ thể (hoặc không có).')
+                before=s['category_object_kinds'].get(key)
+                if kind=='NONE':s['category_object_kinds'].pop(key,None)
+                else:s['category_object_kinds'][key]=kind
+                s.setdefault('category_kind_history',[]).append(dict(at=now(),category=key,before=before,after=None if kind=='NONE' else kind,reason=reason));return 'Đặt loại đối tượng cho '+ROOTS[key]
+            node=self.cat_find(s,key);before=node.get('object_kind')
+            if kind=='INHERIT':node.pop('object_kind',None)
+            else:node['object_kind']=kind
+            log(node,'OBJECT_KIND',before,node.get('object_kind'),reason);return 'Đặt loại đối tượng cho '+node['name']
         if action=='category-root-describe':
             key=d.get('root');require(key in ROOTS,'Chọn một danh mục gốc.')
             text=str(d.get('description','')).strip();require(len(text)<=500,'Mô tả tối đa 500 ký tự.')
@@ -131,6 +156,9 @@ class Categories:
             require(not any(p['kind']==of_kind and norm_name(p['name'])==norm_name(name) for p in profiles),f'Đã có {label} cùng tên; hãy chọn cái có sẵn.')
         def clean(name,message):
             name=str(name or '').strip();require(1<=len(name)<=100,message);return name
+        if kind=='PERSON':
+            name=clean(d.get('name'),'Tên người dài 1–100 ký tự.');unique('người / tổ chức',name,'PERSON')
+            profiles.append({'id':new_id(),'kind':'PERSON','name':name,'party':None});return 'Tạo nhanh người '+name
         if kind=='PROPERTY':
             name=clean(d.get('name'),'Tên BĐS dài 1–100 ký tự.');unique('BĐS',name,'PROPERTY')
             profiles.append({'id':new_id(),'kind':'PROPERTY','name':name,'party':None});return 'Tạo nhanh BĐS '+name
@@ -252,12 +280,12 @@ class Categories:
                 out=dict(**{'in':S(a['in_']),'out':S(a['out']),'net':S(a['in_']-a['out']),'parts':a['parts'],'transactions':len(a['tx'])})
                 if spend:out['net_spend']=S(a['out']-a['in_'])
                 return out
-            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
+            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),object_kind=s['category_object_kinds'].get(k),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
             blob=self.cat_usage_blob(s);attached={}
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
-            nodes=[dict(deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            nodes=[dict(object_kind=n.get('object_kind'),effective_object_kind=self.cat_object_kind(s,n['root'],n['id']),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
+            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),object_kinds=OBJECT_KINDS,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
