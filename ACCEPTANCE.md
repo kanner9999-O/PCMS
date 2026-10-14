@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P25 — R111–R114, Lịch sử sao kê theo mốc snapshot (spec 023)
+
+Tiêu chí ở `specs/023-account-history/spec.md`: mở tài khoản thấy mốc và đúng 10 giao dịch cuối của mốc; bộ lọc cho kết quả khớp tính tay (tổng vào/ra = Σ dòng); toàn bộ lịch sử bằng đúng số giao dịch đã ghi; kết luận liền mạch/đúng đắn của file khớp quy tắc spec 022; dữ liệu thật không đổi.
+
 ### P24 — R105–R110, Nguồn liền mạch theo số dư và mốc snapshot (spec 022)
 
 Tiêu chí ở `specs/022-source-continuity/spec.md` (SC-001…SC-003): kịch bản file 44 → 46 ghi đúng số dòng mới (gồm các dòng cùng ngày cuối) và số dư cuối khớp; mọi kịch bản không liền mạch bị chặn kèm thông báo; mốc ghi giao dịch cuối và số dư, màn hiện số giao dịch nối tiếp sau mốc; dữ liệu thật không đổi.

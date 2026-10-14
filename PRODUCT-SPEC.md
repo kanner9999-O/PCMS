@@ -670,3 +670,14 @@ Triển khai: [specs/021-realty-progress](specs/021-realty-progress/spec.md).
 | R110 | Phân loại danh mục và nghiệp vụ (cho vay, BĐS, TRX, crypto, kinh doanh) đã có **tích hợp vào sau**; đợt này chỉ làm nhập nguồn, snapshot và phân loại danh mục. |
 
 Triển khai: [specs/022-source-continuity](specs/022-source-continuity/spec.md).
+
+### R111–R114 — Lịch sử sao kê theo mốc snapshot · 14/10/2026 (Thạch yêu cầu)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R111 | Trong giao diện tài khoản có **lịch sử sao kê của từng tài khoản**: danh sách mọi file sao kê đã ghi **tới mốc snapshot gần nhất** (ví dụ Tech-999: tới sao kê 44), kèm kỳ, số dòng, trạng thái; file nối tiếp chưa chốt hiển thị riêng. |
+| R112 | **Ưu tiên mốc snapshot gần nhất** nhưng **lấy được toàn bộ lịch sử từ ngày đầu theo dõi**; có **bộ lọc**: khoảng ngày và chiều tiền (vào/ra) (Thạch chọn; các bộ lọc khác bỏ). |
+| R113 | **Mốc gần nhất là tham chiếu để xét dữ liệu mới**: với file mới nhập, hiển thị nó có **liền mạch** (nối vào giao dịch cuối/số dư) và **đúng đắn** (số dư khớp, không xung đột) hay không. |
+| R114 | **Mặc định hiển thị 10 giao dịch cuối cùng của mốc gần nhất** (chỉ mốc gần nhất; Thạch xác nhận) để gọn giao diện; xem thêm theo trang hoặc toàn bộ lịch sử khi cần. Khối đặt ngay trang tài khoản, phía trên bước Nhập sao kê. |
+
+Triển khai: [specs/023-account-history](specs/023-account-history/spec.md).
