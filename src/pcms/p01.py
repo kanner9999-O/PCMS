@@ -88,7 +88,7 @@ class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, 
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P26-2026-10-14'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P27-2026-10-14'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -463,19 +463,16 @@ class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, 
                     signed=D(t['signed_amount'])
                     require(not(category=='income' and signed<0),'Thu nhập chỉ dành cho tiền vào. Chi tiêu nhận cả tiền ra (chi) và tiền vào (hoàn chi).')
                     profile=p.get('profile') or None
-                    require(not profile or category in {'principal','interest','investment','expense'},'Đối tượng chỉ dành cho gốc/lãi vay (khoản vay), đầu tư và chi tiêu liên quan khoản vay/BĐS; Thu nhập và Chuyển nội bộ không gắn đối tượng.')
-                    if profile:
-                        target=item(s['profiles'],profile)
-                        require(target['kind']!='PERSON','Hồ sơ người không gắn trực tiếp vào phân loại; chọn khoản vay của người đó hoặc BĐS.')
-                        if category in {'principal','interest'}:require(target['kind']=='LOAN','Gốc/lãi phải gắn hồ sơ khoản vay.')
-                        if category=='investment':require(target['kind']=='PROPERTY','Đầu tư P01 phải gắn hồ sơ BĐS.')
-                    require(category not in {'principal','interest','investment'} or profile,'Cần hồ sơ tương ứng cho gốc/lãi/đầu tư.')
                     amount=money(p.get('amount') or S(abs(signed)));require(amount>0,'Số phân bổ phải dương.')
                     part={'category':category,'amount':S(amount),'profile':profile}
                     if p.get('node'):
                         node=next((n for n in s.get('categories',[]) if n['id']==p['node']),None)
                         require(node is not None and node['status']=='ACTIVE' and node['root']==root_key(category),'Danh mục con không tồn tại, đã lưu trữ hoặc không thuộc loại phân bổ đã chọn.')
                         part['node']=node['id']
+                    if profile:
+                        target=item(s['profiles'],profile);kind=self.cat_object_kind(s,root_key(category),part.get('node'))
+                        allowed={kind} if kind else {'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'},'expense':{'LOAN','PROPERTY'}}.get(category,set())
+                        require(target['kind'] in allowed,'Đối tượng không đúng loại đối tượng của danh mục này (xem Danh mục → Đối tượng).')
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})

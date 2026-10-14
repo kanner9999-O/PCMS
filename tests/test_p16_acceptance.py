@@ -57,7 +57,7 @@ class P16Acceptance(unittest.TestCase):
         rep=self.store.report(self.store.state(),self.account)['totals'];self.assertEqual((D_(rep['expense_out']),D_(rep['expense_in'])),(400000,300000))   # báo cáo theo loại vẫn gộp
         self.err('classify',ids=[self.tx('K-OUT')['id']],parts=[dict(category='income',node=inc)],reason='x');self.classify(['R-SAL'],[dict(category='income',node=inc)])  # nhóm thu chỉ nhận tiền vào
         self.err('classify',ids=[self.tx('U-1')['id']],parts=[dict(category='income',node=inc)],reason='x')
-        self.err('classify',ids=[self.tx('U-1')['id']],parts=[dict(category='investment',node=inv)],reason='x');self.classify(['U-1'],[dict(category='investment',node=inv,profile=prop)])      # nhóm đầu tư cần BĐS
+        self.classify(['U-1'],[dict(category='investment',node=inv,profile=prop)])      # nhóm đầu tư gắn BĐS (đối tượng không còn bắt buộc, R120)
         self.err('classify',ids=[self.tx('R-OUT')['id']],parts=[dict(category='expense',node=inc)],reason='x')                                       # sai loại
         self.assertEqual(self.tx('K-OUT')['allocations'][0]['category'],'expense');self.assertEqual(self.tx('K-OUT')['allocations'][0]['node'],goods)
         self.assertEqual(D_(self.node('Thu phụ')['totals']['in']),5000000);self.assertEqual(D_(self.root('income')['totals']['in']),0)
