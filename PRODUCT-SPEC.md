@@ -681,3 +681,13 @@ Triển khai: [specs/022-source-continuity](specs/022-source-continuity/spec.md)
 | R114 | **Mặc định hiển thị 10 giao dịch cuối cùng của mốc gần nhất** (chỉ mốc gần nhất; Thạch xác nhận) để gọn giao diện; xem thêm theo trang hoặc toàn bộ lịch sử khi cần. Khối đặt ngay trang tài khoản, phía trên bước Nhập sao kê. |
 
 Triển khai: [specs/023-account-history](specs/023-account-history/spec.md).
+
+### R115–R117 — Xem trước giao dịch sẽ nhập · 14/10/2026 (Thạch yêu cầu và trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R115 | Ở bước **Nhập và kiểm nguồn**, với file hợp lệ (chờ ghi) có nút **xem trước các giao dịch sẽ được nhập** (ví dụ 52 giao dịch mới của file 46) cạnh nút "Xem dòng nguồn", để nhìn chúng nối vào chuỗi lịch sử như thế nào trước khi bấm ghi. |
+| R116 | Danh sách xem trước gồm **giao dịch cuối đã ghi làm mốc** (kèm số dư) rồi **các giao dịch mới theo đúng thứ tự nối tiếp**; các dòng trùng không hiện. Mỗi dòng có **số dư sau giao dịch do hệ thống tính**, **số dư trong file** và dấu **✔/✘**; cuối danh sách có tổng vào/ra và số dư cuối dự kiến so với số dư cuối file. |
+| R117 | **File bị chặn (không liền mạch) không có xem trước**; chỉ hiện danh sách lỗi như hiện nay. |
+
+Triển khai: [specs/024-import-preview](specs/024-import-preview/spec.md).

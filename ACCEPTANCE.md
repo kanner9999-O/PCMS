@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P26 — R115–R117, Xem trước giao dịch sẽ nhập (spec 024)
+
+Tiêu chí ở `specs/024-import-preview/spec.md`: số dòng preview bằng số dòng mới mà bước kiểm tra báo và bằng số dòng thực sự được ghi; số dư cuối dự kiến bằng số dư cuối sau khi ghi; lệch số dư ở dòng nào thì ✘; file bị chặn không có preview; dữ liệu thật không đổi.
+
 ### P25 — R111–R114, Lịch sử sao kê theo mốc snapshot (spec 023)
 
 Tiêu chí ở `specs/023-account-history/spec.md`: mở tài khoản thấy mốc và đúng 10 giao dịch cuối của mốc; bộ lọc cho kết quả khớp tính tay (tổng vào/ra = Σ dòng); toàn bộ lịch sử bằng đúng số giao dịch đã ghi; kết luận liền mạch/đúng đắn của file khớp quy tắc spec 022; dữ liệu thật không đổi.

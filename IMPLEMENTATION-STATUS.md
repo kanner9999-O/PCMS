@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P26 Xem trước giao dịch sẽ nhập — 14/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/024-import-preview](specs/024-import-preview/spec.md) (Thạch yêu cầu; phỏng vấn lại nội dung, cách kiểm đúng, file bị chặn, vị trí; R115–R117). Bước Nhập và kiểm nguồn: file hợp lệ (chờ ghi) có nút **"Xem trước giao dịch sẽ nhập"** cạnh "Xem dòng nguồn". Hộp rộng hiện giao dịch cuối đã ghi làm mốc (kèm số dư), rồi **đúng các giao dịch mới theo thứ tự nối tiếp** (không hiện dòng trùng), mỗi dòng có số dư do hệ thống tính, số dư trong file và dấu ✔/✘; cuối có tổng vào/ra, số dư cuối dự kiến so với số dư cuối file. File bị chặn không có nút; API từ chối. Chỉ đọc. Test: 5 ca P26 + hồi quy = 227 ca Python đạt; trên bản sao dữ liệu thật file (46): 52 dòng mới, 127 trùng ẩn, tất cả ✔, số dư cuối dự kiến 209.995.157 khớp file. Bàn giao: outputs/p26-handoff.md.
+
 ### P25 Lịch sử sao kê theo mốc snapshot — 14/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/023-account-history](specs/023-account-history/spec.md) (Thạch yêu cầu; phỏng vấn lại các chỗ chưa rõ: chỉ mốc gần nhất, nội dung, bộ lọc, vị trí; R111–R114). Trang tài khoản có khối "Lịch sử sao kê": mốc snapshot gần nhất (giao dịch cuối, ngày, số dư), **10 giao dịch cuối của mốc** theo dòng sao kê chuẩn (kèm số dư sau giao dịch), nút "Xem toàn bộ lịch sử sao kê" mở hộp rộng (phạm vi tới mốc hoặc toàn bộ từ ngày đầu, bộ lọc khoảng ngày và chiều vào/ra, phân trang 50, danh sách file sao kê) và, với mỗi file chờ ghi/bị chặn, kết luận **liền mạch và đúng đắn** so với mốc (cách nối, dòng mới/trùng, số dư kỳ vọng/đầu/cuối). Chỉ đọc. Test: 6 ca P25 + hồi quy = 222 ca Python đạt; PO dùng thử QA 8801 (25 giao dịch, 10 dòng cuối, file nối tiếp ✔, file hở ✘, bộ lọc, 375px không tràn ngang). Bàn giao: outputs/p25-handoff.md.

@@ -27,6 +27,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 021 | [realty-progress](021-realty-progress/spec.md) | P23 (R101–R104, chung cư theo tiến độ) | Implemented | R71–R73, R101–R104 |
 | 022 | [source-continuity](022-source-continuity/spec.md) | P24 (R105–R110, nguồn liền mạch theo số dư, mốc snapshot) | Implemented | R59, R105–R110 |
 | 023 | [account-history](023-account-history/spec.md) | P25 (R111–R114, lịch sử sao kê theo mốc) | Implemented | R105–R114 |
+| 024 | [import-preview](024-import-preview/spec.md) | P26 (R115–R117, xem trước giao dịch sẽ nhập) | Implemented | R105–R117 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 
