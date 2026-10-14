@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P24 — R105–R110, Nguồn liền mạch theo số dư và mốc snapshot (spec 022)
+
+Tiêu chí ở `specs/022-source-continuity/spec.md` (SC-001…SC-003): kịch bản file 44 → 46 ghi đúng số dòng mới (gồm các dòng cùng ngày cuối) và số dư cuối khớp; mọi kịch bản không liền mạch bị chặn kèm thông báo; mốc ghi giao dịch cuối và số dư, màn hiện số giao dịch nối tiếp sau mốc; dữ liệu thật không đổi.
+
 ### P23 — R101–R104, Chung cư theo tiến độ (spec 021)
 
 Tiêu chí ở `specs/021-realty-progress/spec.md` (SC-001…SC-003): ví dụ số (giá HĐ, tổng đợt, chênh, đã trả, còn lại, cam kết) khớp 100%; BĐS không có lịch và Tổng tài sản (tài sản/nợ/ròng) giữ y như trước; cam kết chỉ là dòng riêng.

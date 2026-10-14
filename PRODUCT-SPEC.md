@@ -657,3 +657,16 @@ Triển khai: [specs/020-crypto-movements](specs/020-crypto-movements/spec.md).
 | R104 | Khoản vay ngân hàng giải ngân theo tiến độ **dùng liên kết thế chấp hiện có**, không gắn từng đợt. |
 
 Triển khai: [specs/021-realty-progress](specs/021-realty-progress/spec.md).
+
+### R105–R110 — Nguồn liền mạch theo số dư và mốc snapshot · 14/10/2026 (Thạch định hướng và trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R105 | Hệ thống **tập trung vào quản lý giao dịch và tính liền mạch của chuỗi giao dịch**. Liền mạch xét theo **số dư**, không theo ngày (sao kê chỉ có ngày, không có giờ). |
+| R106 | **Mốc snapshot** = mỗi lần Thạch tải file, phân loại rồi bấm **"Chốt mốc"**. Mốc ghi **giao dịch cuối cùng và số dư sau giao dịch đó** làm điểm tham chiếu; các giao dịch **sau mốc** là phần nối tiếp cần phân loại. Mốc bất biến; mốc sau nối tiếp mốc trước. |
+| R107 | File mới nối tiếp theo số dư: chứa lại giao dịch mốc (rồi các dòng mới sau đó), hoặc không chứa lại nhưng số dư đầu bằng đúng số dư sau giao dịch mốc. Dòng trùng khớp giữ nguyên; dòng sau giao dịch cuối là giao dịch mới **kể cả cùng ngày** với giao dịch cuối. **Không còn** quy tắc "nguồn mới làm lệch kỳ đã ghi" theo ngày. |
+| R108 | **Chặn cả hai** khi không liền mạch: số dư chuỗi lệch, hoặc file không nối vào giao dịch cuối (hở, chồng sai chỗ, có giao dịch mới xen trước/giữa). Khoảng ngày không có nguồn không còn là cảnh báo riêng vì chuỗi số dư liên tục là điều kiện bắt buộc. |
+| R109 | **Tạo tài khoản từ file sao kê đầu tiên**: số tài khoản, số dư đầu và ngày bắt đầu lấy từ file nguồn; file đầu tiên của tài khoản là điểm bắt đầu (số dư đầu của chính file). Tài khoản tạo tay vẫn dùng số dư đầu đã khai và file đầu phải khớp. |
+| R110 | Phân loại danh mục và nghiệp vụ (cho vay, BĐS, TRX, crypto, kinh doanh) đã có **tích hợp vào sau**; đợt này chỉ làm nhập nguồn, snapshot và phân loại danh mục. |
+
+Triển khai: [specs/022-source-continuity](specs/022-source-continuity/spec.md).

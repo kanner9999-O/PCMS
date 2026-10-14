@@ -22,6 +22,8 @@ Cập nhật11/10/2026 sau phát hànhP07. Đây là tóm tắt trạng thái c�
 
 Tính năng mới đi theo `/speckit-specify → plan → tasks → implement` trong `specs/NNN-…` (index: `specs/README.md`; quy tắc: `.specify/memory/constitution.md`), sau đó PO nghiệm thu bằng dữ liệu giả. P01–P07 đã migrate thành spec 001–004; TRX/Energy (006) và tài sản/crypto/BĐS (007) là backlog Draft. P08 = spec 005 (hành trình công nợ): đã code và kiểm xong trên QA 8801, đã phát hành, 8792 đã restart. Script Spec Kit chạy bằng `bash`, không dùng `sh`. Mã trên GitHub kanner9999-O/PCMS (outputs/ và private-data/ không đẩy lên).
 
+P24 (spec 022, Nguồn liền mạch theo số dư và mốc snapshot: kiểm file theo chuỗi số dư, chốt mốc ghi giao dịch cuối, tạo tài khoản từ file) hoàn thành 14/10/2026. Hướng đi: tập trung nhập nguồn, snapshot, phân loại danh mục; nghiệp vụ (cho vay, BĐS, TRX, crypto, kinh doanh) tích hợp sau.
+
 P23 (spec 021, Chung cư theo tiến độ: giá hợp đồng có lịch sử, lịch đợt, gắn giao dịch vào đợt, cam kết chưa thanh toán hiển thị riêng) hoàn thành 13/10/2026. Backlog tài sản còn: quy đổi tiền tệ, cổ phiếu/shop (pending).
 
 P22 (spec 020, Mua/bán/chuyển crypto: số lượng sổ cái = mốc xác nhận + giao dịch sau mốc, USDT) hoàn thành 13/10/2026. Backlog tài sản còn: chung cư theo tiến độ, quy đổi tiền tệ, cổ phiếu/shop (pending).
