@@ -1,0 +1,2 @@
+# Contracts 024
+`POST /api/source-preview` `{batch}` → `{batch, filename, account, anchor:{kind:'LAST_TRANSACTION'|'OPENING', reference, date, description, balance}, rows:[{source_row, date, reference, description, amount, direction, reported_balance, computed_balance, ok}], new_count, duplicate_count, totals:{in,out}, expected_closing, file_closing, closing_ok, all_ok}`. Lỗi nếu file không ở trạng thái chờ ghi hoặc còn lỗi.

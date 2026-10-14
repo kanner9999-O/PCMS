@@ -79,4 +79,27 @@ class AccountHistory:
                 tail=dict(reference=tail['reference'],date=tail['date'],balance=S(balance)) if tail else None,since_milestone=since,files=files,rows=page,total=total,totals={'in':S(tin),'out':S(tout)},
                 page=dict(limit=limit,offset=offset,has_more=offset+limit<total),scope=scope,filters=dict(start=start,end=end,direction=direction),continuity=continuity,draft=True)
 
+    def source_preview(self,d,s=None):
+        """Preview, read-only, of the rows a staged file would append to the balance chain (R115-R117)."""
+        from .p01 import display_day
+        with localcontext() as ctx:
+            ctx.prec=60
+            s=copy.deepcopy(s or self.state());b=item(s['imports'],d.get('batch'));a=item(s['accounts'],b['account'])
+            require(b['status']=='STAGED','Chỉ xem trước được file hợp lệ đang chờ ghi.')
+            issues,new,dups=self.check_batch(s,b);require(not issues,'File còn lỗi, không có xem trước: '+'; '.join(issues))
+            existing=sorted([t for t in s['transactions'] if t['account']==a['id']],key=lambda t:t['order']);tail=existing[-1] if existing else None
+            balance=D(a['opening'])+sum((D(t['signed_amount']) for t in existing),Decimal(0))
+            anchor=dict(kind='LAST_TRANSACTION',reference=tail['reference'],date=tail['date'],description=tail['description'],balance=S(balance)) if tail else dict(kind='OPENING',reference=None,date=a['effective_date'],description='Số dư đầu tài khoản',balance=S(balance))
+            new_ids={id(r) for r in new};rows=[];running=balance;tin=tout=Decimal(0)
+            for r in b['rows']:
+                if id(r) not in new_ids:continue
+                amount=D(r['signed_amount']);running+=amount
+                if amount>0:tin+=amount
+                else:tout+=-amount
+                rows.append(dict(source_row=r['source_row'],date=r['date'],reference=r['reference'],description=r['description'],amount=S(abs(amount)),direction='IN' if amount>0 else 'OUT',
+                    reported_balance=r['reported_balance'],computed_balance=S(running),ok=r['reported_balance'] is not None and D(r['reported_balance'])==running))
+            closing_ok=b.get('source_closing') is not None and (running==D(b['source_closing']) if rows else True)
+            return dict(batch=b['id'],filename=b['filename'],account=a['id'],anchor=anchor,rows=rows,new_count=len(rows),duplicate_count=len(dups),totals={'in':S(tin),'out':S(tout)},
+                expected_closing=S(running),file_closing=b.get('source_closing'),closing_ok=closing_ok,all_ok=closing_ok and all(r['ok'] for r in rows),draft=True)
+
 def raise_(message):require(False,message)
