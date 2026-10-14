@@ -54,15 +54,8 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
         require(self.state().get('schema') == 'pcms-p01-1', 'Thư mục này chứa ứng dụng cũ; chọn thư mục P01 riêng.')
 
     def coverage_gaps(self,s,account,extra=None):
-        a=item(s['accounts'],account)
-        periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['account']==account and b['status']=='PUBLISHED']
-        if extra and extra.get('period_start') and extra.get('period_end'):periods.append((extra['period_start'],extra['period_end']))
-        cursor=date.fromisoformat(a['effective_date']);gaps=[]
-        for start,end in sorted(periods):
-            start,end=date.fromisoformat(start),date.fromisoformat(end)
-            if start>cursor:gaps.append({'start':cursor.isoformat(),'end':(start-timedelta(days=1)).isoformat()})
-            cursor=max(cursor,end+timedelta(days=1))
-        return gaps
+        """Kept for compatibility: continuity is enforced by running balance (R108), so there are no date gaps to confirm."""
+        return []
 
     def report(self, s, account):
         with localcontext() as ctx:
@@ -94,7 +87,7 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P23-2026-10-13'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P24-2026-10-14'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -227,7 +220,11 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
         elif latest and not changed:action='updated'
         elif r['unknown_count']:action='classify'
         else:action='review'
-        return {'account':a['id'],'counts':counts,'financial_changed':changed,'next_action':action,
+        ms=latest.get('milestone') if latest else None;since=None
+        if ms and ms.get('anchor'):
+            later=[t for t in s['transactions'] if t['account']==a['id'] and t['order']>ms['anchor']['order']]
+            since=dict(count=len(later),unclassified=sum(1 for t in later if not t['allocations'] or any(p['category']=='unknown' for p in t['allocations'])))
+        return {'account':a['id'],'counts':counts,'financial_changed':changed,'next_action':action,'milestone':ms,'since_milestone':since,
                 'latest_approval':{'id':latest['id'],'version':latest['version'],'approved_at':latest['approved_at']} if latest else None,
                 'can_approve':bool(r['source_periods']) and changed and not(counts['STAGED'] or counts['BLOCKED']) and a.get('status','ACTIVE')=='ACTIVE'}
 
@@ -244,33 +241,81 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
             return self.view()
 
     def check_batch(self,s,b):
+        """Continuity by running balance: the file must continue from the last recorded transaction (R105-R108); dates are never compared."""
         a=item(s['accounts'],b['account']); issues=list(b.get('parse_issues',[]));rows=b['rows']
         if b.get('source_account') != a['reference']:issues.append('Số tài khoản nguồn khác tài khoản đã chọn.')
-        if b.get('period_start') and b['period_start'] < a['effective_date']:issues.append(f"Kỳ nguồn bắt đầu {display_day(b['period_start'])}, trước mốc theo dõi hiện tại {display_day(a['effective_date'])}. Kiểm tra lại ngày khai báo tài khoản và kỳ sao kê.")
-        existing=[t for t in s['transactions'] if t['account']==a['id']]
+        existing=sorted([t for t in s['transactions'] if t['account']==a['id']],key=lambda t:t['order'])
         seen={t['reference']:t for t in existing}
-        new=[];duplicates=[]
+        new=[];duplicates=[];flags=[]
         for r in rows:
             old=seen.get(r['reference'])
             if old:
                 if any(old[k]!=r[k] for k in ('date','signed_amount','description','reported_balance')):
-                    issues.append(f"Dòng {r['source_row']}: tham chiếu {r['reference']} xung đột với dữ liệu đã có.")
-                else:duplicates.append((r,old))
-            else:seen[r['reference']]=r;new.append(r)
-        if not issues:
-            before=D(a['opening'])+sum((D(t['signed_amount']) for t in existing if t['date']<b['period_start']),Decimal(0))
-            if before!=D(b['source_opening']):issues.append(f"Số dư đầu kỳ chưa khớp lịch sử: tính {S(before)}, nguồn {b['source_opening']}. Bổ sung kỳ nguồn trước hoặc kiểm tra mốc đầu tài khoản.")
-            combined=existing+new
-            inside=[t for t in combined if b['period_start']<=t['date']<=b['period_end']]
-            after=before+sum((D(t['signed_amount']) for t in inside),Decimal(0))
-            if after!=D(b['source_closing']):issues.append(f"Số dư cuối kỳ chưa khớp: tính {S(after)}, nguồn {b['source_closing']}.")
-            # A later source already published must still reconcile after a backfill.
-            for previous in s['imports']:
-                if previous['account']!=a['id'] or previous['status']!='PUBLISHED':continue
-                opening=D(a['opening'])+sum((D(t['signed_amount']) for t in combined if t['date']<previous['period_start']),Decimal(0))
-                closing=D(a['opening'])+sum((D(t['signed_amount']) for t in combined if t['date']<=previous['period_end']),Decimal(0))
-                if opening!=D(previous['source_opening']) or closing!=D(previous['source_closing']):issues.append('Nguồn mới làm lệch kỳ nguồn đã ghi: '+previous['filename'])
+                    issues.append(f"Dòng {r['source_row']}: tham chiếu {r['reference']} xung đột với dữ liệu đã có.");flags.append('conflict')
+                else:duplicates.append((r,old));flags.append('dup')
+            else:seen[r['reference']]=r;new.append(r);flags.append('new')
+        if not issues and rows:
+            tail_balance=D(a['opening'])+sum((D(t['signed_amount']) for t in existing),Decimal(0));tail=existing[-1] if existing else None
+            where=f"giao dịch cuối đã ghi {tail['reference']} ngày {display_day(tail['date'])}, số dư {S(tail_balance)}" if tail else f"số dư đầu tài khoản {S(tail_balance)}"
+            if tail and tail.get('reported_balance') is not None and D(tail['reported_balance'])!=tail_balance:
+                issues.append(f"Sổ cái tài khoản ({S(tail_balance)}) không khớp số dư của giao dịch cuối đã ghi ({tail['reported_balance']}); kiểm tra mốc đầu tài khoản trước khi nạp thêm.")
+            dup_index=[i for i,f in enumerate(flags) if f=='dup']
+            if dup_index:
+                last=dup_index[-1]
+                if new and any(flags[i]!='dup' for i in range(last)):issues.append(f"File có giao dịch chưa ghi nằm trước hoặc xen giữa các giao dịch đã có; không nối liền mạch với {where}.")
+                elif new and rows[last]['reference']!=tail['reference']:issues.append(f"File chồng lên dữ liệu đã có nhưng phần chồng không kết thúc ở {where}; không nối liền mạch.")
+            elif D(b['source_opening'])!=tail_balance:
+                issues.append(f"File chưa nối tiếp: số dư đầu file {b['source_opening']}, cần bằng {where}. Bổ sung file nối tiếp hoặc kiểm tra file.")
+            if not issues and new:
+                after=tail_balance+sum((D(r['signed_amount']) for r in new),Decimal(0))
+                if after!=D(b['source_closing']):issues.append(f"Số dư cuối chưa khớp: tính {S(after)} từ {where}, nguồn {b['source_closing']}.")
         return issues,new,duplicates
+
+    def stage_import(self,s,d):
+        item(s['accounts'],d.get('account'))
+        try:raw=base64.b64decode(d.get('content',''),validate=True)
+        except Exception:raise ValidationError('Nội dung file không hợp lệ.')
+        require(0<len(raw)<=8_000_000,'File rỗng hoặc vượt 8 MB.')
+        sha=hashlib.sha256(raw).hexdigest()
+        existing=next((b for b in s['imports'] if b['account']==d['account'] and b['sha256']==sha),None)
+        if existing:
+            require(existing['status']!='DISMISSED','File này đã được loại khỏi đợt trước. Mở file trong danh sách nguồn và chọn “Đưa lại vào kiểm tra” để kiểm tra theo mốc tài khoản hiện tại; không cần tải lại file.')
+            return 'File đã có trong lịch sử nhập; không ghi thêm tiền.'
+        b={'id':uid(),'account':d['account'],'filename':Path(str(d.get('filename',''))).name[:150], 'sha256':sha,
+           'content':d['content'],'status':'STAGED','rows':[],'parse_issues':[],'imported_at':now()}
+        try:
+            require(b['filename'].lower().endswith('.xlsx'),'Chỉ hỗ trợ XLSX ngân hàng theo mẫu đã nhận diện. Xem file mẫu trong hướng dẫn nhập.')
+            parsed=parse_statement(raw)
+            b.update(source_account=parsed['account_reference'],period_start=parsed['period_start'],period_end=parsed['period_end'],
+                     source_opening=parsed['reported_opening_balance'],source_closing=parsed['reported_closing_balance'])
+            labels={'RUNNING_BALANCE_MISMATCH':'Số dư tại dòng không khớp','PERIOD_BALANCE_MISMATCH':'Tổng phát sinh không khớp số dư kỳ','CLOSING_BALANCE_MISMATCH':'Số dư dòng cuối khác số dư cuối kỳ','DATE_OUTSIDE_PERIOD':'Ngày giao dịch ngoài kỳ nguồn','DATE_ORDER':'Thứ tự ngày nguồn chưa đúng','INVALID_TRANSACTION_ROW':'Dòng nguồn không hợp lệ','REPEATED_BANK_REFERENCE':'Tham chiếu bị lặp trong file; cần xác minh'}
+            b['parse_issues']=[f"Dòng {i.get('source_row') or 'tổng'}: {labels.get(i['code'],i['code'])}. {i.get('reason','')}"+(f" Tính {i['expected']} VND; nguồn {i.get('reported')} VND; chênh {i.get('difference')} VND." if 'expected' in i else '') for i in parsed['issues']]
+            b['rows']=[{'id':uid(),'reference':r['bank_reference'],'date':r['effective_date'],'signed_amount':r['signed_amount'],
+                 'description':r['description'],'reported_balance':r['reported_balance'],'source_row':r['source_row'],'sheet':r['sheet']} for r in parsed['transactions']]
+            b['issues'],_,_=self.check_batch(s,b)
+        except Exception as exc:
+            b['parse_issues']=[f'Mẫu chưa hỗ trợ hoặc file không hợp lệ: {exc}'];b['issues']=b['parse_issues'][:]
+        if b['issues']:b['status']='BLOCKED'
+        s['imports'].append(b)
+        return 'Đã giữ file nguồn; '+('cần xử lý lỗi trước khi ghi.' if b['issues'] else 'sẵn sàng ghi toàn đợt.')
+
+    def account_from_file(self,s,d):
+        """Create an account from its first statement: number, opening balance and start date come from the file (R109)."""
+        try:raw=base64.b64decode(d.get('content',''),validate=True)
+        except Exception:raise ValidationError('Nội dung file không hợp lệ.')
+        require(0<len(raw)<=8_000_000,'File rỗng hoặc vượt 8 MB.')
+        filename=Path(str(d.get('filename',''))).name[:150];require(filename.lower().endswith('.xlsx'),'Chỉ hỗ trợ XLSX ngân hàng theo mẫu đã nhận diện.')
+        try:parsed=parse_statement(raw)
+        except Exception as exc:raise ValidationError(f'Mẫu chưa hỗ trợ hoặc file không hợp lệ: {exc}')
+        reference=str(parsed['account_reference']).strip();require(reference.isdigit(),'Không đọc được số tài khoản từ file.')
+        require(not any(a['reference']==reference for a in s['accounts']),'Số tài khoản đã tồn tại; chọn tài khoản đó và nạp file nối tiếp (kiểm tra cả tài khoản lưu trữ hoặc đã xóa nhầm).')
+        opening=money(parsed['reported_opening_balance']);require(opening>=0,'Số dư đầu không âm.')
+        name=str(d.get('name') or '').strip() or f'Tài khoản {reference}'
+        account={'id':uid(),'name':name[:100],'reference':reference,'opening':S(opening),'currency':'VND','effective_date':day(parsed['period_start']),
+                 'opening_source':f'Số dư đầu của file sao kê {filename}','status':'ACTIVE','history':[]}
+        s['accounts'].append(account)
+        message=self.stage_import(s,{'account':account['id'],'filename':filename,'content':d['content']})
+        return f"Tạo tài khoản {account['name']} từ file nguồn; {message}"
 
     def change(self,s,action,d):
         if action.startswith('assets-'):return self.change_assets(s,action,d)
@@ -365,33 +410,8 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
             p['debt_setup']=setup
             p.setdefault('debt_history',[]).append({'at':now(),'before':before,'after':copy.deepcopy(setup),'reason':reason[:500]})
             return 'Thiết lập công nợ nháp '+p['name']+': '+reason[:500]
-        if action=='import':
-            item(s['accounts'],d.get('account'))
-            try:raw=base64.b64decode(d.get('content',''),validate=True)
-            except Exception:raise ValidationError('Nội dung file không hợp lệ.')
-            require(0<len(raw)<=8_000_000,'File rỗng hoặc vượt 8 MB.')
-            sha=hashlib.sha256(raw).hexdigest()
-            existing=next((b for b in s['imports'] if b['account']==d['account'] and b['sha256']==sha),None)
-            if existing:
-                require(existing['status']!='DISMISSED','File này đã được loại khỏi đợt trước. Mở file trong danh sách nguồn và chọn “Đưa lại vào kiểm tra” để kiểm tra theo mốc tài khoản hiện tại; không cần tải lại file.')
-                return 'File đã có trong lịch sử nhập; không ghi thêm tiền.'
-            b={'id':uid(),'account':d['account'],'filename':Path(str(d.get('filename',''))).name[:150], 'sha256':sha,
-               'content':d['content'],'status':'STAGED','rows':[],'parse_issues':[],'imported_at':now()}
-            try:
-                require(b['filename'].lower().endswith('.xlsx'),'Chỉ hỗ trợ XLSX ngân hàng theo mẫu đã nhận diện. Xem file mẫu trong hướng dẫn nhập.')
-                parsed=parse_statement(raw)
-                b.update(source_account=parsed['account_reference'],period_start=parsed['period_start'],period_end=parsed['period_end'],
-                         source_opening=parsed['reported_opening_balance'],source_closing=parsed['reported_closing_balance'])
-                labels={'RUNNING_BALANCE_MISMATCH':'Số dư tại dòng không khớp','PERIOD_BALANCE_MISMATCH':'Tổng phát sinh không khớp số dư kỳ','CLOSING_BALANCE_MISMATCH':'Số dư dòng cuối khác số dư cuối kỳ','DATE_OUTSIDE_PERIOD':'Ngày giao dịch ngoài kỳ nguồn','DATE_ORDER':'Thứ tự ngày nguồn chưa đúng','INVALID_TRANSACTION_ROW':'Dòng nguồn không hợp lệ','REPEATED_BANK_REFERENCE':'Tham chiếu bị lặp trong file; cần xác minh'}
-                b['parse_issues']=[f"Dòng {i.get('source_row') or 'tổng'}: {labels.get(i['code'],i['code'])}. {i.get('reason','')}"+(f" Tính {i['expected']} VND; nguồn {i.get('reported')} VND; chênh {i.get('difference')} VND." if 'expected' in i else '') for i in parsed['issues']]
-                b['rows']=[{'id':uid(),'reference':r['bank_reference'],'date':r['effective_date'],'signed_amount':r['signed_amount'],
-                     'description':r['description'],'reported_balance':r['reported_balance'],'source_row':r['source_row'],'sheet':r['sheet']} for r in parsed['transactions']]
-                b['issues'],_,_=self.check_batch(s,b)
-            except Exception as exc:
-                b['parse_issues']=[f'Mẫu chưa hỗ trợ hoặc file không hợp lệ: {exc}'];b['issues']=b['parse_issues'][:]
-            if b['issues']:b['status']='BLOCKED'
-            s['imports'].append(b)
-            return 'Đã giữ file nguồn; '+('cần xử lý lỗi trước khi ghi.' if b['issues'] else 'sẵn sàng ghi toàn đợt.')
+        if action=='import':return self.stage_import(s,d)
+        if action=='account-from-file':return self.account_from_file(s,d)
         if action=='reopen-import':
             b=item(s['imports'],d.get('batch'))
             require(b['status']=='DISMISSED','Chỉ đưa lại file đã loại khỏi đợt vào kiểm tra.')
@@ -484,6 +504,8 @@ class P01Store(AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanC
                  'report':report,'account_details':copy.deepcopy(item(s['accounts'],account)),'profiles':copy.deepcopy(s['profiles']),'reason':str(d.get('reason','Duyệt đợt đầu'))[:500],
                  'restates':previous['id'] if previous else None,'confirmed_unknown':bool(d.get('confirm_unknown')),
                  'confirmed_gaps':copy.deepcopy(report['coverage_gaps']) if d.get('confirm_gaps') is True else []}
+            txs=sorted([t for t in s['transactions'] if t['account']==account],key=lambda t:t['order']);tail=txs[-1] if txs else None
+            snap['milestone']=dict(anchor=dict(transaction=tail['id'],reference=tail['reference'],date=tail['date'],order=tail['order']) if tail else None,balance=report['balance'],transactions=len(txs),classified=len(txs)-report['unknown_count'],unclassified=report['unknown_count'])
             if s.get('categories'):snap['category_tree']=[dict(id=n['id'],name=n['name'],parent=n['parent'],root=n['root'],status=n['status'],path=self.cat_path(s,n['id'])) for n in s['categories']]
             snap['hash']=digest(snap);s['snapshots'].append(snap)
             item(s['accounts'],account)['adjustment_open']=False

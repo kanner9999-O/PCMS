@@ -163,11 +163,11 @@ class P02Acceptance(unittest.TestCase):
 
     def august_source(self):
         self.files['august.xlsx']=statement([('01/08/2026','QA August receipt','AUG-IN','','20000000','120000000'),('02/08/2026','QA August expense','AUG-OUT','5000000','','115000000')],100000000,115000000,start='01/08/2026',end='02/08/2026')
-        self.act('account-edit',account=self.a,name='QA A',effective_date='2026-10-09')
+        self.act('account-edit',account=self.a,name='QA A',opening='90000000')       # số dư đầu sai: file không nối với số dư đầu tài khoản (R108)
         batch=self.stage('august.xlsx')
         self.assertEqual(self.store.state()['imports'][-1]['status'],'BLOCKED')
-        self.act('dismiss-import',batch=batch,reason='Wrong tracking date, temporarily exclude')
-        self.act('account-edit',account=self.a,name='QA A',effective_date='2026-07-09')
+        self.act('dismiss-import',batch=batch,reason='Wrong opening balance, temporarily exclude')
+        self.act('account-edit',account=self.a,name='QA A',opening='100000000')
         return batch
 
     def test_12_reopen_dismissed_source_revalidates_without_autopublish(self):
@@ -190,7 +190,7 @@ class P02Acceptance(unittest.TestCase):
         report=next(r for r in self.store.view()['reports'] if r['account']==self.a)
         self.assertEqual([(p['start'],p['end']) for p in report['source_periods']],[('2026-08-01','2026-08-02')])
         self.assertIn('Chỉ xác nhận các kỳ nguồn',report['coverage_note'])
-        self.assertEqual(report['coverage_gaps'],[{'start':'2026-07-09','end':'2026-07-31'}])
+        self.assertEqual(report['coverage_gaps'],[])                                           # liền mạch theo số dư, không còn khoảng ngày (R108)
         self.assertEqual(len(self.store.state()['imports']),1)
 
     def test_14_same_file_reimport_gives_actionable_reopen_error(self):

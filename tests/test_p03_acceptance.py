@@ -46,10 +46,9 @@ class P03Acceptance(unittest.TestCase):
         self.act('dismiss-import',batch=b,reason='Synthetic recovery')
         self.assertEqual(self.ready()['next_action'],'recover')
         self.act('reopen-import',batch=b);self.act('publish',batch=b)
-        self.reject('approve',account=self.a,confirm_unknown=True)
-        self.approve(confirm_gaps=True)
+        self.approve()                                                                  # không còn khoảng ngày phải xác nhận (R108)
         snap=self.store.state()['snapshots'][0]
-        self.assertEqual(snap['confirmed_gaps'],[{'start':'2026-10-01','end':'2026-10-02'}])
+        self.assertEqual(snap['confirmed_gaps'],[])
         self.assertEqual(snap['report']['opening'],'100000000')
         self.assertEqual(self.ready()['next_action'],'updated')
         self.stage('09-unsupported.xlsx');self.assertEqual(self.ready()['next_action'],'blocked');self.assertFalse(self.ready()['can_approve'])
