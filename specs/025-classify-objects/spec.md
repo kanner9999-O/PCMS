@@ -1,6 +1,6 @@
 # Feature Specification: Phân loại theo danh mục, danh mục con, đối tượng
 
-**Feature Branch**: `025-classify-objects` · **Created**: 2026-10-14 · **Status**: Draft
+**Feature Branch**: `025-classify-objects` · **Created**: 2026-10-14 · **Status**: Superseded một phần bởi spec 026 (loại đối tượng theo danh mục được thay bằng danh sách đối tượng của từng danh mục; phần ✕ popup và ẩn tách phần vẫn hiệu lực)
 **Input**: Thạch muốn phiên phân loại/điều chỉnh chỉ còn: danh mục cha → danh mục con → đối tượng (hiện hết nếu danh mục có đối tượng), tách khỏi nghiệp vụ tài chính; mỗi danh mục tự khai loại đối tượng; popup có nút ✕ góc trên phải (R118–R122). Tham chiếu spec 008, 009, 014, 016. Không đổi dữ liệu đã phân loại, không đổi quy tắc tiền.
 
 ## User Scenarios & Testing

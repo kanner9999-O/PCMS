@@ -88,7 +88,7 @@ class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, 
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P27-2026-10-14'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P28-2026-10-14'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -470,9 +470,11 @@ class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, 
                         require(node is not None and node['status']=='ACTIVE' and node['root']==root_key(category),'Danh mục con không tồn tại, đã lưu trữ hoặc không thuộc loại phân bổ đã chọn.')
                         part['node']=node['id']
                     if profile:
-                        target=item(s['profiles'],profile);kind=self.cat_object_kind(s,root_key(category),part.get('node'))
-                        allowed={kind} if kind else {'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'},'expense':{'LOAN','PROPERTY'}}.get(category,set())
-                        require(target['kind'] in allowed,'Đối tượng không đúng loại đối tượng của danh mục này (xem Danh mục → Đối tượng).')
+                        target=item(s['profiles'],profile);key=part.get('node') or root_key(category)
+                        members={e['profile'] for e in s.get('category_objects',[]) if e['status']=='ACTIVE' and e['category']==key}
+                        kept={x.get('profile') for t in selected for x in t['allocations'] if x.get('profile')}
+                        legacy={'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'},'expense':{'LOAN','PROPERTY'}}.get(category,set())
+                        require(profile in members or profile in kept or (not members and target['kind'] in legacy),'Đối tượng không thuộc danh mục này. Thêm đối tượng vào danh mục ở màn Danh mục trước.')
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})

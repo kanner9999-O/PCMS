@@ -703,3 +703,16 @@ Triển khai: [specs/024-import-preview](specs/024-import-preview/spec.md).
 | R122 | **Mọi popup có nút ✕ ở góc trên bên phải** (UX); màn Kiểm tra phân loại có nút "✕ Đóng" góc trên phải. |
 
 Triển khai: [specs/025-classify-objects](specs/025-classify-objects/spec.md).
+
+### R123–R128 — Quản lý danh mục có đối tượng riêng cho từng danh mục · 14/10/2026 (Thạch mô tả mô hình và trả lời phỏng vấn)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R123 | Màn Quản lý danh mục hiển thị **mọi danh mục gốc đã tạo** (hệ thống và tự tạo) với **cây danh mục con nhiều cấp, mỗi danh mục có nhiều danh mục con** (ví dụ Cho vay › Cho vay dài hạn, Vay ngắn hạn; Nợ › Nợ xấu, Nợ không thu hồi được; Bất động sản › Chung cư, Đất nền). |
+| R124 | **Mỗi danh mục (ở bất kỳ cấp) có danh sách đối tượng của chính nó** (ví dụ Cho vay dài hạn: người A, B, C; Chung cư: Chung cư A, B, C; Đất nền: Mảnh đất A, B, C). Chưa liên quan nghiệp vụ riêng của từng đối tượng. |
+| R125 | **Đối tượng là hồ sơ chung, gán được vào nhiều danh mục.** Trước mắt đối tượng **chỉ cần có tên**; loại nghiệp vụ (ví dụ Kết: vay) Thạch sẽ quyết định và bổ sung sau. Hồ sơ đang có (người, khoản vay, BĐS) giữ nguyên và gán được vào danh mục. |
+| R126 | Khi phân loại vào một danh mục, **danh sách đối tượng chỉ gồm đối tượng của chính danh mục đã chọn** (danh mục con thì của danh mục con). Thay khai báo "loại đối tượng" của đợt trước (R119). |
+| R127 | Trên màn Quản lý danh mục: **thêm đối tượng** (tạo mới hoặc chọn hồ sơ có sẵn), **đổi tên**, **gỡ khỏi danh mục / xóa** (xóa chỉ khi chưa dùng), **chuyển đối tượng sang danh mục khác kèm lý do và lịch sử** (giao dịch của đối tượng ở danh mục cũ đi theo, cùng loại danh mục gốc), **xem số giao dịch và tổng vào/ra từng đối tượng** và lịch sử giao dịch. |
+| R128 | Giữ các điểm còn lại: đối tượng không bắt buộc khi phân loại; hồ sơ cũ gắn từ trước vẫn hiển thị; dữ liệu đã phân loại không đổi. |
+
+Triển khai: [specs/026-category-objects](specs/026-category-objects/spec.md).

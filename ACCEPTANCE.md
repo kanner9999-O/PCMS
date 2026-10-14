@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P28 — R123–R128, Danh mục có đối tượng riêng (spec 026)
+
+Tiêu chí ở `specs/026-category-objects/spec.md` (SC-001…SC-003): ví dụ Chung cư A/B/C, Đất nền, Cho vay dài hạn hiển thị và phân loại đúng; chuyển đối tượng làm tổng danh mục cũ giảm và mới tăng đúng bằng giao dịch của đối tượng; đối tượng sai danh mục bị chặn; dữ liệu thật không đổi.
+
 ### P27 — R118–R122, Phân loại theo danh mục, danh mục con, đối tượng (spec 025)
 
 Tiêu chí ở `specs/025-classify-objects/spec.md` (SC-001…SC-003): phân loại một giao dịch vào (danh mục, đối tượng) trong ≤ 3 lựa chọn không cần khoản vay; loại đối tượng khai/kế thừa/đặt riêng đúng ở mọi cấp, đối tượng sai loại bị chặn; dữ liệu đã phân loại không đổi; ✕ ở mọi popup; 375px không tràn ngang.
