@@ -1,0 +1,2 @@
+# Plan 027
+**Mã**: `src/pcms/legacy_import.py` (mixin `LegacyImport`: `legacy_parse`, `legacy_preview`, `change_legacy`, `legacy_pseudo_parts`), `categories.py` (`cat_parts` thêm dòng cũ; `category_history` nhãn/nguồn; `category_view` thêm `legacy`), `p01.py` (dispatch tiền tố `legacy-`, build P29), `server.py` (`/api/legacy-preview`), `web/p01.js` (nút, hộp dán và xem trước, danh sách lần migrate, nhãn lịch sử), test `tests/test_p29_acceptance.py`.

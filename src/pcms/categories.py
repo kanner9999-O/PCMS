@@ -21,6 +21,9 @@ def root_key(category):
 def norm_name(value):
     return unicodedata.normalize('NFC',str(value or '').strip()).casefold()
 
+def norm_ref_c(value):
+    return str(value or '').split('\\')[0].strip().upper()
+
 def cat_state(s):
     s.setdefault('categories',[]);s.setdefault('category_roots',{});s.setdefault('category_objects',[]);s.setdefault('object_moves',[])
     return s
@@ -203,6 +206,16 @@ class Categories:
                 if n['parent']==cid:out.append(n);stack.append(n['id'])
         return out
 
+    def legacy_summary(self,s):
+        """Batches migrated from spreadsheets with totals of the rows that count (not hidden by a bank-statement match)."""
+        profiles={p['id']:p['name'] for p in s['profiles']};refs=self.legacy_bank_refs(s);out=[]
+        for b in s.get('legacy_batches',[]):
+            es=[e for e in s.get('legacy_entries',[]) if e['batch']==b['id']];counted=[e for e in es if not (norm_ref_c(e['reference']) and norm_ref_c(e['reference']) in refs)]
+            tin=sum(int(e['amount']) for e in counted if e['direction']=='IN');tout=sum(int(e['amount']) for e in counted if e['direction']=='OUT')
+            out.append(dict(id=b['id'],at=b['at'],category=b['category'],category_path=self.cat_path(s,b['category']) if b['category'] not in ROOTS else ROOTS[b['category']],profile=b['profile'],profile_name=profiles.get(b['profile'],''),rows=len(es),active=len(counted) if b['status']=='ACTIVE' else 0,matched_bank=len(es)-len(counted),
+                totals={'in':str(tin),'out':str(tout)},declared=b.get('declared'),status=b['status'],void_reason=b.get('void_reason'),source_text=b['source_text']))
+        return sorted(out,key=lambda x:x['at'],reverse=True)
+
     def cat_in_use(self,s,node):
         """Why the category cannot be deleted for good, or None when it was never used anywhere."""
         return self.cat_in_use_fast(s,node,self.cat_usage_blob(s))
@@ -271,6 +284,10 @@ class Categories:
             if (start and t['date']<start) or (end and t['date']>end) or (account and t['account']!=account):continue
             parts=t['allocations'] or [{'category':'unknown','amount':S(abs(D(t['signed_amount']))),'profile':None}]
             for p in parts:yield t,self.cat_eff(s,p)
+        if account is None:
+            for t,p in self.legacy_items(s):
+                if (start and t['date']<start) or (end and t['date']>end):continue
+                yield t,self.cat_eff(s,p)
 
     def cat_keys(self,s,p):
         key=root_key(p['category']);node=p.get('node')
@@ -306,7 +323,7 @@ class Categories:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
             nodes=[dict(objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
@@ -326,7 +343,7 @@ class Categories:
                 node=p.get('node');row_path=self.cat_path(s,node) if node else ROOTS[root_key(p['category'])]
                 rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',
                     label=('Hoàn chi tiêu' if (p['category']=='expense' and incoming) else ('Lãi vay' if p.get('own_category')=='interest' else row_path))+(' · '+profiles[p['profile']] if p.get('profile') in profiles else ''),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
-                    category_path=row_path,object=profiles.get(p.get('profile')),status='APPROVED' if t['id'] in approved else 'DRAFT',node_status=next((n['status'] for n in s['categories'] if n['id']==node),None) if node else None,sources=copy.deepcopy(t.get('sources',[]))))
+                    legacy=bool(t.get('legacy')),source_row=t.get('source_row'),bank_balance=t.get('bank_balance'),category_path=row_path,object=profiles.get(p.get('profile')),status='LEGACY' if t.get('legacy') else ('APPROVED' if t['id'] in approved else 'DRAFT'),node_status=next((n['status'] for n in s['categories'] if n['id']==node),None) if node else None,sources=copy.deepcopy(t.get('sources',[]))))
             rows.sort(key=lambda r:(r['date'],r['reference']),reverse=True)
             periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED']
             evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE')

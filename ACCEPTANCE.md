@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P29 — R129–R134, Migrate lịch sử cũ (spec 027)
+
+Tiêu chí ở `specs/027-legacy-import/spec.md` (SC-001…SC-003): ví dụ Mỹ cho đúng 8 dòng, vào 130.000.000, ra 176.000.000, ròng −46.000.000 và khớp dòng tổng; mọi dòng sai bị chặn đúng số dòng; số dư tài khoản/tổng tài sản/mốc/kiểm khớp không đổi sau migrate; dòng trùng sao kê không tính hai lần; dữ liệu thật không đổi.
+
 ### P28 — R123–R128, Danh mục có đối tượng riêng (spec 026)
 
 Tiêu chí ở `specs/026-category-objects/spec.md` (SC-001…SC-003): ví dụ Chung cư A/B/C, Đất nền, Cho vay dài hạn hiển thị và phân loại đúng; chuyển đối tượng làm tổng danh mục cũ giảm và mới tăng đúng bằng giao dịch của đối tượng; đối tượng sai danh mục bị chặn; dữ liệu thật không đổi.
