@@ -117,6 +117,12 @@
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
 
+## Tư vấn kế toán *(bắt buộc nếu có business logic; Constitution nguyên tắc VIII)*
+
+- **Phương án và khuyến nghị kế toán**: [phương án đúng nghiệp vụ kế toán, lý do]
+- **Hệ quả lên số liệu/báo cáo**: [ghi nhận, đo lường, trình bày]
+- **Điều cần kế toán viên/thuế xác nhận** (nếu có): [thuế, pháp lý, báo cáo nộp cơ quan]
+
 ## Assumptions
 
 <!--
