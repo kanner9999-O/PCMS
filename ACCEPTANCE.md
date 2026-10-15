@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P30 — R135–R136, Chọn danh mục theo cấp (spec 028)
+
+Tiêu chí ở `specs/028-legacy-cascade/spec.md`: danh sách đối tượng trong hộp migrate bằng đúng danh sách đối tượng của danh mục đã chọn ở mọi cấp; cấp sau chỉ hiện con trực tiếp; 375px không tràn ngang; dữ liệu thật không đổi.
+
 ### P29 — R129–R134, Migrate lịch sử cũ (spec 027)
 
 Tiêu chí ở `specs/027-legacy-import/spec.md` (SC-001…SC-003): ví dụ Mỹ cho đúng 8 dòng, vào 130.000.000, ra 176.000.000, ròng −46.000.000 và khớp dòng tổng; mọi dòng sai bị chặn đúng số dòng; số dư tài khoản/tổng tài sản/mốc/kiểm khớp không đổi sau migrate; dòng trùng sao kê không tính hai lần; dữ liệu thật không đổi.
