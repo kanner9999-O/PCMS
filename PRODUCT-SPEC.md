@@ -729,3 +729,13 @@ Triển khai: [specs/026-category-objects](specs/026-category-objects/spec.md).
 | R134 | **Hủy cả một lần migrate** kèm lý do, giữ bản ghi; giữ nguyên bản dán và số dòng nguồn để truy nguyên. |
 
 Triển khai: [specs/027-legacy-import](specs/027-legacy-import/spec.md).
+
+### R135 — Hộp migrate chọn danh mục theo cấp và đối tượng của danh mục · 15/10/2026 (Thạch yêu cầu)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R135 | Trong hộp **Migrate lịch sử cũ**, chọn danh mục **theo cấp**: chọn danh mục cha thì hiện tiếp danh mục con (và con của con nếu có); ô **đối tượng chỉ liệt kê đối tượng của chính danh mục đã chọn**, không tải mọi danh mục hay mọi hồ sơ. Muốn dùng đối tượng chưa thuộc danh mục thì nhập tên mới (tự tạo và gán vào danh mục đang chọn). |
+
+| R136 | **Quyết định cấu trúc**: cách quản lý danh mục ở R123–R128 và R135 (cây cha → con nhiều cấp; đối tượng thuộc danh mục; chọn danh mục theo cấp và chỉ tải đối tượng của danh mục đã chọn; nghiệp vụ là lớp song song tích hợp sau) **áp dụng cho mọi tính năng liên quan danh mục về phía sau**. Đã ghi vào Constitution (nguyên tắc VII). |
+
+Triển khai: [specs/028-legacy-cascade](specs/028-legacy-cascade/spec.md).

@@ -22,6 +22,8 @@ Cập nhật11/10/2026 sau phát hànhP07. Đây là tóm tắt trạng thái c�
 
 Tính năng mới đi theo `/speckit-specify → plan → tasks → implement` trong `specs/NNN-…` (index: `specs/README.md`; quy tắc: `.specify/memory/constitution.md`), sau đó PO nghiệm thu bằng dữ liệu giả. P01–P07 đã migrate thành spec 001–004; TRX/Energy (006) và tài sản/crypto/BĐS (007) là backlog Draft. P08 = spec 005 (hành trình công nợ): đã code và kiểm xong trên QA 8801, đã phát hành, 8792 đã restart. Script Spec Kit chạy bằng `bash`, không dùng `sh`. Mã trên GitHub kanner9999-O/PCMS (outputs/ và private-data/ không đẩy lên).
 
+P30 (spec 028, Hộp migrate chọn danh mục theo cấp, đối tượng của danh mục đã chọn) hoàn thành 15/10/2026. **Quyết định cấu trúc**: cách quản lý danh mục (cây cha-con, đối tượng thuộc danh mục, chọn theo cấp, nghiệp vụ là lớp song song) áp dụng cho mọi tính năng danh mục về sau — xem Constitution nguyên tắc VII.
+
 P29 (spec 027, Migrate lịch sử cũ từ Google Sheets vào đối tượng của danh mục, ngoài chuỗi sao kê) hoàn thành 15/10/2026.
 
 P28 (spec 026, Danh mục có đối tượng riêng: cây danh mục, đối tượng từng danh mục, thêm/đổi tên/gỡ/xóa/chuyển, lịch sử) hoàn thành 14/10/2026; thay khai báo "loại đối tượng" của P27.

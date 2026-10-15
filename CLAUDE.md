@@ -9,3 +9,7 @@ Người dùng muốn assistant giữ vai trò PO + người dùng đại diện
 ## Spec Kit (từ 11/10/2026)
 
 Dự án dùng Spec Kit (`specify-cli`, tích hợp `claude`). Nguyên tắc ở `.specify/memory/constitution.md`. Tính năng mới đi theo `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`, sau đó PO nghiệm thu bằng dữ liệu giả như trong HANDOFF.md. Spec trong `specs/` phải trích mã Rxx/Axx và không thay `PRODUCT-SPEC.md`/`ACCEPTANCE.md`.
+
+## Quyết định cấu trúc về danh mục (từ 15/10/2026)
+
+Mọi tính năng liên quan danh mục phải theo `.specify/memory/constitution.md` nguyên tắc VII: cây danh mục cha → con nhiều cấp; đối tượng thuộc danh mục; giao diện chọn theo cấp và chỉ tải đối tượng của danh mục đã chọn; nghiệp vụ riêng là lớp song song tích hợp sau.
