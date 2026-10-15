@@ -109,7 +109,7 @@ class LegacyImport:
             if pid:prof=item(s['profiles'],pid)
             else:
                 require(1<=len(name)<=100,'Chọn đối tượng có sẵn hoặc nhập tên đối tượng mới (1–100 ký tự).')
-                prof=next((x for x in s['profiles'] if x['kind']=='OBJECT' and norm_name(x['name'])==norm_name(name)),None)
+                prof=self.profile_clash(s,name)
             active={b['id'] for b in s['legacy_batches'] if b['status']=='ACTIVE'}
             seen={(norm_ref(e['reference']),e['date'],e['amount'],e['direction']) for e in s['legacy_entries'] if e['batch'] in active and prof and e['profile']==prof['id'] and norm_ref(e['reference'])}
             bank=self.legacy_bank_refs(s);tin=tout=0;matched=dups=0;rows=parsed['rows']
@@ -123,7 +123,7 @@ class LegacyImport:
             declared=parsed['declared'];totals_ok=None if declared is None else (declared['in']==tin and declared['out']==tout)
             importable=sum(1 for r in rows if r['status'] in {'OK','MATCHED_BANK'})
             return dict(columns=parsed['columns'],mapping=parsed['mapping'],rows=rows,issues=parsed['issues'],totals={'in':str(tin),'out':str(tout)},declared={k:str(v) for k,v in declared.items()} if declared else None,totals_ok=totals_ok,
-                importable=importable,matched_bank=matched,duplicates=dups,object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof)),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
+                importable=importable,matched_bank=matched,duplicates=dups,object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof),kind=prof['kind'] if prof else 'OBJECT'),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
 
     def change_legacy(self,s,action,d):
         from .p01 import now

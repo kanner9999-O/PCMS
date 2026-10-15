@@ -19,7 +19,7 @@ def root_key(category):
     return 'transfer' if category=='transfer_pending' else category
 
 def norm_name(value):
-    return unicodedata.normalize('NFC',str(value or '').strip()).casefold()
+    return ' '.join(unicodedata.normalize('NFC',str(value or '')).split()).casefold()
 
 def norm_ref_c(value):
     return str(value or '').split('\\')[0].strip().upper()
@@ -71,6 +71,15 @@ class Categories:
             require(parent in PARENTABLE,'Gốc này không có danh mục con.');return parent
         p=self.cat_find(s,parent);require(p['status']=='ACTIVE','Danh mục cha đang lưu trữ.');return p['root']
 
+    def profile_clash(self,s,name,exclude=None):
+        """The existing (not merged) profile of any kind that already uses this name, or None (R138)."""
+        key=norm_name(name)
+        return next((x for x in s['profiles'] if x['id']!=exclude and not x.get('merged_into') and norm_name(x['name'])==key),None)
+
+    def require_free_name(self,s,name,exclude=None):
+        other=self.profile_clash(s,name,exclude);kinds={'PERSON':'người','LOAN':'khoản vay','PROPERTY':'BĐS','OBJECT':'đối tượng'}
+        require(other is None,f"Đã có hồ sơ tên \"{other['name']}\" (loại {kinds.get(other['kind'],other['kind'])}); hãy chọn hồ sơ có sẵn thay vì tạo trùng." if other else '')
+
     def cat_target(self,p):
         return p.get('node') or root_key(p['category'])
 
@@ -91,13 +100,13 @@ class Categories:
             if pid:prof=item(s['profiles'],pid)
             else:
                 require(1<=len(name)<=100,'Tên đối tượng dài 1–100 ký tự.')
-                require(not any(x['kind']=='OBJECT' and norm_name(x['name'])==norm_name(name) for x in s['profiles']),'Đã có đối tượng cùng tên; hãy chọn đối tượng có sẵn.')
+                self.require_free_name(s,name)
                 prof={'id':uid(),'kind':'OBJECT','name':name,'party':None};s['profiles'].append(prof)
             require(not any(e['category']==key and e['profile']==prof['id'] and e['status']=='ACTIVE' for e in s['category_objects']),'Đối tượng đã có trong danh mục này.')
             s['category_objects'].append(dict(id=uid(),category=key,profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=key)]));return 'Thêm đối tượng '+prof['name']+' vào danh mục'
         if action=='category-object-rename':
             prof=item(s['profiles'],d.get('profile'));name=str(d.get('name') or '').strip();require(1<=len(name)<=100,'Tên đối tượng dài 1–100 ký tự.')
-            require(not any(x['id']!=prof['id'] and x['kind']==prof['kind'] and norm_name(x['name'])==norm_name(name) for x in s['profiles']),'Đã có hồ sơ cùng loại trùng tên.')
+            self.require_free_name(s,name,exclude=prof['id'])
             prof.setdefault('rename_history',[]).append(dict(at=now(),before=prof['name'],after=name));prof['name']=name;return 'Đổi tên đối tượng thành '+name
         if action=='category-object-remove':
             e=next((x for x in s['category_objects'] if x['category']==d.get('category') and x['profile']==d.get('profile') and x['status']=='ACTIVE'),None);require(e is not None,'Đối tượng không có trong danh mục này.')
@@ -109,6 +118,20 @@ class Categories:
             require(not any(x['category']==dst and x['profile']==e['profile'] and x['status']=='ACTIVE' for x in s['category_objects']),'Đối tượng đã có ở danh mục đích.')
             e['history'].append(dict(at=now(),action='MOVE',from_=src,to=dst,reason=reason[:500]));e['category']=dst
             s['object_moves'].append(dict(profile=e['profile'],**{'from':src,'to':dst},at=now(),reason=reason[:500]));return 'Chuyển đối tượng sang danh mục khác'
+        if action=='category-object-merge':
+            src=item(s['profiles'],d.get('from'));dst=item(s['profiles'],d.get('into'));reason=str(d.get('reason','')).strip()
+            require(src['kind']=='OBJECT','Chỉ gộp được hồ sơ loại "đối tượng"; hồ sơ người/khoản vay/BĐS giữ làm hồ sơ đích.');require(src['id']!=dst['id'],'Chọn hồ sơ đích khác.')
+            require(not src.get('merged_into') and not dst.get('merged_into'),'Hồ sơ đã bị gộp.');require(reason,'Cần lý do gộp.')
+            for e in s['category_objects']:
+                if e['profile']!=src['id'] or e['status']!='ACTIVE':continue
+                if any(x['category']==e['category'] and x['profile']==dst['id'] and x['status']=='ACTIVE' for x in s['category_objects']):
+                    e.update(status='REMOVED',removed_at=now());e['history'].append(dict(at=now(),action='MERGE_REMOVED',into=dst['id'],reason=reason[:500]))
+                else:
+                    e['profile']=dst['id'];e['history'].append(dict(at=now(),action='MERGE',from_=src['id'],reason=reason[:500]))
+            for coll in ('legacy_entries','legacy_batches','object_moves'):
+                for x in s.get(coll,[]):
+                    if x.get('profile')==src['id']:x['profile']=dst['id']
+            src['merged_into']=dst['id'];s.setdefault('profile_merges',[]).append(dict(**{'from':src['id'],'to':dst['id']},from_name=src['name'],to_name=dst['name'],at=now(),reason=reason[:500]));return f"Gộp đối tượng {src['name']} vào {dst['name']}"
         if action=='category-object-delete':
             prof=item(s['profiles'],d.get('profile'));require(prof['kind']=='OBJECT','Chỉ xóa hẳn được đối tượng tạo trong danh mục; hồ sơ người/khoản vay/BĐS chỉ gỡ khỏi danh mục.')
             reason=str(d.get('reason','')).strip();require(reason,'Cần lý do xóa.');require(prof['id'] not in self.cat_usage_blob(s),'Đối tượng đã từng được dùng để phân loại; chỉ có thể gỡ khỏi danh mục.')
@@ -168,7 +191,7 @@ class Categories:
         from .product import uid as new_id
         kind=d.get('kind');profiles=s['profiles']
         def unique(label,name,of_kind):
-            require(not any(p['kind']==of_kind and norm_name(p['name'])==norm_name(name) for p in profiles),f'Đã có {label} cùng tên; hãy chọn cái có sẵn.')
+            self.require_free_name(s,name)
         def clean(name,message):
             name=str(name or '').strip();require(1<=len(name)<=100,message);return name
         if kind=='PERSON':
@@ -189,7 +212,7 @@ class Categories:
             name=base
             if not raw:
                 n=2
-                while any(p['kind']=='LOAN' and norm_name(p['name'])==norm_name(name) for p in profiles):name=f'{base} ({n})';n+=1;require(len(name)<=100,'Tên khoản vay tối đa 100 ký tự.')
+                while self.profile_clash(s,name):name=f'{base} ({n})';n+=1;require(len(name)<=100,'Tên khoản vay tối đa 100 ký tự.')
             else:unique('khoản vay',name,'LOAN')
             if created:profiles.append(created)
             profiles.append({'id':new_id(),'kind':'LOAN','name':name,'party':person['id']})
@@ -244,6 +267,8 @@ class Categories:
 
     def cat_eff(self,s,p):
         """The part as the category screens see it: loan group (spec 016/019) and object moves (spec 026) re-home it."""
+        for m in s.get('profile_merges',[]):
+            if p.get('profile')==m['from']:p=dict(p,profile=m['to'],own_profile=p['profile'])
         if p.get('category') in {'principal','interest'} and p.get('profile'):
             loan=next((x for x in s['profiles'] if x['id']==p['profile']),None)
             if loan and loan['kind']=='LOAN' and loan.get('group'):p=dict(p,category='principal',node=loan['group'],own_node=p.get('node'),own_category=p['category'])
@@ -317,13 +342,15 @@ class Categories:
             blob=self.cat_usage_blob(s);attached={};by_profile={x['id']:x for x in s['profiles']};objs={}
             for e in s['category_objects']:
                 if e['status']!='ACTIVE' or e['profile'] not in by_profile:continue
-                pr=by_profile[e['profile']];o=oacc.get((e['category'],e['profile']),dict(in_=Decimal(0),out=Decimal(0),tx=set()))
-                objs.setdefault(e['category'],[]).append(dict(entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history']))
+                pr=by_profile[e['profile']]
+                if pr.get('merged_into'):continue
+                dup=[dict(profile=x['id'],name=x['name'],kind=x['kind']) for x in s['profiles'] if x['id']!=pr['id'] and not x.get('merged_into') and norm_name(x['name'])==norm_name(pr['name'])];o=oacc.get((e['category'],e['profile']),dict(in_=Decimal(0),out=Decimal(0),tx=set()))
+                objs.setdefault(e['category'],[]).append(dict(entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
             nodes=[dict(objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day

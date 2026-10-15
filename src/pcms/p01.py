@@ -89,7 +89,7 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P29-2026-10-15'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P31-2026-10-15'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -385,6 +385,7 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
             require(d.get('kind') in {'PERSON','LOAN','PROPERTY'} and str(d.get('name','')).strip(),'Chọn loại và nhập tên hồ sơ.')
             require(d.get('kind')!='LOAN' or d.get('party'),'Khoản vay cần gắn người / tổ chức.')
             if d.get('party'):require(item(s['profiles'],d['party'])['kind']=='PERSON','Chủ thể phải là hồ sơ người.')
+            self.require_free_name(s,d['name'])
             s['profiles'].append({'id':uid(),'kind':d['kind'],'name':str(d['name']).strip()[:100],'party':d.get('party') or None})
             return 'Tạo hồ sơ '+d['name']
         if action=='interest-terms':
