@@ -405,3 +405,6 @@ Kiểm tra Chrome đạt các ca phase/status trong verification-v5.2.json: ch�
 
 ## P33 (15/10/2026) – Nghiệp vụ gắn đối tượng trong danh mục, Cho vay trước (spec 031, R146–R153)
 Theo Spec Kit. Vai trò danh mục suy từ gốc; nghiệp vụ Cho vay/Đi vay/BĐS gắn cặp (đối tượng, danh mục); sổ cho vay theo cặp (dư nợ gốc, lãi, cảnh báo); hợp nhất hồ sơ khoản vay/BĐS bằng nút xem trước + xác nhận; chặn hẳn mâu thuẫn vai trò. Chưa có: dồn tích lãi, dự phòng, xóa nợ (cần kế toán viên xác nhận); crypto và bán hàng làm đợt sau. Kiểm thử: 265 test trên dữ liệu giả; QA trình duyệt trên `/tmp/pcms-031-qa`; `outputs/p01-user-trial` không đổi (không có file mới hơn thời điểm bắt đầu).
+
+## P34 (15/10/2026) – Nhóm mặc định cho danh mục (spec 032, R154–R157)
+Theo Spec Kit, phương án A: nhóm mặc định là nhãn tổ chức (mọi danh mục hiện có và mới), không đổi phân loại gốc, báo cáo, snapshot; nghiệp vụ gắn đối tượng ở mọi danh mục, cảnh báo khi danh mục tính vào Chi tiêu/Thu nhập. 282 test trên dữ liệu giả; QA trình duyệt `/tmp/pcms-031-qa`; `outputs/p01-user-trial` không đổi.

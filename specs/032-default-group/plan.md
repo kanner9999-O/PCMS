@@ -1,0 +1,2 @@
+# Plan: 032 default-group
+`categories.py`: hằng `GROUPS`, trường `group` khi tạo, `group` trong `category_view` (roots + nodes). `business.py`: bỏ chặn theo loại gốc trong `business-set`; thêm cảnh báo IN_EXPENSE_REPORT/IN_INCOME_REPORT. UI: chip nhóm, hộp thoại nghiệp vụ cho mọi danh mục, nhãn cảnh báo. Constitution check: I/II không đụng dữ liệu thật (thiếu trường = mặc định, không ghi lại); IV không sửa lịch sử; VII/VIII đạt.

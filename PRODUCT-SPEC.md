@@ -773,7 +773,13 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R151 | **Hợp nhất hồ sơ nghiệp vụ** (xem trước + xác nhận, idempotent, có bản ghi): khoản vay và BĐS thành đối tượng trong Gốc vay / Đầu tư BĐS mang loại theo chiều đã thiết lập; khoản chưa thiết lập chiều chỉ được thêm vào danh mục, không đoán chiều; không đổi phân loại, báo cáo, Công nợ. |
 | R152 | **Chặn hẳn** gỡ đối tượng, lưu trữ danh mục, gộp đối tượng khác loại khi cặp đang mang nghiệp vụ (gỡ nghiệp vụ trước, có lý do). |
 | R153 | Khoản vay luôn phân loại được vào Gốc vay/Lãi vay và BĐS vào Đầu tư BĐS dù chưa là thành viên danh mục (không bị chặn bởi hợp nhất). Thứ tự làm nghiệp vụ: Cho vay → BĐS → crypto → bán hàng. |
+| R154 | **Nhóm mặc định** cho danh mục (Thạch chốt 15/10/2026, phương án A): chỉ tổng hợp tiền vào/ra và đưa vào báo cáo, chưa gắn nghiệp vụ cụ thể; mọi danh mục hiện có và mới thuộc nhóm này (thiếu trường = mặc định). |
+| R155 | Nhóm mặc định là **nhãn tổ chức**: không đổi phân loại gốc của giao dịch, tổng danh mục, báo cáo, snapshot đã duyệt (lịch sử bất biến). Tách khỏi báo cáo Chi tiêu/Thu nhập (phương án B) là bước riêng, có xem trước và cần kế toán viên xác nhận. |
+| R156 | Nghiệp vụ gắn cho đối tượng ở **mọi** danh mục, bỏ chặn theo loại gốc (sửa R148); giữ chặn chiều khoản vay, loại hồ sơ, đổi loại/gỡ khi đã có giao dịch. |
+| R157 | Cặp nghiệp vụ nằm trong danh mục có loại ghi nhận Chi tiêu/Thu nhập hiển thị **cảnh báo** "đang tính vào báo cáo Chi tiêu/Thu nhập" (cho vay không phải chi tiêu, mua BĐS không phải chi phí); không chặn. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
 Triển khai: [specs/031-loan-business-objects](specs/031-loan-business-objects/spec.md).
+
+Triển khai: [specs/032-default-group](specs/032-default-group/spec.md).

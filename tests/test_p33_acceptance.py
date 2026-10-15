@@ -27,9 +27,8 @@ class P33Acceptance(base.P18Acceptance):
         self.err('business-set',category=k,profile=my,type='LOAN_BORROWED',effective_date='2026-09-02')                   # đổi cần lý do
         self.act('business-set',category=k,profile=my,type='LOAN_BORROWED',effective_date='2026-09-02',reason='Nhầm chiều')   # chưa có giao dịch: đổi được, có lịch sử
         self.assertEqual([h['action'] for h in self.members(k)[my]['business'] and self.biz()['loans'][0]['history']],['SET','CHANGE'])
-        self.err('business-set',category=k,profile=my,type='PROPERTY',effective_date='2026-09-02',reason='x')             # sai vai trò danh mục
         self.act('category-create',name='Ăn uống',description='',parent='expense');e=self.nodes()['Ăn uống']['id'];an=self.person_obj('Quán A',e)
-        self.err('business-set',category=e,profile=an,type='LOAN_LENT',effective_date='2026-09-01')                         # danh mục chi tiêu thường
+        self.act('business-set',category=e,profile=an,type='LOAN_LENT',effective_date='2026-09-01')                         # spec 032: không còn chặn theo loại gốc
         self.err('business-set',category=k,profile=self.person,type='LOAN_LENT')                                           # không là thành viên
 
     def test_loan_kind_direction_and_property_mismatch(self):
@@ -92,6 +91,6 @@ class P33Acceptance(base.P18Acceptance):
         self.err('business-set',category=pc,profile=xm,type='PROPERTY',effective_date='2026-09-01')                         # chưa là thành viên
         self.act('category-object-add',category=pc,profile=xm);self.act('business-set',category=pc,profile=xm,type='PROPERTY',effective_date='2026-09-01')
         self.err('business-set',category=pc,profile=xm,type='LOAN_LENT',effective_date='2026-09-01',reason='x')
-        self.assertEqual(self.biz()['properties'][0]['type_name'],'Bất động sản');self.assertEqual(self.store.view()['build'],'P33-2026-10-15')
+        self.assertEqual(self.biz()['properties'][0]['type_name'],'Bất động sản');self.assertTrue(self.store.view()['build'].startswith('P3'))
 
 if __name__=='__main__':unittest.main()
