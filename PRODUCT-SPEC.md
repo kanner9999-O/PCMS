@@ -755,3 +755,15 @@ Triển khai: [specs/028-legacy-cascade](specs/028-legacy-cascade/spec.md).
 | R140 | **Gộp đối tượng trùng**: gộp một đối tượng loại "đối tượng" vào hồ sơ khác (ví dụ vào BĐS cùng tên), kèm lý do; thành viên danh mục và lịch sử cũ chuyển sang hồ sơ đích, phân loại gốc không bị sửa; có bản ghi gộp; hồ sơ bị gộp ẩn khỏi mọi danh sách. Không gộp hai hồ sơ nghiệp vụ (người, khoản vay, BĐS) với nhau. |
 
 Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
+
+### R141–R145 — Ghi chú giao dịch, chi phí mua BĐS vốn hóa, chi không chứng từ · 15/10/2026 (Thạch hỏi tư vấn kế toán và chọn phương án đề xuất)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R141 | Mỗi giao dịch có **ghi chú / diễn giải riêng** (chữ tự do) và **số chứng từ tùy chọn** (biên lai/hóa đơn), lưu bền kèm lịch sử thay đổi, hiện ở mọi lịch sử và màn Kiểm tra; ghi chú không đổi số tiền hay cách ghi nhận. Mục đích làm đổi cách ghi nhận thì là danh mục/đối tượng; mục đích chỉ mô tả thì là ghi chú. |
+| R142 | **Danh mục mẫu "Chi phí mua BĐS (vốn hóa)"** với con Công chứng, Thuế trước bạ, Môi giới, Khác: phần chi (và hoàn) phân loại vào đây và gắn BĐS được **cộng vào giá gốc BĐS**; chi phí sửa chữa/vận hành vẫn là chi phí kỳ, không vào giá gốc. |
+| R143 | **Giá gốc ghi sổ của BĐS = vốn đã thanh toán ròng + chi phí mua vốn hóa ròng**; chênh lệch chưa thực hiện so với giá trị hiện tại tính trên giá gốc này; Tổng tài sản dùng giá gốc này khi BĐS chưa định giá. |
+| R144 | **Danh mục mẫu "Chi khác không chứng từ"**: hiển thị riêng, **không vốn hóa**, **ghi chú bắt buộc** khi phân loại; ghi trung thực dòng tiền ra, không gộp vào phí có chứng từ. Thuế/pháp lý của khoản chi này do Thạch hỏi kế toán viên/luật sư; hệ thống không khẳng định. |
+| R145 | Tạo hai danh mục mẫu bằng một thao tác trên màn Danh mục; dữ liệu đã phân loại không bị đổi. |
+
+Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).

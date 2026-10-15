@@ -33,6 +33,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 027 | [legacy-import](027-legacy-import/spec.md) | P29 (R129–R134, migrate lịch sử cũ từ Excel) | Implemented | R123–R134 |
 | 028 | [legacy-cascade](028-legacy-cascade/spec.md) | P30 (R135–R136, chọn danh mục theo cấp; quyết định cấu trúc) | Implemented | R123–R136 |
 | 029 | [object-unique](029-object-unique/spec.md) | P31 (R138–R140, tên đối tượng duy nhất, gộp trùng) | Implemented | R125, R138–R140 |
+| 030 | [note-capitalized-costs](030-note-capitalized-costs/spec.md) | P32 (R141–R145, ghi chú, vốn hóa chi phí mua BĐS, chi không chứng từ) | Implemented | R71–R73, R141–R145 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

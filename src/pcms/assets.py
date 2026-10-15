@@ -40,16 +40,16 @@ class AssetOverview:
             loan_issues=sum(p['excluded_count'] for p in people)
             realty=self.realty_view(s);realty_rows=[];by_basis={'VALUE':Decimal(0),'COST':Decimal(0)};none=[];realty_total=Decimal(0)
             for p in realty['properties']:
-                cur=p['valuation']['current'];net=D(p['capital']['net'])
+                cur=p['valuation']['current'];net=D(p['capital']['basis'])
                 if cur:basis,value='VALUE',D(cur['value'])
                 elif net>0:basis,value='COST',net
                 else:basis,value='NONE',None
                 if value is None:none.append(dict(id=p['id'],name=p['name']))
                 else:by_basis[basis]+=value;realty_total+=value
-                realty_rows.append(dict(id=p['id'],name=p['name'],basis=basis,value=N(value) if value is not None else None,date=cur['date'] if cur else None,capital_net=p['capital']['net']))
+                realty_rows.append(dict(id=p['id'],name=p['name'],basis=basis,value=N(value) if value is not None else None,date=cur['date'] if cur else None,capital_net=p['capital']['basis']))
             vnd_assets=[self.asset_group('bank','Tiền ngân hàng','account',bank_total,bool(active),'Theo dữ liệu nguồn đã ghi'+(f' đến ngày {as_of}' if as_of else ''),as_of,bank_rows),
                 self.asset_group('receivable','Phải thu (gốc cho vay)','debts',receivable,bool(setup_loans),'Gốc theo dữ liệu Công nợ, không gồm lãi'),
-                self.asset_group('realty','Bất động sản','realty',realty_total if realty['properties'] else None,bool(realty['properties']),'Giá trị hiện tại nếu đã nhập; chưa có thì giá gốc (vốn đã thanh toán ròng), chưa định giá',None,realty_rows)]
+                self.asset_group('realty','Bất động sản','realty',realty_total if realty['properties'] else None,bool(realty['properties']),'Giá trị hiện tại nếu đã nhập; chưa có thì giá gốc (vốn đã thanh toán ròng + chi phí mua vốn hóa ròng), chưa định giá',None,realty_rows)]
             vnd_assets[2]['by_basis']={k:N(v) for k,v in by_basis.items()}
             vnd_liab=[self.asset_group('payable','Phải trả (gốc đi vay)','debts',payable,bool(setup_loans),'Gốc theo dữ liệu Công nợ, gồm khoản vay thế chấp')]
             # ---- USDT ---------------------------------------------------

@@ -13,6 +13,10 @@ from .product import D, S, uid, item
 ROOTS={'income':'Thu nhập','expense':'Chi tiêu','principal':'Gốc vay','interest':'Lãi vay','investment':'Đầu tư BĐS','transfer':'Chuyển nội bộ','unknown':'Chưa phân loại'}
 PARENTABLE={'income','expense','principal','interest','investment'}
 MAX_DEPTH=4
+TEMPLATES={'realty-acquisition':dict(name='Chi phí mua BĐS (vốn hóa)',type='expense',flags={'capitalize':True},children=['Công chứng','Thuế trước bạ','Môi giới','Khác'],
+    description='Chi phí trực tiếp liên quan việc mua BĐS: cộng vào giá gốc BĐS khi gắn hồ sơ BĐS.'),
+  'no-voucher':dict(name='Chi khác không chứng từ',type='expense',flags={'note_required':True},children=[],
+    description='Khoản chi không có chứng từ hợp lệ: hiển thị riêng, không vốn hóa, bắt buộc ghi chú.')}
 ROOT_TYPES={'income':'Nhóm thu','expense':'Nhóm chi','investment':'Nhóm đầu tư'}
 
 def root_key(category):
@@ -80,6 +84,28 @@ class Categories:
         other=self.profile_clash(s,name,exclude);kinds={'PERSON':'người','LOAN':'khoản vay','PROPERTY':'BĐS','OBJECT':'đối tượng'}
         require(other is None,f"Đã có hồ sơ tên \"{other['name']}\" (loại {kinds.get(other['kind'],other['kind'])}); hãy chọn hồ sơ có sẵn thay vì tạo trùng." if other else '')
 
+    def cat_flag(self,s,node_id,flag):
+        """Whether a category (or any ancestor) carries a business flag such as 'capitalize' or 'note_required'."""
+        by={n['id']:n for n in s.get('categories',[])};cid=node_id
+        while cid in by:
+            if by[cid].get('flags',{}).get(flag):return True
+            cid=by[cid]['parent']
+        return False
+
+    def apply_note(self,t,note,voucher):
+        from .p01 import now
+        before=dict(note=t.get('note',''),voucher=t.get('voucher',''));new=dict(before)
+        if note is not None:new['note']=str(note).strip()[:1000]
+        if voucher is not None:new['voucher']=str(voucher).strip()[:100]
+        if new!=before:t.setdefault('note_history',[]).append(dict(at=now(),before=before,after=new));t.update(new)
+
+    def change_note(self,s,d):
+        t=item(s['transactions'],d.get('transaction'));note=d.get('note');voucher=d.get('voucher')
+        require(note is not None or voucher is not None,'Nhập ghi chú hoặc số chứng từ.')
+        final=str(note).strip() if note is not None else t.get('note','')
+        require(final or not any(self.cat_flag(s,p.get('node'),'note_required') for p in t['allocations']),'Danh mục này yêu cầu ghi chú; không được để trống.')
+        self.apply_note(t,note,voucher);return 'Cập nhật ghi chú giao dịch'
+
     def cat_target(self,p):
         return p.get('node') or root_key(p['category'])
 
@@ -95,6 +121,13 @@ class Categories:
         cat_state(s)
         def log(node,kind,before,after,reason=''):
             node['history'].append(dict(at=now(),action=kind,before=before,after=after,reason=str(reason or '').strip()[:500]))
+        if action=='category-template':
+            tpl=TEMPLATES.get(d.get('template'));require(tpl is not None,'Chọn danh mục mẫu.')
+            require(not any(n['parent'] is None and norm_name(n['name'])==norm_name(tpl['name']) for n in s['categories']),'Danh mục mẫu này đã có.')
+            self.change_category(s,'category-create',dict(name=tpl['name'],type=tpl['type'],description=tpl['description']))
+            root=next(n for n in s['categories'] if n['parent'] is None and n['name']==tpl['name']);root['flags']=dict(tpl['flags'])
+            for child in tpl['children']:self.change_category(s,'category-create',dict(name=child,description='',parent=root['id']))
+            return 'Tạo danh mục mẫu '+tpl['name']
         if action=='category-object-add':
             key=d.get('category');self.cat_target_root(s,key);pid=d.get('profile');name=str(d.get('name') or '').strip()
             if pid:prof=item(s['profiles'],pid)
@@ -349,8 +382,8 @@ class Categories:
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
-            nodes=[dict(objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            nodes=[dict(capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
+            return dict(roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
@@ -370,7 +403,7 @@ class Categories:
                 node=p.get('node');row_path=self.cat_path(s,node) if node else ROOTS[root_key(p['category'])]
                 rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',
                     label=('Hoàn chi tiêu' if (p['category']=='expense' and incoming) else ('Lãi vay' if p.get('own_category')=='interest' else row_path))+(' · '+profiles[p['profile']] if p.get('profile') in profiles else ''),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
-                    legacy=bool(t.get('legacy')),source_row=t.get('source_row'),bank_balance=t.get('bank_balance'),category_path=row_path,object=profiles.get(p.get('profile')),status='LEGACY' if t.get('legacy') else ('APPROVED' if t['id'] in approved else 'DRAFT'),node_status=next((n['status'] for n in s['categories'] if n['id']==node),None) if node else None,sources=copy.deepcopy(t.get('sources',[]))))
+                    note=t.get('note',''),voucher=t.get('voucher',''),legacy=bool(t.get('legacy')),source_row=t.get('source_row'),bank_balance=t.get('bank_balance'),category_path=row_path,object=profiles.get(p.get('profile')),status='LEGACY' if t.get('legacy') else ('APPROVED' if t['id'] in approved else 'DRAFT'),node_status=next((n['status'] for n in s['categories'] if n['id']==node),None) if node else None,sources=copy.deepcopy(t.get('sources',[]))))
             rows.sort(key=lambda r:(r['date'],r['reference']),reverse=True)
             periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED']
             evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE')
@@ -471,7 +504,7 @@ class Categories:
                     if at and (g['latest'] is None or at>g['latest']):g['latest']=at
                     label='Hoàn chi tiêu' if (p['category']=='expense' and incoming) else own_path
                     g['rows'].append(dict(transaction=t['id'],date=t['date'],reference=t['reference'],description=t['description'],amount=S(amount),tx_amount=S(abs(signed)),direction='IN' if incoming else 'OUT',
-                        label=label,object=obj,split=len(parts)>1,classified_at=at,recent=bool(at and at>=cutoff),status='APPROVED' if t['id'] in approved else 'DRAFT',sources=len(t.get('sources',[])),_order=t.get('order',0)))
+                        label=label,object=obj,note=t.get('note',''),voucher=t.get('voucher',''),split=len(parts)>1,classified_at=at,recent=bool(at and at>=cutoff),status='APPROVED' if t['id'] in approved else 'DRAFT',sources=len(t.get('sources',[])),_order=t.get('order',0)))
             out=[]
             for g in groups.values():
                 g['rows'].sort(key=lambda r:(r['classified_at'] or '',r['date'],r['_order']),reverse=True)

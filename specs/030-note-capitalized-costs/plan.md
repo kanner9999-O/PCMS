@@ -1,0 +1,3 @@
+# Plan 030
+**Constitution**: VII (danh mục theo cây, đối tượng thuộc danh mục) và VIII (vốn hóa chi phí mua; chi không chứng từ tách riêng, trung thực).
+**Mã**: `categories.py` (mẫu danh mục, cờ `flags` kế thừa, `cat_flag`, `transaction-note`, hiển thị `note`/`voucher` ở lịch sử), `p01.py` (`classify` nhận note/voucher, kiểm ghi chú bắt buộc; dispatch `transaction-note`; build P32), `realty.py` (chi phí mua vốn hóa, giá gốc, chênh lệch), `assets.py` (cơ sở giá gốc mới), `account_history.py` và `classification_review` (ghi chú), `web/p01.js` (ô ghi chú/số chứng từ, nút Danh mục mẫu, màn BĐS, hiển thị ghi chú), test `tests/test_p32_acceptance.py`.
