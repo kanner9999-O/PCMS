@@ -765,5 +765,15 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R143 | **Giá gốc ghi sổ của BĐS = vốn đã thanh toán ròng + chi phí mua vốn hóa ròng**; chênh lệch chưa thực hiện so với giá trị hiện tại tính trên giá gốc này; Tổng tài sản dùng giá gốc này khi BĐS chưa định giá. |
 | R144 | **Danh mục mẫu "Chi khác không chứng từ"**: hiển thị riêng, **không vốn hóa**, **ghi chú bắt buộc** khi phân loại; ghi trung thực dòng tiền ra, không gộp vào phí có chứng từ. Thuế/pháp lý của khoản chi này do Thạch hỏi kế toán viên/luật sư; hệ thống không khẳng định. |
 | R145 | Tạo hai danh mục mẫu bằng một thao tác trên màn Danh mục; dữ liệu đã phân loại không bị đổi. |
+| R146 | **Vai trò danh mục** suy từ gốc hệ thống: Thu nhập/Chi tiêu = dòng tiền thường (không cần đối tượng hay nghiệp vụ); Gốc vay, Lãi vay = vai trò cho vay/đi vay; Đầu tư BĐS = vai trò BĐS; hiển thị ở màn Danh mục. |
+| R147 | **Nghiệp vụ gắn vào cặp (đối tượng, danh mục)**, không gắn toàn cục: Cho vay (Phải thu), Đi vay (Phải trả), Bất động sản; kèm tham số ghi nhận (lãi suất thỏa thuận, đáo hạn, ghi chú). Một người vừa cho vay vừa đi vay = hai cặp, hai sổ, không bù trừ. |
+| R148 | **Chặn hẳn** gắn sai vai trò: danh mục thu/chi thường không mang nghiệp vụ; loại phải hợp gốc danh mục; khoản vay thiết lập Phải thu không gắn Đi vay (và ngược lại); BĐS không gắn nghiệp vụ vay. |
+| R149 | Đổi tham số có ngày hiệu lực + lý do + lịch sử; cặp đã có giao dịch **không đổi loại, không gỡ nghiệp vụ** (giữ nguyên sổ cũ). |
+| R150 | **Sổ cho vay theo cặp** (chỉ đọc): giải ngân/nhận vay, thu/trả gốc, dư nợ gốc, lãi thu/trả, cảnh báo (thu quá gốc, lệch sổ Công nợ, lãi chưa chỉ định được cặp, chưa thiết lập chiều); nhãn tiền thực thu/chi, chưa dồn tích lãi/dự phòng/xóa nợ (cần kế toán viên xác nhận). |
+| R151 | **Hợp nhất hồ sơ nghiệp vụ** (xem trước + xác nhận, idempotent, có bản ghi): khoản vay và BĐS thành đối tượng trong Gốc vay / Đầu tư BĐS mang loại theo chiều đã thiết lập; khoản chưa thiết lập chiều chỉ được thêm vào danh mục, không đoán chiều; không đổi phân loại, báo cáo, Công nợ. |
+| R152 | **Chặn hẳn** gỡ đối tượng, lưu trữ danh mục, gộp đối tượng khác loại khi cặp đang mang nghiệp vụ (gỡ nghiệp vụ trước, có lý do). |
+| R153 | Khoản vay luôn phân loại được vào Gốc vay/Lãi vay và BĐS vào Đầu tư BĐS dù chưa là thành viên danh mục (không bị chặn bởi hợp nhất). Thứ tự làm nghiệp vụ: Cho vay → BĐS → crypto → bán hàng. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
+
+Triển khai: [specs/031-loan-business-objects](specs/031-loan-business-objects/spec.md).
