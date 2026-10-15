@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### P31 Tên đối tượng duy nhất và gộp đối tượng trùng — 15/10/2026 (đã phát hành, 8792 đã restart)
+
+Làm theo Spec Kit: [specs/029-object-unique](specs/029-object-unique/spec.md) (Thạch phát hiện hai "Xuân Mai"; R138–R140; có mục Tư vấn kế toán theo Constitution VIII). Kiểm tra dữ liệu thật (chỉ đọc): "Xuân Mai" và "Hòa Sơn" đều có hai hồ sơ khác loại (BĐS có sẵn và "đối tượng" tạo sau); luật không trùng tên chỉ kiểm trong cùng loại và migrate theo tên chỉ tìm trong loại "đối tượng". Nay **tên hồ sơ duy nhất toàn hệ thống mọi loại** (chuẩn hóa bỏ khoảng trắng thừa, không phân biệt hoa/thường) ở mọi đường tạo/đổi tên; migrate theo tên **dùng lại hồ sơ có sẵn**; đối tượng trùng tên hiện cảnh báo "Trùng tên với …" và nút **"Gộp vào hồ sơ trùng"** (chỉ gộp loại "đối tượng" vào hồ sơ khác, có lý do và bản ghi gộp; thành viên danh mục và lịch sử cũ chuyển sang đích; phân loại gốc không sửa, các màn danh mục đọc qua bản ghi gộp; hồ sơ bị gộp ẩn). Test: 4 ca P31 + hồi quy = 243 ca Python đạt. Bàn giao: outputs/p31-handoff.md.
+
 ### Sửa Constitution 1.2.0 — Nghiệp vụ kế toán là chuẩn — 15/10/2026
 
 Thạch yêu cầu (R137): luôn đứng trên nghiệp vụ kế toán để tư vấn, mọi quyết định business logic phải đúng nghiệp vụ kế toán và kèm tư vấn kế toán. Đã thêm nguyên tắc VIII vào `.specify/memory/constitution.md` (phiên bản 1.2.0), mục "Tư vấn kế toán" vào mẫu spec, lưu ý vào mẫu plan, `CLAUDE.md`, `PRODUCT-SPEC.md` R137 và ghi nhớ làm việc. Không đổi mã.

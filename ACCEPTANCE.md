@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P31 — R138–R140, Tên đối tượng duy nhất và gộp trùng (spec 029)
+
+Tiêu chí ở `specs/029-object-unique/spec.md`: không còn đường nào tạo được hai hồ sơ trùng tên; gộp OBJECT vào BĐS cho tổng bằng tổng hai bên cộng lại, không đếm kép, phân loại gốc và báo cáo tài khoản không đổi; dữ liệu thật không đổi cho tới khi Thạch tự gộp.
+
 ### P30 — R135–R136, Chọn danh mục theo cấp (spec 028)
 
 Tiêu chí ở `specs/028-legacy-cascade/spec.md`: danh sách đối tượng trong hộp migrate bằng đúng danh sách đối tượng của danh mục đã chọn ở mọi cấp; cấp sau chỉ hiện con trực tiếp; 375px không tràn ngang; dữ liệu thật không đổi.

@@ -745,3 +745,13 @@ Triển khai: [specs/028-legacy-cascade](specs/028-legacy-cascade/spec.md).
 | Mã | Yêu cầu đã xác nhận |
 |---|---|
 | R137 | Thạch **không am hiểu nghiệp vụ kế toán**; hệ thống phải **vận hành đúng nghiệp vụ kế toán**. Mọi quyết định business logic về sau **phải có tư vấn kế toán** (phương án đúng kế toán làm đề xuất, lý do, hệ quả); spec có business logic có mục "Tư vấn kế toán"; thuế/pháp lý đánh dấu cần kế toán viên xác nhận. Đã ghi vào Constitution (nguyên tắc VIII). |
+
+### R138–R140 — Tên đối tượng duy nhất và gộp đối tượng trùng · 15/10/2026 (Thạch phát hiện hai "Xuân Mai")
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R138 | **Tên hồ sơ/đối tượng duy nhất trên toàn hệ thống, mọi loại** (người, khoản vay, BĐS, đối tượng): so sánh sau khi chuẩn hóa (bỏ khoảng trắng thừa, không phân biệt hoa/thường). Mọi đường tạo hoặc đổi tên (thêm đối tượng, tạo nhanh, tạo hồ sơ, đổi tên, migrate lịch sử cũ theo tên) đều kiểm; migrate theo tên **dùng lại hồ sơ có sẵn** thay vì tạo mới. |
+| R139 | Đối tượng trùng tên đã tồn tại **được cảnh báo** ngay trong danh sách đối tượng của danh mục ("Trùng tên với …"). |
+| R140 | **Gộp đối tượng trùng**: gộp một đối tượng loại "đối tượng" vào hồ sơ khác (ví dụ vào BĐS cùng tên), kèm lý do; thành viên danh mục và lịch sử cũ chuyển sang hồ sơ đích, phân loại gốc không bị sửa; có bản ghi gộp; hồ sơ bị gộp ẩn khỏi mọi danh sách. Không gộp hai hồ sơ nghiệp vụ (người, khoản vay, BĐS) với nhau. |
+
+Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
