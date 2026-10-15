@@ -40,13 +40,14 @@ from .loan_completion import LoanCompletion
 from .trx_energy import TrxEnergy
 from .categories import Categories, root_key
 from .business import Business
+from .objects import Objects
 from .realty import Realty
 from .crypto_ledger import CryptoLedger
 from .assets import AssetOverview
 from .account_history import AccountHistory
 from .legacy_import import LegacyImport
 
-class P01Store(Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -90,7 +91,7 @@ class P01Store(Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedg
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group'], 'build':'P34-2026-10-15'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management'], 'build':'P35-2026-10-15'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -329,6 +330,7 @@ class P01Store(Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedg
         if action.startswith('business-'):return self.change_business(s,action,d)
         if action=='loan-regroup':return self.change_category(s,action,d)
         if action=='transaction-note':return self.change_note(s,d)
+        if action in {'object-create','object-edit','object-archive','object-restore','object-delete'}:return self.change_object(s,action,d)
         if action=='object-quick-create':return self.change_quick_object(s,d)
         if action.startswith('trx-'):return self.change_trx(s,action,d)
         if action in {'loan-complete','loan-reopen'}:return self.change_completion(s,action,d)
@@ -477,6 +479,7 @@ class P01Store(Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedg
                         part['node']=node['id']
                     if profile:
                         target=item(s['profiles'],profile);key=part.get('node') or root_key(category)
+                        require(target.get('status')!='ARCHIVED' or any(x.get('profile')==profile for tt in selected for x in tt['allocations']),'Đối tượng đã lưu trữ; khôi phục ở màn Đối tượng trước khi phân loại mới.')
                         members={e['profile'] for e in s.get('category_objects',[]) if e['status']=='ACTIVE' and e['category']==key}
                         kept={x.get('profile') for t in selected for x in t['allocations'] if x.get('profile')}
                         legacy={'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'},'expense':{'LOAN','PROPERTY'}}.get(category,set())

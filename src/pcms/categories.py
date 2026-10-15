@@ -133,7 +133,8 @@ class Categories:
             return 'Tạo danh mục mẫu '+tpl['name']
         if action=='category-object-add':
             key=d.get('category');self.cat_target_root(s,key);pid=d.get('profile');name=str(d.get('name') or '').strip()
-            if pid:prof=item(s['profiles'],pid)
+            if pid:
+                prof=item(s['profiles'],pid);require(prof.get('status')!='ARCHIVED' and not prof.get('merged_into'),'Đối tượng đã lưu trữ hoặc đã gộp; khôi phục ở màn Đối tượng trước.')
             else:
                 require(1<=len(name)<=100,'Tên đối tượng dài 1–100 ký tự.')
                 self.require_free_name(s,name)
@@ -397,13 +398,16 @@ class Categories:
         with localcontext() as ctx:
             ctx.prec=60
             s=cat_state(copy.deepcopy(s or self.state()));key=d.get('category');start,end=self.cat_period(d);account=d.get('account') or None
-            require(key in ROOTS or any(n['id']==key for n in s['categories']),'Chọn danh mục.')
+            everything=key=='*' and bool(d.get('object'))
+            require(everything or key in ROOTS or any(n['id']==key for n in s['categories']),'Chọn danh mục.')
             approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']}
             accounts={a['id']:a['name'] for a in s['accounts']};profiles={p['id']:p['name'] for p in s['profiles']}
-            rows=[];tx=set();inc=out=Decimal(0)
+            rows=[];tx=set();inc=out=Decimal(0);family=set()
+            if d.get('object'):
+                owner=next((x for x in s['profiles'] if x['id']==d['object']),None);family={d['object']}|({x['id'] for x in self.obj_party_loans(s,owner)} if everything and owner and owner['kind']=='PERSON' else set())
             for t,p in self.cat_parts(s,start,end,account):
-                if key not in self.cat_keys(s,p):continue
-                if d.get('object') and p.get('profile')!=d['object']:continue
+                if not everything and key not in self.cat_keys(s,p):continue
+                if d.get('object') and p.get('profile') not in family:continue
                 incoming=D(t['signed_amount'])>0;amount=D(p['amount']);tx.add(t['id'])
                 if incoming:inc+=amount
                 else:out+=amount
@@ -415,10 +419,10 @@ class Categories:
             periods=[(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED']
             evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE')
             notice=('Kỳ nguồn đã ghi: '+'; '.join(display_day(a)+' → '+display_day(b) for a,b in sorted(set(periods)))+'. Ngoài các kỳ này chưa có bằng chứng.') if periods else 'Chưa có nguồn ngân hàng nào được ghi; không suy ra là không phát sinh.'
-            root=key if key in ROOTS else next(n['root'] for n in s['categories'] if n['id']==key)
+            root='all' if everything else (key if key in ROOTS else next(n['root'] for n in s['categories'] if n['id']==key))
             totals={'in':S(inc),'out':S(out),'net':S(inc-out),'parts':len(rows),'transactions':len(tx)}
             if root=='expense':totals['net_spend']=S(out-inc)
-            return dict(category=key,root=root,path=self.cat_path(s,key),evidence=evidence,source_notice=notice,totals=totals,rows=rows,period=dict(start=start,end=end) if (start or end) else None)
+            return dict(category=key,root=root,path='Tất cả danh mục' if everything else self.cat_path(s,key),evidence=evidence,source_notice=notice,totals=totals,rows=rows,period=dict(start=start,end=end) if (start or end) else None)
 
     def category_review(self,d,s=None):
         """Approval-step breakdown by category for one account, with a reconciliation against the source rows."""

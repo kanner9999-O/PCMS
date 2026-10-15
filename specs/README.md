@@ -36,6 +36,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 030 | [note-capitalized-costs](030-note-capitalized-costs/spec.md) | P32 (R141–R145, ghi chú, vốn hóa chi phí mua BĐS, chi không chứng từ) | Implemented | R71–R73, R141–R145 |
 | 031 | [loan-business-objects](031-loan-business-objects/spec.md) | P33 (R146–R153, nghiệp vụ gắn đối tượng trong danh mục, Cho vay trước) | Implemented | R84–R86, R136–R145, R146–R153 |
 | 032 | [default-group](032-default-group/spec.md) | P34 (R154–R157, nhóm mặc định cho danh mục, phương án A) | Implemented | R136, R146–R157 |
+| 033 | [object-management](033-object-management/spec.md) | P35 (R158–R163, màn quản lý đối tượng) | Implemented | R136, R158–R163 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

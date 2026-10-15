@@ -1,0 +1,2 @@
+# Plan: 033 object-management
+Module `objects.py` (mixin `Objects`): `object-create|edit|archive|restore|delete`, `object_view`; `category_history` nhận `category='*'` + `object` cho lịch sử qua mọi danh mục; chặn đối tượng lưu trữ ở `category-object-add` và `classify`. UI: màn "Đối tượng" (mode riêng, nút trên thanh bên). Constitution: I/II không đụng dữ liệu thật; IV lưu trữ thay vì xóa đối tượng đã dùng; VII/VIII đạt.

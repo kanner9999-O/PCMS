@@ -19,6 +19,7 @@ def active_pair(s,category,profile):
     return next((e for e in s.get('category_objects',[]) if e['status']=='ACTIVE' and e['category']==category and e['profile']==profile),None)
 
 class Business:
+    ROLES_=ROLES
     def biz_kind_error(self,s,profile,btype):
         """Why this profile cannot carry the business type, or None. Used by set, merge and migrate (chặn hẳn)."""
         spec=BUSINESS[btype];kind=profile['kind']
