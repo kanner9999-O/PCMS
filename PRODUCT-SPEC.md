@@ -777,9 +777,17 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R155 | Nhóm mặc định là **nhãn tổ chức**: không đổi phân loại gốc của giao dịch, tổng danh mục, báo cáo, snapshot đã duyệt (lịch sử bất biến). Tách khỏi báo cáo Chi tiêu/Thu nhập (phương án B) là bước riêng, có xem trước và cần kế toán viên xác nhận. |
 | R156 | Nghiệp vụ gắn cho đối tượng ở **mọi** danh mục, bỏ chặn theo loại gốc (sửa R148); giữ chặn chiều khoản vay, loại hồ sơ, đổi loại/gỡ khi đã có giao dịch. |
 | R157 | Cặp nghiệp vụ nằm trong danh mục có loại ghi nhận Chi tiêu/Thu nhập hiển thị **cảnh báo** "đang tính vào báo cáo Chi tiêu/Thu nhập" (cho vay không phải chi tiêu, mua BĐS không phải chi phí); không chặn. |
+| R158 | **Màn Đối tượng** (Thạch chốt 15/10/2026): liệt kê mọi đối tượng (Người, Bất động sản, Khác), tìm theo tên, lọc theo loại, hiện danh mục đang thuộc, nghiệp vụ, tổng vào/ra, trạng thái; **khoản vay thuộc về một Người và hiện bên trong đối tượng Người**, không là loại riêng. |
+| R159 | Tạo đối tượng = tên riêng (1–100, duy nhất toàn hệ thống kể cả đã lưu trữ) + loại Người/Bất động sản/Khác, tùy chọn gắn danh mục; vẫn tạo nhanh trong danh mục. |
+| R160 | Sửa tên (có lịch sử); **đổi loại cần lý do** và bị chặn khi đối tượng là bên của khoản vay, mang nghiệp vụ, hoặc BĐS đã có dữ liệu BĐS/đầu tư. |
+| R161 | **Lưu trữ / khôi phục** (lý do): đối tượng đã dùng chỉ lưu trữ, ẩn khỏi danh sách chọn, không thêm vào danh mục mới, không phân loại mới; chặn lưu trữ khi còn dư nợ gốc. |
+| R162 | **Xóa hẳn** chỉ khi đối tượng chưa được tham chiếu ở bất kỳ đâu; có lý do và bản ghi đã xóa. |
+| R163 | Một danh mục có 0, 1 hoặc nhiều đối tượng; danh mục không có đối tượng (ví dụ Chi tiêu) phân loại thẳng. Lịch sử đối tượng xem qua mọi danh mục (Người gồm cả khoản vay của họ). |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
 Triển khai: [specs/031-loan-business-objects](specs/031-loan-business-objects/spec.md).
 
 Triển khai: [specs/032-default-group](specs/032-default-group/spec.md).
+
+Triển khai: [specs/033-object-management](specs/033-object-management/spec.md).

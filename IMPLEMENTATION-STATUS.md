@@ -408,3 +408,6 @@ Theo Spec Kit. Vai trò danh mục suy từ gốc; nghiệp vụ Cho vay/Đi vay
 
 ## P34 (15/10/2026) – Nhóm mặc định cho danh mục (spec 032, R154–R157)
 Theo Spec Kit, phương án A: nhóm mặc định là nhãn tổ chức (mọi danh mục hiện có và mới), không đổi phân loại gốc, báo cáo, snapshot; nghiệp vụ gắn đối tượng ở mọi danh mục, cảnh báo khi danh mục tính vào Chi tiêu/Thu nhập. 282 test trên dữ liệu giả; QA trình duyệt `/tmp/pcms-031-qa`; `outputs/p01-user-trial` không đổi.
+
+## P35 (15/10/2026) – Quản lý đối tượng (spec 033, R158–R163)
+Theo Spec Kit: màn Đối tượng riêng (danh sách, tìm, lọc loại, tạo, sửa tên/loại có điều kiện, lưu trữ/khôi phục, xóa hẳn khi chưa dùng, lịch sử qua mọi danh mục); khoản vay hiện trong đối tượng Người. 298 test trên dữ liệu giả; QA trình duyệt `/tmp/pcms-031-qa`; `outputs/p01-user-trial` không đổi. Chưa có: loại đối tượng do người dùng thêm, liên kết "BĐS liên quan" cho khoản vay.
