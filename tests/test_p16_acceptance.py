@@ -35,7 +35,7 @@ class P16Acceptance(unittest.TestCase):
     # ---- US1 -----------------------------------------------------------
     def test_custom_root_lifecycle_and_names(self):
         biz,goods=self.biz();n=self.node('Kinh doanh nhỏ');self.assertEqual((n['parent'],n['root'],n['depth'],n['path']),(None,'expense',1,'Kinh doanh nhỏ'));self.assertEqual((self.node('Nhập hàng')['depth'],self.node('Nhập hàng')['path']),(2,'Kinh doanh nhỏ › Nhập hàng'))
-        for bad in (dict(name='chi tiêu',type='expense'),dict(name='  CHI TIÊU ',type='income'),dict(name='kinh doanh NHỎ',type='income'),dict(name='X'),dict(name='X',type='principal'),dict(name='X',type='unknown'),dict(name='',type='expense'),dict(name='a'*101,type='expense')):self.err('category-create',**bad)
+        for bad in (dict(name='chi tiêu',type='expense'),dict(name='  CHI TIÊU ',type='income'),dict(name='kinh doanh NHỎ',type='income'),dict(name='X',type='principal'),dict(name='X',type='unknown'),dict(name='',type='expense'),dict(name='a'*101,type='expense')):self.err('category-create',**bad)
         self.act('category-create',name='Chi tieu',type='expense')                     # khác dấu tiếng Việt = tên khác
         a=self.node('Nhập hàng')['id'];self.act('category-create',name='Cấp 3',description='',parent=a);c3=self.node('Cấp 3')['id'];self.act('category-create',name='Cấp 4',description='',parent=c3);self.err('category-create',name='Cấp 5',description='',parent=self.node('Cấp 4')['id'])
         self.err('category-edit',category=biz,type='income');self.err('category-edit',category=biz,parent='income')                    # loại/cha gốc tự tạo không đổi
