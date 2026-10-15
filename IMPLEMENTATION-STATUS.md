@@ -402,3 +402,6 @@ Bản 05.1 gộp tài khoản/phân loại, khôi phục công cụ tài khoản
 Theo yêu cầu giảm scroll và quản lý trạng thái, bản 05.2 thay bố cục chung dài bằng bước nhập/đối soát có nút xác nhận khóa, sau đó bảng phân loại phân trang 20 dòng. Nhóm chờ/đã phân loại/tất cả, đếm theo dòng gốc; lưu hợp lệ đưa dòng sang nhóm đã xử lý, lưu nháp thiếu vẫn chờ. Approve phần còn chưa phân loại có xác nhận rõ. Chỉ thay bản mẫu và tài liệu; bản 05.1 lưu archive-v5.1.
 
 Kiểm tra Chrome đạt các ca phase/status trong verification-v5.2.json: chặn phân loại/duyệt trước Nhập liệu OK; khóa nguồn; 20 dòng/trang; bulk/lưu đơn chuyển nhóm đúng; toàn đợt 163 dòng; xác nhận phần chưa rõ; khóa sau approve; mobile không tràn. Không lỗi JavaScript. Đã xem ảnh bảng phân loại.
+
+## P33 (15/10/2026) – Nghiệp vụ gắn đối tượng trong danh mục, Cho vay trước (spec 031, R146–R153)
+Theo Spec Kit. Vai trò danh mục suy từ gốc; nghiệp vụ Cho vay/Đi vay/BĐS gắn cặp (đối tượng, danh mục); sổ cho vay theo cặp (dư nợ gốc, lãi, cảnh báo); hợp nhất hồ sơ khoản vay/BĐS bằng nút xem trước + xác nhận; chặn hẳn mâu thuẫn vai trò. Chưa có: dồn tích lãi, dự phòng, xóa nợ (cần kế toán viên xác nhận); crypto và bán hàng làm đợt sau. Kiểm thử: 265 test trên dữ liệu giả; QA trình duyệt trên `/tmp/pcms-031-qa`; `outputs/p01-user-trial` không đổi (không có file mới hơn thời điểm bắt đầu).

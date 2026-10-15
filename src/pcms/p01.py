@@ -39,13 +39,14 @@ from .interest_settlement import InterestSettlement
 from .loan_completion import LoanCompletion
 from .trx_energy import TrxEnergy
 from .categories import Categories, root_key
+from .business import Business
 from .realty import Realty
 from .crypto_ledger import CryptoLedger
 from .assets import AssetOverview
 from .account_history import AccountHistory
 from .legacy_import import LegacyImport
 
-class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -89,7 +90,7 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P32-2026-10-15'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects'], 'build':'P33-2026-10-15'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -325,6 +326,7 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
         if action.startswith('crypto-'):return self.change_crypto(s,action,d)
         if action.startswith('realty-'):return self.change_realty(s,action,d)
         if action.startswith('category-'):return self.change_category(s,action,d)
+        if action.startswith('business-'):return self.change_business(s,action,d)
         if action=='loan-regroup':return self.change_category(s,action,d)
         if action=='transaction-note':return self.change_note(s,d)
         if action=='object-quick-create':return self.change_quick_object(s,d)
@@ -478,7 +480,8 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
                         members={e['profile'] for e in s.get('category_objects',[]) if e['status']=='ACTIVE' and e['category']==key}
                         kept={x.get('profile') for t in selected for x in t['allocations'] if x.get('profile')}
                         legacy={'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'},'expense':{'LOAN','PROPERTY'}}.get(category,set())
-                        require(profile in members or profile in kept or (not members and target['kind'] in legacy),'Đối tượng không thuộc danh mục này. Thêm đối tượng vào danh mục ở màn Danh mục trước.')
+                        native={'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'}}.get(category,set())
+                        require(profile in members or profile in kept or (not members and target['kind'] in legacy) or target['kind'] in native,'Đối tượng không thuộc danh mục này. Thêm đối tượng vào danh mục ở màn Danh mục trước.')
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})

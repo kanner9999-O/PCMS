@@ -17,6 +17,7 @@ TEMPLATES={'realty-acquisition':dict(name='Chi phí mua BĐS (vốn hóa)',type=
     description='Chi phí trực tiếp liên quan việc mua BĐS: cộng vào giá gốc BĐS khi gắn hồ sơ BĐS.'),
   'no-voucher':dict(name='Chi khác không chứng từ',type='expense',flags={'note_required':True},children=[],
     description='Khoản chi không có chứng từ hợp lệ: hiển thị riêng, không vốn hóa, bắt buộc ghi chú.')}
+ROLE_LABELS={'income':'Dòng tiền thu','expense':'Dòng tiền chi','principal':'Gốc vay','interest':'Lãi vay','investment':'Đầu tư BĐS','transfer':'Chuyển nội bộ','unknown':'Chưa phân loại'}
 ROOT_TYPES={'income':'Nhóm thu','expense':'Nhóm chi','investment':'Nhóm đầu tư'}
 
 def root_key(category):
@@ -143,7 +144,7 @@ class Categories:
             prof.setdefault('rename_history',[]).append(dict(at=now(),before=prof['name'],after=name));prof['name']=name;return 'Đổi tên đối tượng thành '+name
         if action=='category-object-remove':
             e=next((x for x in s['category_objects'] if x['category']==d.get('category') and x['profile']==d.get('profile') and x['status']=='ACTIVE'),None);require(e is not None,'Đối tượng không có trong danh mục này.')
-            reason=str(d.get('reason','')).strip();require(reason,'Cần lý do gỡ.');e.update(status='REMOVED',removed_at=now());e['history'].append(dict(at=now(),action='REMOVE',from_=e['category'],reason=reason[:500]));return 'Gỡ đối tượng khỏi danh mục'
+            reason=str(d.get('reason','')).strip();require(reason,'Cần lý do gỡ.');self.biz_guard_remove(s,e);e.update(status='REMOVED',removed_at=now());e['history'].append(dict(at=now(),action='REMOVE',from_=e['category'],reason=reason[:500]));return 'Gỡ đối tượng khỏi danh mục'
         if action=='category-object-move':
             src,dst=d.get('from'),d.get('to');e=next((x for x in s['category_objects'] if x['category']==src and x['profile']==d.get('profile') and x['status']=='ACTIVE'),None);require(e is not None,'Đối tượng không có trong danh mục nguồn.')
             require(src!=dst,'Chọn danh mục đích khác.');reason=str(d.get('reason','')).strip();require(reason,'Cần lý do chuyển.')
@@ -155,6 +156,7 @@ class Categories:
             src=item(s['profiles'],d.get('from'));dst=item(s['profiles'],d.get('into'));reason=str(d.get('reason','')).strip()
             require(src['kind']=='OBJECT','Chỉ gộp được hồ sơ loại "đối tượng"; hồ sơ người/khoản vay/BĐS giữ làm hồ sơ đích.');require(src['id']!=dst['id'],'Chọn hồ sơ đích khác.')
             require(not src.get('merged_into') and not dst.get('merged_into'),'Hồ sơ đã bị gộp.');require(reason,'Cần lý do gộp.')
+            self.biz_guard_merge(s,src,dst)
             for e in s['category_objects']:
                 if e['profile']!=src['id'] or e['status']!='ACTIVE':continue
                 if any(x['category']==e['category'] and x['profile']==dst['id'] and x['status']=='ACTIVE' for x in s['category_objects']):
@@ -212,6 +214,7 @@ class Categories:
             require(node['status']=='ACTIVE','Danh mục đã lưu trữ.');reason=str(d.get('reason','')).strip();require(reason,'Cần lý do lưu trữ.')
             require(not any(n['parent']==node['id'] and n['status']=='ACTIVE' for n in s['categories']),'Còn danh mục con đang hoạt động; lưu trữ các danh mục con trước.')
             require(not any(p['kind']=='LOAN' and p.get('group')==node['id'] for p in s['profiles']),'Còn khoản vay đang gắn danh mục này; chuyển các khoản vay sang danh mục khác trước.')
+            self.biz_guard_archive(s,node)
             log(node,'ARCHIVE','ACTIVE','ARCHIVED',reason);node['status']='ARCHIVED';return 'Lưu trữ danh mục '+node['name']
         if action=='category-restore':
             require(node['status']=='ARCHIVED','Danh mục đang hoạt động.')
@@ -378,11 +381,11 @@ class Categories:
                 pr=by_profile[e['profile']]
                 if pr.get('merged_into'):continue
                 dup=[dict(profile=x['id'],name=x['name'],kind=x['kind']) for x in s['profiles'] if x['id']!=pr['id'] and not x.get('merged_into') and norm_name(x['name'])==norm_name(pr['name'])];o=oacc.get((e['category'],e['profile']),dict(in_=Decimal(0),out=Decimal(0),tx=set()))
-                objs.setdefault(e['category'],[]).append(dict(entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
+                objs.setdefault(e['category'],[]).append(dict(business=e.get('business'),entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
-            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
-            nodes=[dict(capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
+            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
+            nodes=[dict(role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
             return dict(roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
