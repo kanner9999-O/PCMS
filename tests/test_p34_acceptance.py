@@ -34,4 +34,8 @@ class P34Acceptance(base.P33Acceptance):
         self.act('business-migrate',confirm=True);self.err('business-set',category='principal',profile=self.l10,type='LOAN_BORROWED',effective_date='2026-09-01',reason='x')
         self.err('business-set',category=ld,profile=my,type='LOAN_BORROWED',effective_date='2026-09-05',reason='đổi')           # đã có giao dịch
 
+    def test_create_root_default_type(self):
+        self.act('category-create',name='Mặc định mới');n=self.nodes()['Mặc định mới'];self.assertEqual((n['group'],n['root']),('default','expense'))
+        self.act('category-create',name='Mặc định 2',type='default');self.assertEqual(self.nodes()['Mặc định 2']['group'],'default');self.err('category-create',name='Sai',type='nope')
+
 if __name__=='__main__':unittest.main()

@@ -179,7 +179,9 @@ class Categories:
             text=str(d.get('description','')).strip();require(len(text)<=500,'Mô tả tối đa 500 ký tự.')
             s['category_roots'][key]=text;return 'Cập nhật mô tả '+ROOTS[key]
         if action=='category-create' and not d.get('parent'):
-            typ=d.get('type');require(typ in ROOT_TYPES,'Chọn loại cho danh mục gốc: nhóm thu, nhóm chi hoặc nhóm đầu tư.')
+            typ=d.get('type') or 'default'
+            if typ=='default':typ='expense'                      # nhóm mặc định: nhận cả tiền vào và ra, ghi nhận báo cáo như Chi tiêu (phương án A, không đổi lịch sử)
+            require(typ in ROOT_TYPES,'Chọn loại cho danh mục gốc: nhóm thu, nhóm chi hoặc nhóm đầu tư.')
             name=self.cat_name_ok(s,d.get('name'),None);desc=str(d.get('description','')).strip();require(len(desc)<=500,'Mô tả tối đa 500 ký tự.')
             node=dict(id=uid(),name=name,description=desc,parent=None,root=typ,group='default',status='ACTIVE',created_at=now(),history=[])
             log(node,'CREATE',None,dict(name=name,type=typ));s['categories'].append(node);return 'Tạo danh mục gốc '+name
