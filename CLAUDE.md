@@ -13,3 +13,7 @@ Dự án dùng Spec Kit (`specify-cli`, tích hợp `claude`). Nguyên tắc ở
 ## Quyết định cấu trúc về danh mục (từ 15/10/2026)
 
 Mọi tính năng liên quan danh mục phải theo `.specify/memory/constitution.md` nguyên tắc VII: cây danh mục cha → con nhiều cấp; đối tượng thuộc danh mục; giao diện chọn theo cấp và chỉ tải đối tượng của danh mục đã chọn; nghiệp vụ riêng là lớp song song tích hợp sau.
+
+## Nghiệp vụ kế toán là chuẩn (từ 15/10/2026)
+
+Thạch không am hiểu kế toán và muốn vận hành đúng nghiệp vụ kế toán. Mọi quyết định business logic phải kèm tư vấn kế toán (phương án đúng kế toán làm đề xuất, nêu lý do và hệ quả); mỗi spec có business logic có mục "Tư vấn kế toán"; vấn đề thuế/pháp lý đánh dấu cần kế toán viên xác nhận. Chi tiết: `.specify/memory/constitution.md` nguyên tắc VIII.

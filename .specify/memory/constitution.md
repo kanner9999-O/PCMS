@@ -27,6 +27,13 @@ Mọi tính năng liên quan đến danh mục, hiện tại và về sau, phả
 4. **Nghiệp vụ là lớp song song**: nghiệp vụ riêng (vay/cho vay, BĐS, kinh doanh, tách gốc/lãi...) tích hợp sau vào danh mục/đối tượng, không được làm đổi cấu trúc trên hay biến giao diện danh mục thành giao diện nghiệp vụ.
 5. Spec mới có liên quan đến danh mục phải nêu tuân thủ nguyên tắc này trong phần kiểm tra Constitution.
 
+### VIII. Nghiệp vụ kế toán là chuẩn cho mọi quyết định business logic (Thạch chốt 15/10/2026)
+Thạch không am hiểu nghiệp vụ kế toán và muốn hệ thống vận hành **đúng nghiệp vụ kế toán**. Vì vậy:
+1. **Luôn đứng trên nghiệp vụ kế toán để tư vấn.** Mọi quyết định business logic (ghi nhận, phân loại, đo lường, trình bày, công nợ, lãi, vốn, tài sản, doanh thu/chi phí, migrate dữ liệu cũ...) phải có tư vấn kế toán trước khi chốt: phương án đúng kế toán, lý do, hệ quả lên số liệu. Không để Thạch tự chọn công thức/quy tắc sai vì thiếu hiểu biết; câu hỏi phỏng vấn dùng ngôn ngữ dễ hiểu và **phương án đề xuất (Recommended) phải là phương án đúng kế toán**.
+2. **Nguyên tắc kế toán áp dụng làm chuẩn** (đã thể hiện ở nhiều quy tắc sẵn có, nay là nguyên tắc chung): ghi nhận theo bản chất kinh tế (không theo hình thức chuyển khoản); tách vốn gốc, lãi, chi phí, hoàn chi, thu hộ/chi hộ; phải thu và phải trả **không bù trừ**; tài sản chưa có giá trị thị trường ghi theo **giá gốc** và nói rõ cơ sở; **thận trọng**: chênh lệch chưa thực hiện không phải lãi/lỗ, lãi chưa thỏa thuận/chưa thu không dồn tích; **nhất quán** phương pháp giữa các kỳ; **trọng yếu**; **chứng từ bất biến, có dấu vết, sửa bằng bút toán/phiên bản mới có lý do**; **đối chiếu** với nguồn (sao kê) và cắt kỳ (cut-off) rõ ràng; không quy đổi tiền tệ khi chưa có tỷ giá và nguồn.
+3. **Trong mỗi spec có business logic** có mục "Tư vấn kế toán": phương án, khuyến nghị kế toán, rủi ro/hệ quả, điều cần kế toán viên/thuế xác nhận. Nếu yêu cầu của Thạch trái nguyên tắc kế toán, assistant nói rõ và đề xuất cách đúng; Thạch quyết định cuối cùng và quyết định đó được ghi lại kèm cảnh báo.
+4. **Giới hạn trung thực**: assistant tư vấn theo nguyên tắc kế toán phổ biến, không thay kế toán viên/chuyên viên thuế có chứng chỉ; vấn đề thuế, pháp lý, báo cáo nộp cơ quan nhà nước phải được đánh dấu "cần kế toán viên/thuế xác nhận" và không khẳng định thay.
+
 ### VI. Gọn và tiết kiệm usage
 Một coder với ngữ cảnh gọn cho mỗi đợt vừa phải; không đọc toàn bộ lịch sử, không tạo nhiều agent, không chạy test rộng hoặc lặp khi không có lý do. Không viết lại kiến trúc vô cớ; ghi phát hiện cụ thể rồi mới giao sửa.
 
@@ -49,4 +56,4 @@ Một coder với ngữ cảnh gọn cho mỗi đợt vừa phải; không đọ
 
 Constitution này gom các quy tắc đã thống nhất; sửa đổi cần có sự đồng ý của người dùng (Thạch) và ghi lại trong `IMPLEMENTATION-STATUS.md`. Mọi bước plan/analyze phải kiểm tra tuân thủ. Mọi vi phạm phải được ghi chú và biện minh, không im lặng bỏ qua. Hướng dẫn vận hành hằng ngày xem `CLAUDE.md` và `HANDOFF.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-15 (thêm nguyên tắc VII theo yêu cầu của Thạch)
+**Version**: 1.2.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-15 (thêm nguyên tắc VII về cấu trúc danh mục và VIII về nghiệp vụ kế toán theo yêu cầu của Thạch)

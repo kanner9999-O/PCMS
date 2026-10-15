@@ -6,6 +6,10 @@ Cập nhật bàn giao · 11/10/2026. Hiện trạng không bổ sung yêu cầu
 
 Điểm bắt đầu tiếp quản: [HANDOFF.md](HANDOFF.md). Các mục bên dưới là lịch sử từng đợt; giới hạn ở đợt cũ có thể đã được đợt mới bổ sung. P07 là bản phát hành hiện tại, không còn việc triển khai P07 đang chạy. Không coi mọi yêu cầu N0–N5 đã hoàn thành.
 
+### Sửa Constitution 1.2.0 — Nghiệp vụ kế toán là chuẩn — 15/10/2026
+
+Thạch yêu cầu (R137): luôn đứng trên nghiệp vụ kế toán để tư vấn, mọi quyết định business logic phải đúng nghiệp vụ kế toán và kèm tư vấn kế toán. Đã thêm nguyên tắc VIII vào `.specify/memory/constitution.md` (phiên bản 1.2.0), mục "Tư vấn kế toán" vào mẫu spec, lưu ý vào mẫu plan, `CLAUDE.md`, `PRODUCT-SPEC.md` R137 và ghi nhớ làm việc. Không đổi mã.
+
 ### P30 Hộp migrate chọn danh mục theo cấp + quyết định cấu trúc danh mục — 15/10/2026 (đã phát hành, 8792 đã restart)
 
 Làm theo Spec Kit: [specs/028-legacy-cascade](specs/028-legacy-cascade/spec.md) (Thạch yêu cầu; R135, R136). Hộp **Migrate lịch sử cũ** chọn danh mục **theo cấp** (cấp 1 các gốc, chọn xong hiện danh mục con, rồi con của con…, mặc định chọn sẵn đường dẫn tới Long debt) và ô đối tượng **chỉ liệt kê đối tượng của chính danh mục đã chọn** (không tải mọi danh mục/đối tượng); đổi danh mục thì xem trước bị vô hiệu. **Quyết định cấu trúc** (Thạch yêu cầu lưu lại): cách quản lý danh mục này áp dụng cho mọi tính năng danh mục về sau; đã ghi vào Constitution nguyên tắc VII (phiên bản 1.1.0), PRODUCT-SPEC R136, `CLAUDE.md` và ghi nhớ làm việc. Chỉ đổi giao diện; hồi quy 239 ca Python đạt. Bàn giao: outputs/p30-handoff.md.

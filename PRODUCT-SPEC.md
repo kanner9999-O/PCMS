@@ -739,3 +739,9 @@ Triển khai: [specs/027-legacy-import](specs/027-legacy-import/spec.md).
 | R136 | **Quyết định cấu trúc**: cách quản lý danh mục ở R123–R128 và R135 (cây cha → con nhiều cấp; đối tượng thuộc danh mục; chọn danh mục theo cấp và chỉ tải đối tượng của danh mục đã chọn; nghiệp vụ là lớp song song tích hợp sau) **áp dụng cho mọi tính năng liên quan danh mục về phía sau**. Đã ghi vào Constitution (nguyên tắc VII). |
 
 Triển khai: [specs/028-legacy-cascade](specs/028-legacy-cascade/spec.md).
+
+### R137 — Nghiệp vụ kế toán là chuẩn cho mọi business logic · 15/10/2026 (Thạch yêu cầu)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R137 | Thạch **không am hiểu nghiệp vụ kế toán**; hệ thống phải **vận hành đúng nghiệp vụ kế toán**. Mọi quyết định business logic về sau **phải có tư vấn kế toán** (phương án đúng kế toán làm đề xuất, lý do, hệ quả); spec có business logic có mục "Tư vấn kế toán"; thuế/pháp lý đánh dấu cần kế toán viên xác nhận. Đã ghi vào Constitution (nguyên tắc VIII). |
