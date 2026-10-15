@@ -411,3 +411,6 @@ Theo Spec Kit, phương án A: nhóm mặc định là nhãn tổ chức (mọi 
 
 ## P35 (15/10/2026) – Quản lý đối tượng (spec 033, R158–R163)
 Theo Spec Kit: màn Đối tượng riêng (danh sách, tìm, lọc loại, tạo, sửa tên/loại có điều kiện, lưu trữ/khôi phục, xóa hẳn khi chưa dùng, lịch sử qua mọi danh mục); khoản vay hiện trong đối tượng Người. 298 test trên dữ liệu giả; QA trình duyệt `/tmp/pcms-031-qa`; `outputs/p01-user-trial` không đổi. Chưa có: loại đối tượng do người dùng thêm, liên kết "BĐS liên quan" cho khoản vay.
+
+## P36 (15/10/2026) – Dọn danh mục con chưa dùng (spec 034, R164–R165)
+Nút "Dọn danh mục chưa dùng" có xem trước + xác nhận; chỉ danh mục con chưa từng dùng/không đối tượng/khoản vay/lịch sử cũ; ghi bản ghi đã xóa. 315 test trên dữ liệu giả; dữ liệu thật do Thạch tự bấm.

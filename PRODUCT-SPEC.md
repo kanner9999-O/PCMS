@@ -783,6 +783,8 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R161 | **Lưu trữ / khôi phục** (lý do): đối tượng đã dùng chỉ lưu trữ, ẩn khỏi danh sách chọn, không thêm vào danh mục mới, không phân loại mới; chặn lưu trữ khi còn dư nợ gốc. |
 | R162 | **Xóa hẳn** chỉ khi đối tượng chưa được tham chiếu ở bất kỳ đâu; có lý do và bản ghi đã xóa. |
 | R163 | Một danh mục có 0, 1 hoặc nhiều đối tượng; danh mục không có đối tượng (ví dụ Chi tiêu) phân loại thẳng. Lịch sử đối tượng xem qua mọi danh mục (Người gồm cả khoản vay của họ). |
+| R164 | **Dọn danh mục con chưa dùng** (Thạch yêu cầu 15/10/2026): danh sách xóa được = danh mục con chưa từng có phân loại, không có danh mục con còn giữ, không có đối tượng đang thuộc, không có khoản vay gắn, không có nhập lịch sử cũ; xét từ lá lên; danh mục gốc không bị xóa. |
+| R165 | Dọn bằng nút **xem trước + xác nhận** trên màn Danh mục (dữ liệu thật chỉ đổi khi Thạch bấm); danh sách phải khớp lúc xác nhận; ghi bản ghi đã xóa; không đổi tiền, báo cáo, snapshot. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -791,3 +793,5 @@ Triển khai: [specs/031-loan-business-objects](specs/031-loan-business-objects/
 Triển khai: [specs/032-default-group](specs/032-default-group/spec.md).
 
 Triển khai: [specs/033-object-management](specs/033-object-management/spec.md).
+
+Triển khai: [specs/034-category-cleanup](specs/034-category-cleanup/spec.md).

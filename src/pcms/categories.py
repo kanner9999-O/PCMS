@@ -175,6 +175,12 @@ class Categories:
             reason=str(d.get('reason','')).strip();require(reason,'Cần lý do xóa.');require(prof['id'] not in self.cat_usage_blob(s),'Đối tượng đã từng được dùng để phân loại; chỉ có thể gỡ khỏi danh mục.')
             s['category_objects']=[e for e in s['category_objects'] if e['profile']!=prof['id']];s['profiles']=[x for x in s['profiles'] if x['id']!=prof['id']]
             s.setdefault('object_deleted',[]).append(dict(id=prof['id'],name=prof['name'],reason=reason[:500],at=now()));return 'Xóa hẳn đối tượng '+prof['name']
+        if action=='category-cleanup':
+            require(d.get('confirm') is True,'Xác nhận sau khi xem danh sách.');ids=d.get('ids');require(isinstance(ids,list) and ids,'Không có danh mục nào để dọn.')
+            cands=self.cat_cleanup_candidates(s);require(set(ids)=={n['id'] for n in cands},'Danh sách đã thay đổi; xem trước lại rồi xác nhận.')
+            reason=str(d.get('reason') or 'Dọn danh mục chưa dùng').strip()[:500]
+            for n in cands:s.setdefault('category_deleted',[]).append(dict(id=n['id'],name=n['name'],path=self.cat_path(s,n['id']),root=n['root'],reason=reason,at=now()))
+            gone={n['id'] for n in cands};s['categories']=[n for n in s['categories'] if n['id'] not in gone];return f'Dọn {len(gone)} danh mục chưa dùng'
         if action=='category-root-describe':
             key=d.get('root');require(key in ROOTS,'Chọn một danh mục gốc.')
             text=str(d.get('description','')).strip();require(len(text)<=500,'Mô tả tối đa 500 ký tự.')
@@ -261,6 +267,21 @@ class Categories:
         if kind=='CATEGORY':
             return self.change_category(s,'category-create',dict(parent=d.get('parent'),name=d.get('name'),description=''))
         require(False,'Loại đối tượng không hợp lệ.')
+
+    def cat_cleanup_candidates(self,s):
+        """Child categories never used anywhere, found leaf-first so empty parents follow their children (spec 034)."""
+        cat_state(s);blob=self.cat_usage_blob(s);work=list(s['categories']);removed=[]
+        def blocked(n):
+            nid=n['id']
+            return (any(e['status']=='ACTIVE' and e['category']==nid for e in s['category_objects']) or any(b.get('category')==nid for b in s.get('legacy_batches',[]))
+                or any(nid in (m['from'],m['to']) for m in s.get('object_moves',[])))
+        changed=True
+        while changed:
+            changed=False;view=dict(s,categories=work)
+            for n in list(work):
+                if n['parent'] is None or blocked(n) or self.cat_in_use_fast(view,n,blob) is not None:continue
+                work.remove(n);removed.append(n);changed=True;break
+        return removed
 
     def cat_descendants(self,s,node):
         out=[];stack=[node['id']]
@@ -391,7 +412,7 @@ class Categories:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
             nodes=[dict(group=n.get('group','default'),group_name=GROUPS[n.get('group','default')],role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),groups=GROUPS,group_note=GROUP_NOTE,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            return dict(roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),cleanup=[dict(id=n['id'],path=self.cat_path(s,n['id']),root=n['root'],status=n['status']) for n in self.cat_cleanup_candidates(s)],legacy=self.legacy_summary(s),groups=GROUPS,group_note=GROUP_NOTE,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
