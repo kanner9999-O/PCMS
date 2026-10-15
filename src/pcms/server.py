@@ -148,6 +148,7 @@ def serve(directory='private-data/product-demo', port=8787, p01=False):
                 elif p01 and self.path=='/api/category-history':result=store.category_history(data)
                 elif p01 and self.path=='/api/category-view':result=store.category_view(store.state(),*store.cat_period(data))
                 elif p01 and self.path=='/api/category-review':result=store.category_review(data)
+                elif p01 and self.path=='/api/legacy-preview':result=store.legacy_preview(data)
                 elif p01 and self.path=='/api/source-preview':result=store.source_preview(data)
                 elif p01 and self.path=='/api/account-history':result=store.account_history(data)
                 elif p01 and self.path=='/api/classification-review':result=store.classification_review(data)

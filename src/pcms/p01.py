@@ -43,8 +43,9 @@ from .realty import Realty
 from .crypto_ledger import CryptoLedger
 from .assets import AssetOverview
 from .account_history import AccountHistory
+from .legacy_import import LegacyImport
 
-class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -88,7 +89,7 @@ class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, 
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P28-2026-10-14'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P29-2026-10-15'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -319,6 +320,7 @@ class P01Store(AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, 
         return f"Tạo tài khoản {account['name']} từ file nguồn; {message}"
 
     def change(self,s,action,d):
+        if action.startswith('legacy-'):return self.change_legacy(s,action,d)
         if action.startswith('assets-'):return self.change_assets(s,action,d)
         if action.startswith('crypto-'):return self.change_crypto(s,action,d)
         if action.startswith('realty-'):return self.change_realty(s,action,d)

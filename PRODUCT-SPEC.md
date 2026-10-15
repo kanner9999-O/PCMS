@@ -716,3 +716,16 @@ Triển khai: [specs/025-classify-objects](specs/025-classify-objects/spec.md).
 | R128 | Giữ các điểm còn lại: đối tượng không bắt buộc khi phân loại; hồ sơ cũ gắn từ trước vẫn hiển thị; dữ liệu đã phân loại không đổi. |
 
 Triển khai: [specs/026-category-objects](specs/026-category-objects/spec.md).
+
+### R129–R134 — Migrate lịch sử cũ từ Excel/Google Sheets · 15/10/2026 (Thạch yêu cầu, chọn phương án 1)
+
+| Mã | Yêu cầu đã xác nhận |
+|---|---|
+| R129 | **Migrate lịch sử giao dịch cũ** (ví dụ lịch sử vay của một người trong file "Long Debt", tab "Mỹ") sang hệ thống bằng cách **dán trực tiếp từ Google Sheets**, mỗi lần một đối tượng/tab; chọn danh mục (ví dụ Long debt) và đối tượng (ví dụ Mỹ, tạo mới nếu chưa có và gán vào danh mục). |
+| R130 | **Mẫu cột "Long Debt"**: ngày (dd/mm/yyyy) \| nội dung \| mã tham chiếu \| tiền ra (D) \| tiền vào (E) \| số dư tài khoản lúc đó (F, chỉ tham khảo). Cho **ánh xạ cột** tùy chỉnh để dùng mẫu khác sau này. Bỏ dòng trống và màu ô; **dòng tổng** (không có ngày) dùng để đối chiếu. |
+| R131 | **Xem trước bắt buộc** trước khi ghi: danh sách dòng sẽ nhập, lỗi từng dòng, tổng ra/vào so với dòng tổng; có lỗi thì chặn; tổng lệch thì chặn trừ khi Thạch xác nhận. |
+| R132 | Lịch sử cũ là **bản ghi nằm ngoài chuỗi sao kê**: tính vào tổng và lịch sử của đối tượng và danh mục (vào, ra, ròng) với nhãn "Lịch sử cũ"; **không đổi** số dư tài khoản, mốc snapshot, kiểm liền mạch hay kiểm khớp sao kê. Công nợ chưa tích hợp. |
+| R133 | **Tự nhận trùng**: dòng cũ có mã tham chiếu trùng một giao dịch trong sao kê (hiện tại hoặc nhập sau, so sau khi bỏ phần đuôi từ `\`) thì đánh dấu "đã có trong sao kê" và không tính hai lần; dòng trùng lần migrate trước thì bỏ qua. |
+| R134 | **Hủy cả một lần migrate** kèm lý do, giữ bản ghi; giữ nguyên bản dán và số dòng nguồn để truy nguyên. |
+
+Triển khai: [specs/027-legacy-import](specs/027-legacy-import/spec.md).
