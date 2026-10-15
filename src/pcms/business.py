@@ -71,8 +71,6 @@ class Business:
             return f"Gỡ nghiệp vụ của {prof['name']}"
         if action!='business-set':require(False,'Hành động không hợp lệ.')
         btype=d.get('type');require(btype in BUSINESS,'Chọn loại nghiệp vụ.');spec=BUSINESS[btype]
-        require(root not in PLAIN,f"Danh mục này có vai trò {ROLES[root]} (dòng tiền thường); không mang nghiệp vụ. Chỉ gắn nghiệp vụ trong danh mục thuộc {ROLES[spec['root']]}.")
-        require(root==spec['root'],f"Danh mục này có vai trò {ROLES[root]}; nghiệp vụ {spec['name']} chỉ gắn trong danh mục thuộc {ROLES[spec['root']]}.")
         why=self.biz_kind_error(s,prof,btype);require(why is None,why or '')
         params=self.biz_params(d);when=day(d.get('effective_date') or now()[:10])
         if current:
@@ -151,7 +149,7 @@ class Business:
             loans=[];other=[]
             for e in pairs:
                 prof=by[e['profile']];b=e['business'];btype=b['type'];spec=BUSINESS[btype];items=self.biz_items(s,e,index);issues=[]
-                base=dict(entry=e['id'],category=e['category'],category_path=self.cat_path(s,e['category']) if e['category'] not in ROLES else ROLES[e['category']],profile=prof['id'],name=prof['name'],kind=prof['kind'],type=btype,type_name=spec['name'],side=spec['side'],
+                root=self.cat_target_root(s,e['category']);base=dict(entry=e['id'],warn=['IN_EXPENSE_REPORT'] if root=='expense' else (['IN_INCOME_REPORT'] if root=='income' else []),group='default',category=e['category'],category_path=self.cat_path(s,e['category']) if e['category'] not in ROLES else ROLES[e['category']],profile=prof['id'],name=prof['name'],kind=prof['kind'],type=btype,type_name=spec['name'],side=spec['side'],
                     effective_date=b['effective_date'],params=b['params'],history=e.get('business_history',[]))
                 if btype=='PROPERTY':
                     tin=sum((D(p['amount']) for t,p in items if D(t['signed_amount'])>0),Decimal(0));tout=sum((D(p['amount']) for t,p in items if D(t['signed_amount'])<0),Decimal(0))

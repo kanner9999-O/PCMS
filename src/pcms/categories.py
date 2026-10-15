@@ -18,6 +18,8 @@ TEMPLATES={'realty-acquisition':dict(name='Chi phí mua BĐS (vốn hóa)',type=
   'no-voucher':dict(name='Chi khác không chứng từ',type='expense',flags={'note_required':True},children=[],
     description='Khoản chi không có chứng từ hợp lệ: hiển thị riêng, không vốn hóa, bắt buộc ghi chú.')}
 ROLE_LABELS={'income':'Dòng tiền thu','expense':'Dòng tiền chi','principal':'Gốc vay','interest':'Lãi vay','investment':'Đầu tư BĐS','transfer':'Chuyển nội bộ','unknown':'Chưa phân loại'}
+GROUPS={'default':'Nhóm mặc định'}
+GROUP_NOTE='Chỉ tổng hợp tiền vào/ra, đưa vào báo cáo; chưa gắn nghiệp vụ.'
 ROOT_TYPES={'income':'Nhóm thu','expense':'Nhóm chi','investment':'Nhóm đầu tư'}
 
 def root_key(category):
@@ -179,14 +181,14 @@ class Categories:
         if action=='category-create' and not d.get('parent'):
             typ=d.get('type');require(typ in ROOT_TYPES,'Chọn loại cho danh mục gốc: nhóm thu, nhóm chi hoặc nhóm đầu tư.')
             name=self.cat_name_ok(s,d.get('name'),None);desc=str(d.get('description','')).strip();require(len(desc)<=500,'Mô tả tối đa 500 ký tự.')
-            node=dict(id=uid(),name=name,description=desc,parent=None,root=typ,status='ACTIVE',created_at=now(),history=[])
+            node=dict(id=uid(),name=name,description=desc,parent=None,root=typ,group='default',status='ACTIVE',created_at=now(),history=[])
             log(node,'CREATE',None,dict(name=name,type=typ));s['categories'].append(node);return 'Tạo danh mục gốc '+name
         if action=='category-create':
             parent=d.get('parent');root=self.cat_parent_ok(s,parent)
             name=self.cat_name_ok(s,d.get('name'),parent);desc=str(d.get('description','')).strip();require(len(desc)<=500,'Mô tả tối đa 500 ký tự.')
             depth=2 if parent in ROOTS else self.cat_depth(s,self.cat_find(s,parent))+1
             require(depth<=MAX_DEPTH,f'Tối đa {MAX_DEPTH} cấp kể cả danh mục gốc.')
-            node=dict(id=uid(),name=name,description=desc,parent=parent,root=root,status='ACTIVE',created_at=now(),history=[])
+            node=dict(id=uid(),name=name,description=desc,parent=parent,root=root,group='default',status='ACTIVE',created_at=now(),history=[])
             log(node,'CREATE',None,dict(name=name,parent=parent));s['categories'].append(node);return 'Tạo danh mục '+name
         if action=='loan-regroup':return self.change_loan_group(s,d)
         node=self.cat_find(s,d.get('category'))
@@ -384,9 +386,9 @@ class Categories:
                 objs.setdefault(e['category'],[]).append(dict(business=e.get('business'),entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
-            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
-            nodes=[dict(role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
-            return dict(roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
+            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
+            nodes=[dict(group=n.get('group','default'),group_name=GROUPS[n.get('group','default')],role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
+            return dict(roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),legacy=self.legacy_summary(s),groups=GROUPS,group_note=GROUP_NOTE,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def category_history(self,d,s=None):
         from .p01 import display_day
