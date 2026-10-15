@@ -6,6 +6,10 @@ Phiên bản 2.2 · 05/10/2026 · Theo [PRODUCT-SPEC](PRODUCT-SPEC.md).
 
 ## 0. Cơ chế đánh giá từ 08/10/2026
 
+### P32 — R141–R145, Ghi chú giao dịch, chi phí mua BĐS vốn hóa, chi không chứng từ (spec 030)
+
+Tiêu chí ở `specs/030-note-capitalized-costs/spec.md`: giá gốc BĐS = vốn ròng + chi phí mua vốn hóa ròng (ví dụ vốn 590 triệu + công chứng 5 triệu = 595 triệu; hoàn chi phí mua vốn hóa trừ đi); chi khác không chứng từ thiếu ghi chú bị chặn và không đổi giá gốc; ghi chú hiện đúng ở mọi lịch sử và sửa được sau chốt mà không đổi snapshot; dữ liệu thật không đổi.
+
 ### P31 — R138–R140, Tên đối tượng duy nhất và gộp trùng (spec 029)
 
 Tiêu chí ở `specs/029-object-unique/spec.md`: không còn đường nào tạo được hai hồ sơ trùng tên; gộp OBJECT vào BĐS cho tổng bằng tổng hai bên cộng lại, không đếm kép, phân loại gốc và báo cáo tài khoản không đổi; dữ liệu thật không đổi cho tới khi Thạch tự gộp.

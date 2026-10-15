@@ -89,7 +89,7 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P31-2026-10-15'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets'], 'build':'P32-2026-10-15'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -326,6 +326,7 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
         if action.startswith('realty-'):return self.change_realty(s,action,d)
         if action.startswith('category-'):return self.change_category(s,action,d)
         if action=='loan-regroup':return self.change_category(s,action,d)
+        if action=='transaction-note':return self.change_note(s,d)
         if action=='object-quick-create':return self.change_quick_object(s,d)
         if action.startswith('trx-'):return self.change_trx(s,action,d)
         if action in {'loan-complete','loan-reopen'}:return self.change_completion(s,action,d)
@@ -482,6 +483,9 @@ class P01Store(LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})
                 t['allocations']=[] if len(allocated)==1 and allocated[0]['category']=='unknown' else allocated
+                need=any(self.cat_flag(s,x.get('node'),'note_required') for x in allocated);final=str(d['note']).strip() if d.get('note') is not None else t.get('note','')
+                require(final or not need,'Danh mục này yêu cầu ghi chú (khoản chi không chứng từ cần ghi rõ mục đích).')
+                self.apply_note(t,d.get('note'),d.get('voucher'))
             return f'Phân loại {len(selected)} giao dịch'+(': '+reason if reason else '')
         if action=='match-transfer':
             out=item(s['transactions'],d.get('outgoing'));inc=item(s['transactions'],d.get('incoming'))

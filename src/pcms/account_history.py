@@ -54,7 +54,7 @@ class AccountHistory:
                 src=t.get('sources',[]);first=files_by.get(src[0]['batch']) if src else None
                 rows.append(dict(transaction=t['id'],date=t['date'],reference=t['reference'],description=t['description'],amount=S(abs(D(t['signed_amount']))),direction='IN' if incoming else 'OUT',
                     balance=t.get('reported_balance') or S(running),label=label_of(self,s,t,profiles),status='APPROVED' if any(any(x['id']==t['id'] for x in sn['report']['transactions']) for sn in snaps) else 'DRAFT',
-                    sources=len(src),file=first['filename'] if first else None,after_milestone=after,_order=t['order']))
+                    sources=len(src),file=first['filename'] if first else None,note=t.get('note',''),voucher=t.get('voucher',''),after_milestone=after,_order=t['order']))
             total=len(rows);tin=sum((D(r['amount']) for r in rows if r['direction']=='IN'),Decimal(0));tout=sum((D(r['amount']) for r in rows if r['direction']=='OUT'),Decimal(0))
             rows.sort(key=lambda r:r['_order'],reverse=True);page=rows[offset:offset+limit]
             for r in page:r.pop('_order')

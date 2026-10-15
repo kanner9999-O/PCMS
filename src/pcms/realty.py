@@ -131,25 +131,28 @@ class Realty:
             props=[]
             for p in s['profiles']:
                 if p['kind']!='PROPERTY':continue
-                paid=received=spent=refunded=Decimal(0);tx=set()
+                paid=received=spent=refunded=acq_paid=acq_refunded=Decimal(0);tx=set()
                 for t,part in self.realty_parts(s,p['id']):
                     amount=D(part['amount']);incoming=D(t['signed_amount'])>0;tx.add(t['id'])
                     if part['category']=='investment':
                         if incoming:received+=amount
                         else:paid+=amount
+                    elif self.cat_flag(s,part.get('node'),'capitalize'):
+                        if incoming:acq_refunded+=amount
+                        else:acq_paid+=amount
                     elif incoming:refunded+=amount
                     else:spent+=amount
                 vals=[v for v in r['valuations'] if v['property']==p['id']]
                 active=[v for v in vals if v['status']=='ACTIVE']
                 current=max(active,key=lambda v:(v['date'],v['created_at'])) if active else None
-                capital_net=paid-received
-                gap=dict(amount=S(D(current['value'])-capital_net),label=GAP_LABEL) if current else None
+                capital_net=paid-received;acq_net=acq_paid-acq_refunded;basis=capital_net+acq_net
+                gap=dict(amount=S(D(current['value'])-basis),label=GAP_LABEL) if current else None
                 mortgages=[]
                 for m in (x for x in r['mortgages'] if x['property']==p['id']):
                     loan=loans.get(m['loan']);mortgages.append(dict(m,loan_name=loan and next((x['name'] for x in s['profiles'] if x['id']==m['loan']),None),principal=(loan['current_principal'] if loan else None),issues=(loan['issues'] if loan else []),note_nodebt='Dư gốc chỉ để tham khảo; không trừ vào giá trị hay chênh lệch.'))
                 items=[dict(c,party_name=people.get(c['party'],'')) for c in r['contributions'] if c['property']==p['id']]
                 total=sum((D(c['amount']) for c in items if c['status']=='ACTIVE'),Decimal(0))
-                props.append(dict(id=p['id'],name=p['name'],capital=dict(paid=S(paid),received=S(received),net=S(capital_net),transactions=len(tx)),costs=dict(spent=S(spent),refunded=S(refunded),net=S(spent-refunded)),
+                props.append(dict(id=p['id'],name=p['name'],capital=dict(paid=S(paid),received=S(received),net=S(capital_net),acquisition=dict(paid=S(acq_paid),refunded=S(acq_refunded),net=S(acq_net)),basis=S(basis),transactions=len(tx)),costs=dict(spent=S(spent),refunded=S(refunded),net=S(spent-refunded)),
                     progress=self.realty_progress(s,r,p),                    valuation=dict(current=current,history=sorted(vals,key=lambda v:(v['date'],v['created_at']),reverse=True)),gap=gap,mortgages=mortgages,contributions=dict(items=items,total=S(total)),evidence='HAS_DATA' if tx else ('EMPTY' if periods else 'EMPTY_NO_SOURCE')))
             unclassified=sum(1 for t in s['transactions'] if not t['allocations'] or any(a['category']=='unknown' for a in t['allocations']))
             return dict(properties=props,unclassified=unclassified,gap_label=GAP_LABEL,draft=True)
@@ -160,18 +163,21 @@ class Realty:
             ctx.prec=60
             s=copy.deepcopy(s or self.state());p=self.realty_prop(s,d.get('property'))
             approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']};accounts={a['id']:a['name'] for a in s['accounts']}
-            rows=[];tx=set();paid=received=spent=refunded=Decimal(0)
+            rows=[];tx=set();paid=received=spent=refunded=acq_paid=acq_refunded=Decimal(0)
             for t,part in self.realty_parts(s,p['id']):
-                amount=D(part['amount']);incoming=D(t['signed_amount'])>0;tx.add(t['id']);capital=part['category']=='investment'
+                amount=D(part['amount']);incoming=D(t['signed_amount'])>0;tx.add(t['id']);capital=part['category']=='investment';acq=(not capital) and self.cat_flag(s,part.get('node'),'capitalize')
                 if capital:
                     if incoming:received+=amount
                     else:paid+=amount
+                elif acq:
+                    if incoming:acq_refunded+=amount
+                    else:acq_paid+=amount
                 elif incoming:refunded+=amount
                 else:spent+=amount
-                rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',kind='CAPITAL' if capital else 'COST',status='APPROVED' if t['id'] in approved else 'DRAFT',sources=copy.deepcopy(t.get('sources',[])),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
-                    label=('Vốn nhận lại' if incoming else 'Vốn đã thanh toán') if capital else ('Hoàn chi phí' if incoming else 'Chi phí')))
+                rows.append(dict(transaction=t['id'],date=t['date'],account=accounts.get(t['account'],''),reference=t['reference'],description=t['description'],amount=S(amount),direction='IN' if incoming else 'OUT',kind='CAPITAL' if capital else ('ACQUISITION' if acq else 'COST'),status='APPROVED' if t['id'] in approved else 'DRAFT',sources=copy.deepcopy(t.get('sources',[])),source_count=len(t.get('sources',[])),split=len(t['allocations'])>1,tx_amount=S(abs(D(t['signed_amount']))),
+                    label=('Vốn nhận lại' if incoming else 'Vốn đã thanh toán') if capital else (('Hoàn chi phí mua (vốn hóa)' if incoming else 'Chi phí mua (vốn hóa)') if acq else ('Hoàn chi phí' if incoming else 'Chi phí')),note=t.get('note',''),voucher=t.get('voucher','')))
             rows.sort(key=lambda r:(r['date'],r['reference']),reverse=True)
             periods=sorted({(b['period_start'],b['period_end']) for b in s['imports'] if b['status']=='PUBLISHED'})
             notice=('Kỳ nguồn đã ghi: '+'; '.join(display_day(a)+' → '+display_day(b) for a,b in periods)+'. Vốn chỉ tính giao dịch đã phân loại Đầu tư BĐS gắn BĐS này.') if periods else 'Chưa có nguồn ngân hàng nào được ghi; không suy ra là chưa thanh toán.'
             return dict(property=p['id'],name=p['name'],evidence='HAS_DATA' if rows else ('EMPTY' if periods else 'EMPTY_NO_SOURCE'),source_notice=notice,
-                capital=dict(paid=S(paid),received=S(received),net=S(paid-received)),costs=dict(spent=S(spent),refunded=S(refunded),net=S(spent-refunded)),rows=rows)
+                capital=dict(paid=S(paid),received=S(received),net=S(paid-received),acquisition=dict(paid=S(acq_paid),refunded=S(acq_refunded),net=S(acq_paid-acq_refunded)),basis=S(paid-received+acq_paid-acq_refunded)),costs=dict(spent=S(spent),refunded=S(refunded),net=S(spent-refunded)),rows=rows)
