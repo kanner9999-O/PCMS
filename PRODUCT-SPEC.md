@@ -788,6 +788,9 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R166 | Hộp **"Thêm đối tượng"** vào danh mục liệt kê đối tượng đang hoạt động chưa thuộc danh mục, **nhóm theo loại** (Người, Bất động sản, Khác) và có nút lọc loại kèm số lượng. |
 | R167 | **Gợi ý tìm kiếm** theo tên không phân biệt hoa/thường và dấu, tô đoạn khớp, khớp đầu tên xếp trước, điều khiển bằng bàn phím (↑/↓, Enter, Esc). |
 | R168 | Chọn nhiều đối tượng một lần; tạo mới tại chỗ với loại; tên đã có (đã thuộc danh mục, đã lưu trữ, đã gộp) báo lý do và không tạo trùng. |
+| R169 | Hộp **phân loại giao dịch** chọn danh mục **theo cấp cha → con** như màn Danh mục: cấp 1 = gốc hệ thống + gốc tự tạo (ngang hàng, không còn nhóm chi/thu), cộng Chưa phân loại và Chuyển nội bộ chờ đối ứng; cấp sau = con trực tiếp đang hoạt động, tối đa 4 cấp, luôn có lựa chọn dừng ở cấp hiện tại. |
+| R170 | Loại gốc ghi nhận và danh mục gửi lên khi lưu suy từ danh mục cấp sâu nhất; không đổi API, quy tắc, báo cáo. Đối tượng chỉ tải từ danh mục đang chọn; danh mục con tạo nhanh nằm dưới danh mục đang chọn. |
+| R171 | Tiền ra không hiện gốc loại thu; đường dẫn đã phân loại được dựng sẵn khi mở lại (kể cả gốc tự tạo và danh mục đã lưu trữ có ghi chú). |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -800,3 +803,5 @@ Triển khai: [specs/033-object-management](specs/033-object-management/spec.md)
 Triển khai: [specs/034-category-cleanup](specs/034-category-cleanup/spec.md).
 
 Triển khai: [specs/035-object-suggest](specs/035-object-suggest/spec.md).
+
+Triển khai: [specs/036-classify-cascade](specs/036-classify-cascade/spec.md).

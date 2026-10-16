@@ -39,6 +39,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 033 | [object-management](033-object-management/spec.md) | P35 (R158–R163, màn quản lý đối tượng) | Implemented | R136, R158–R163 |
 | 034 | [category-cleanup](034-category-cleanup/spec.md) | P36 (R164–R165, dọn danh mục con chưa dùng) | Implemented | R136, R164–R165 |
 | 035 | [object-suggest](035-object-suggest/spec.md) | P37 (R166–R168, thêm đối tượng theo loại, gợi ý tìm kiếm) | Implemented | R136, R166–R168 |
+| 036 | [classify-cascade](036-classify-cascade/spec.md) | P38 (R169–R171, phân loại theo cây danh mục cha con) | Implemented | R84–R86, R136, R169–R171 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 
