@@ -414,3 +414,6 @@ Theo Spec Kit: màn Đối tượng riêng (danh sách, tìm, lọc loại, tạ
 
 ## P36 (15/10/2026) – Dọn danh mục con chưa dùng (spec 034, R164–R165)
 Nút "Dọn danh mục chưa dùng" có xem trước + xác nhận; chỉ danh mục con chưa từng dùng/không đối tượng/khoản vay/lịch sử cũ; ghi bản ghi đã xóa. 315 test trên dữ liệu giả; dữ liệu thật do Thạch tự bấm.
+
+## P37 (16/10/2026) – Thêm đối tượng theo loại, có gợi ý tìm kiếm (spec 035, R166–R168)
+Hộp "Thêm đối tượng" ở màn Danh mục: nhóm theo loại, lọc loại, gợi ý không dấu có tô khớp, chọn nhiều, tạo mới tại chỗ. Chỉ đổi giao diện. Test Python 315 + test node `object_suggest`; QA trình duyệt trên bộ giả.
