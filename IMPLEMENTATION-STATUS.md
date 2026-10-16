@@ -417,3 +417,6 @@ Nút "Dọn danh mục chưa dùng" có xem trước + xác nhận; chỉ danh m
 
 ## P37 (16/10/2026) – Thêm đối tượng theo loại, có gợi ý tìm kiếm (spec 035, R166–R168)
 Hộp "Thêm đối tượng" ở màn Danh mục: nhóm theo loại, lọc loại, gợi ý không dấu có tô khớp, chọn nhiều, tạo mới tại chỗ. Chỉ đổi giao diện. Test Python 315 + test node `object_suggest`; QA trình duyệt trên bộ giả.
+
+## P38 (16/10/2026) – Phân loại theo cây danh mục cha → con (spec 036, R169–R171)
+Hộp phân loại (và phiên điều chỉnh) chọn danh mục theo cấp, gốc tự tạo ngang hàng gốc hệ thống, đối tượng chỉ của danh mục chọn; chỉ đổi giao diện. Test Python 315 + test node `classify_cascade`; QA trình duyệt trên bộ giả (chọn 3 cấp, lưu, mở lại dựng sẵn đường dẫn).
