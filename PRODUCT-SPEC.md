@@ -785,6 +785,9 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R163 | Một danh mục có 0, 1 hoặc nhiều đối tượng; danh mục không có đối tượng (ví dụ Chi tiêu) phân loại thẳng. Lịch sử đối tượng xem qua mọi danh mục (Người gồm cả khoản vay của họ). |
 | R164 | **Dọn danh mục con chưa dùng** (Thạch yêu cầu 15/10/2026): danh sách xóa được = danh mục con chưa từng có phân loại, không có danh mục con còn giữ, không có đối tượng đang thuộc, không có khoản vay gắn, không có nhập lịch sử cũ; xét từ lá lên; danh mục gốc không bị xóa. |
 | R165 | Dọn bằng nút **xem trước + xác nhận** trên màn Danh mục (dữ liệu thật chỉ đổi khi Thạch bấm); danh sách phải khớp lúc xác nhận; ghi bản ghi đã xóa; không đổi tiền, báo cáo, snapshot. |
+| R166 | Hộp **"Thêm đối tượng"** vào danh mục liệt kê đối tượng đang hoạt động chưa thuộc danh mục, **nhóm theo loại** (Người, Bất động sản, Khác) và có nút lọc loại kèm số lượng. |
+| R167 | **Gợi ý tìm kiếm** theo tên không phân biệt hoa/thường và dấu, tô đoạn khớp, khớp đầu tên xếp trước, điều khiển bằng bàn phím (↑/↓, Enter, Esc). |
+| R168 | Chọn nhiều đối tượng một lần; tạo mới tại chỗ với loại; tên đã có (đã thuộc danh mục, đã lưu trữ, đã gộp) báo lý do và không tạo trùng. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -795,3 +798,5 @@ Triển khai: [specs/032-default-group](specs/032-default-group/spec.md).
 Triển khai: [specs/033-object-management](specs/033-object-management/spec.md).
 
 Triển khai: [specs/034-category-cleanup](specs/034-category-cleanup/spec.md).
+
+Triển khai: [specs/035-object-suggest](specs/035-object-suggest/spec.md).
