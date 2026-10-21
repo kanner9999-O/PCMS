@@ -798,6 +798,12 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R176 | Mọi dòng lịch sử có mã giao dịch có nút **"+ Ghi chú / Sửa ghi chú"** sửa ngay tại dòng (kèm số chứng từ tùy chọn), cập nhật tại chỗ không đóng lịch sử. |
 | R177 | Ghi chú, số chứng từ và nút sửa ghi chú nằm trong **cột nhãn** của dòng lịch sử, cùng dòng với nhãn trạng thái (ví dụ "Lịch sử cũ"); cột nhãn rộng hơn để ghi chú không bị cắt. |
 | R178 | Lịch sử **của một đối tượng** không lặp tên đối tượng và danh mục đã có ở tiêu đề (chỉ hiện đường dẫn khi đối tượng nằm ở nhiều danh mục, và các nhãn Hoàn chi tiêu / Lãi vay); lịch sử **của một danh mục** bỏ đường dẫn trùng tiêu đề, giữ tên đối tượng và đường dẫn danh mục con khác. |
+| R179 | **Người là đối tượng của danh mục, khoản vay là mục con** (Thạch chốt phương án B, 21/10/2026): "Hợp nhất hồ sơ nghiệp vụ" đưa người sở hữu khoản vay thành thành viên danh mục chứa khoản vay (nhóm của khoản vay hoặc Gốc vay), mang nghiệp vụ theo chiều đã thiết lập; khoản vay thôi là thành viên (giữ bản ghi, đánh dấu chuyển sang người). Khoản chưa thiết lập chiều: chỉ thêm người, không đoán chiều. Phải thu và Phải trả cùng danh mục của một người: báo xung đột, phải tách danh mục. Xem trước + xác nhận, idempotent. |
+| R180 | Nghiệp vụ vay gắn cho **người** (không gắn cho hồ sơ khoản vay), chặn khi khoản vay của người trong danh mục thiết lập chiều khác; sổ của người gồm từng khoản (số dư, lãi, đối chiếu sổ Công nợ). |
+| R181 | Không gỡ người khỏi danh mục khi còn khoản vay thuộc danh mục đó. |
+| R182 | Màn Danh mục hiện người kèm khoản vay con và tổng; màn Đối tượng hiện danh mục của người gồm danh mục của khoản vay ("qua khoản vay") và cảnh báo `LOAN_AS_MEMBER` / `PERSON_NOT_MEMBER` kèm nút hợp nhất khi hai màn chưa đồng nhất. |
+| R183 | Lịch sử của người luôn gồm các khoản vay của họ. |
+| R184 | Hộp phân loại: Gốc vay/Lãi vay liệt kê người; chọn người có khoản vay thì chọn thêm khoản vay (bắt buộc); lưu vẫn gắn khoản vay cụ thể nên sổ Công nợ, báo cáo, snapshot không đổi. Thay thế cách R151 đưa hồ sơ khoản vay làm thành viên. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -818,3 +824,5 @@ Triển khai: [specs/037-legacy-shortcut](specs/037-legacy-shortcut/spec.md).
 Triển khai: [specs/038-transaction-note-inline](specs/038-transaction-note-inline/spec.md).
 
 Triển khai: [specs/039-history-note-layout](specs/039-history-note-layout/spec.md).
+
+Triển khai: [specs/040-person-owns-loan](specs/040-person-owns-loan/spec.md).

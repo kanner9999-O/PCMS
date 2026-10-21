@@ -429,3 +429,6 @@ Cột Ghi chú khi migrate lịch sử cũ; sửa/bổ sung note ngay trên dòn
 
 ## P41 (21/10/2026) – Ghi chú cạnh cột nhãn, bỏ tên danh mục/đối tượng thừa trong lịch sử (spec 039, R177–R178)
 Chỉ đổi hiển thị lịch sử: ghi chú cùng dòng với nhãn "Lịch sử cũ", cột nhãn rộng hơn, nhãn rút gọn theo ngữ cảnh. QA trình duyệt trên bộ giả; test Python/node xanh.
+
+## P42 (21/10/2026) – Người là đối tượng của danh mục, khoản vay là mục con (spec 040, R179–R184)
+Phương án B của Thạch: đồng nhất màn Danh mục và màn Đối tượng. Hợp nhất theo người (xem trước + xác nhận, idempotent, xung đột chiều báo rõ), sổ nghiệp vụ theo người với các khoản con, hộp phân loại chọn người rồi khoản vay, cảnh báo không đồng nhất ở màn Đối tượng. 359 test Python + test node; QA trình duyệt trên bộ giả có cấu trúc cũ giống dữ liệu thật. Dữ liệu thật chỉ đổi khi Thạch bấm hợp nhất.

@@ -43,6 +43,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 037 | [legacy-shortcut](037-legacy-shortcut/spec.md) | P39 (R172–R173, migrate lịch sử cũ từ đối tượng của danh mục, chống ghi nhầm) | Implemented | R84–R86, R136, R172–R173 |
 | 038 | [transaction-note-inline](038-transaction-note-inline/spec.md) | P40 (R174–R176, ghi chú sửa tại dòng lịch sử, cột Ghi chú khi migrate) | Implemented | R141–R145, R174–R176 |
 | 039 | [history-note-layout](039-history-note-layout/spec.md) | P41 (R177–R178, ghi chú cạnh cột nhãn, bỏ tên thừa trong lịch sử) | Implemented | R84–R86, R174–R178 |
+| 040 | [person-owns-loan](040-person-owns-loan/spec.md) | P42 (R179–R184, người là đối tượng của danh mục, khoản vay là mục con) | Implemented | R136, R146–R153, R158–R163, R179–R184 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 
