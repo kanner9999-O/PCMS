@@ -426,3 +426,6 @@ Lối vào migrate từ hộp "Thêm đối tượng" và từng đối tượng
 
 ## P40 (21/10/2026) – Ghi chú giao dịch sửa tại dòng lịch sử + nhập từ migrate (spec 038, R174–R176)
 Cột Ghi chú khi migrate lịch sử cũ; sửa/bổ sung note ngay trên dòng lịch sử cho cả giao dịch ngân hàng và dòng lịch sử cũ; note không đổi tiền/phân loại/snapshot, có lịch sử thay đổi. Test Python + test node; QA trình duyệt trên bộ giả.
+
+## P41 (21/10/2026) – Ghi chú cạnh cột nhãn, bỏ tên danh mục/đối tượng thừa trong lịch sử (spec 039, R177–R178)
+Chỉ đổi hiển thị lịch sử: ghi chú cùng dòng với nhãn "Lịch sử cũ", cột nhãn rộng hơn, nhãn rút gọn theo ngữ cảnh. QA trình duyệt trên bộ giả; test Python/node xanh.

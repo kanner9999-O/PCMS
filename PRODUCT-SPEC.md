@@ -796,6 +796,8 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R174 | Migrate lịch sử cũ có vai trò cột **Ghi chú**: cột chọn làm Ghi chú nhập thành note từng dòng (≤1000, bỏ trống = không có), hiện ở bản xem trước và mọi lịch sử; mặc định không chọn cột nào. |
 | R175 | `transaction-note` nhận cả **dòng lịch sử cũ**: note ghi trên chính dòng với lịch sử thay đổi, không đổi số tiền, phân loại, bản dán gốc, snapshot; danh mục yêu cầu ghi chú vẫn chặn để trống. Nội dung ngân hàng gốc giữ nguyên, note là lớp diễn giải mục đích. |
 | R176 | Mọi dòng lịch sử có mã giao dịch có nút **"+ Ghi chú / Sửa ghi chú"** sửa ngay tại dòng (kèm số chứng từ tùy chọn), cập nhật tại chỗ không đóng lịch sử. |
+| R177 | Ghi chú, số chứng từ và nút sửa ghi chú nằm trong **cột nhãn** của dòng lịch sử, cùng dòng với nhãn trạng thái (ví dụ "Lịch sử cũ"); cột nhãn rộng hơn để ghi chú không bị cắt. |
+| R178 | Lịch sử **của một đối tượng** không lặp tên đối tượng và danh mục đã có ở tiêu đề (chỉ hiện đường dẫn khi đối tượng nằm ở nhiều danh mục, và các nhãn Hoàn chi tiêu / Lãi vay); lịch sử **của một danh mục** bỏ đường dẫn trùng tiêu đề, giữ tên đối tượng và đường dẫn danh mục con khác. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -814,3 +816,5 @@ Triển khai: [specs/036-classify-cascade](specs/036-classify-cascade/spec.md).
 Triển khai: [specs/037-legacy-shortcut](specs/037-legacy-shortcut/spec.md).
 
 Triển khai: [specs/038-transaction-note-inline](specs/038-transaction-note-inline/spec.md).
+
+Triển khai: [specs/039-history-note-layout](specs/039-history-note-layout/spec.md).
