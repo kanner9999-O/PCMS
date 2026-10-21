@@ -97,9 +97,22 @@ class Objects:
                 if p['kind']=='LOAN' or p.get('merged_into'):continue
                 fam=self.obj_family(s,p);tin=sum((acc.get(i,{}).get('in_',Decimal(0)) for i in fam),Decimal(0));tout=sum((acc.get(i,{}).get('out',Decimal(0)) for i in fam),Decimal(0));tx=set().union(*[acc.get(i,{}).get('tx',set()) for i in fam])
                 cats=[dict(category=e['category'],path=self.cat_path(s,e['category']) if e['category'] not in self.ROLES_ else self.ROLES_[e['category']],business=(e.get('business') or {}).get('type')) for e in s['category_objects'] if e['status']=='ACTIVE' and e['profile']==p['id']]
+                have={c['category'] for c in cats}
+                for l in self.obj_party_loans(s,p):
+                    home=self.loan_home(l)
+                    if home not in have:have.add(home);cats.append(dict(category=home,path=self.cat_path(s,home) if home not in self.ROLES_ else self.ROLES_[home],business=None,via_loan=True))
                 mine=[dict(id=x['id'],name=x['name'],direction=(x.get('debt_setup') or {}).get('direction'),current=loans[x['id']]['current_principal'],status=loans[x['id']]['completion_status'],setup=bool(x.get('debt_setup')),
                     category=(self.cat_path(s,x['group']) if x.get('group') else self.ROLES_['principal'])) for x in self.obj_party_loans(s,p)]
                 rows.append(dict(id=p['id'],name=p['name'],kind=p['kind'],type_name=TYPES[p['kind']],status=p.get('status','ACTIVE'),categories=cats,loans=mine,totals={'in':S(tin),'out':S(tout),'transactions':len(tx)},
                     type_reason=self.obj_type_reason(s,p),delete_reason=self.obj_in_use(s,p),renames=len(p.get('rename_history',[])),archive_history=p.get('archive_history',[]),type_history=p.get('type_history',[])))
+            issues=[]
+            for e in s['category_objects']:
+                if e['status']!='ACTIVE' or e['profile'] not in by:continue
+                p=by[e['profile']]
+                if p['kind']=='LOAN' and not p.get('merged_into'):issues.append(dict(code='LOAN_AS_MEMBER',profile=p['id'],name=p['name'],party=(by.get(p.get('party')) or {}).get('name'),message='Khoản vay đang là thành viên danh mục; người sở hữu mới là đối tượng của danh mục. Dùng "Hợp nhất hồ sơ nghiệp vụ".'))
+            for p in s['profiles']:
+                if p['kind']!='PERSON' or p.get('merged_into'):continue
+                homes={self.loan_home(l) for l in self.obj_party_loans(s,p)}
+                if homes and not any(e['status']=='ACTIVE' and e['profile']==p['id'] and e['category'] in homes for e in s['category_objects']):issues.append(dict(code='PERSON_NOT_MEMBER',profile=p['id'],name=p['name'],message='Người có khoản vay nhưng chưa là thành viên của danh mục chứa khoản vay. Dùng "Hợp nhất hồ sơ nghiệp vụ".'))
             rows.sort(key=lambda r:(r['status']=='ARCHIVED',r['name'].casefold()))
-            return dict(rows=rows,types={k:v for k,v in TYPES.items() if k in EDITABLE_TYPES},deleted=s.get('object_deleted',[]),counts={k:sum(1 for r in rows if r['kind']==k and r['status']=='ACTIVE') for k in EDITABLE_TYPES},archived=sum(1 for r in rows if r['status']=='ARCHIVED'))
+            return dict(issues=issues,rows=rows,types={k:v for k,v in TYPES.items() if k in EDITABLE_TYPES},deleted=s.get('object_deleted',[]),counts={k:sum(1 for r in rows if r['kind']==k and r['status']=='ACTIVE') for k in EDITABLE_TYPES},archived=sum(1 for r in rows if r['status']=='ARCHIVED'))

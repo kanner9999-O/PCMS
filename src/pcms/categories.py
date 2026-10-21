@@ -392,11 +392,14 @@ class Categories:
     def category_view(self,s,start=None,end=None):
         with localcontext() as ctx:
             ctx.prec=60
-            s=cat_state(copy.deepcopy(s));acc={};oacc={}
+            s=cat_state(copy.deepcopy(s));acc={};oacc={};prof_by={x['id']:x for x in s['profiles']}
             for t,p in self.cat_parts(s,start,end):
                 incoming=D(t['signed_amount'])>0;amount=D(p['amount'])
                 if p.get('profile'):
-                    o=oacc.setdefault((self.cat_target(p),p['profile']),dict(in_=Decimal(0),out=Decimal(0),tx=set()));o['in_' if incoming else 'out']+=amount;o['tx'].add(t['id'])
+                    keys=[(self.cat_target(p),p['profile'])];own=prof_by.get(p['profile'])
+                    if own and own['kind']=='LOAN' and own.get('party'):keys.append((self.loan_home(own),own['party']))                 # khoản vay cộng vào người sở hữu ở danh mục nơi khoản vay thuộc về (spec 040)
+                    for k in keys:
+                        o=oacc.setdefault(k,dict(in_=Decimal(0),out=Decimal(0),tx=set()));o['in_' if incoming else 'out']+=amount;o['tx'].add(t['id'])
                 for key in self.cat_keys(s,p):
                     a=acc.setdefault(key,dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set()))
                     a['in_' if incoming else 'out']+=amount;a['parts']+=1;a['tx'].add(t['id'])
@@ -411,7 +414,8 @@ class Categories:
                 pr=by_profile[e['profile']]
                 if pr.get('merged_into'):continue
                 dup=[dict(profile=x['id'],name=x['name'],kind=x['kind']) for x in s['profiles'] if x['id']!=pr['id'] and not x.get('merged_into') and norm_name(x['name'])==norm_name(pr['name'])];o=oacc.get((e['category'],e['profile']),dict(in_=Decimal(0),out=Decimal(0),tx=set()))
-                objs.setdefault(e['category'],[]).append(dict(business=e.get('business'),entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
+                kids=[dict(id=x['id'],name=x['name'],direction=(x.get('debt_setup') or {}).get('direction'),setup=bool(x.get('debt_setup'))) for x in self.biz_pair_loans(s,e)]
+                objs.setdefault(e['category'],[]).append(dict(loans=kids,party_name=(by_profile.get(pr.get('party')) or {}).get('name') if pr['kind']=='LOAN' else None,business=e.get('business'),entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
@@ -429,7 +433,7 @@ class Categories:
             accounts={a['id']:a['name'] for a in s['accounts']};profiles={p['id']:p['name'] for p in s['profiles']}
             rows=[];tx=set();inc=out=Decimal(0);family=set()
             if d.get('object'):
-                owner=next((x for x in s['profiles'] if x['id']==d['object']),None);family={d['object']}|({x['id'] for x in self.obj_party_loans(s,owner)} if everything and owner and owner['kind']=='PERSON' else set())
+                owner=next((x for x in s['profiles'] if x['id']==d['object']),None);family={d['object']}|({x['id'] for x in self.obj_party_loans(s,owner)} if owner and owner['kind']=='PERSON' else set())
             for t,p in self.cat_parts(s,start,end,account):
                 if not everything and key not in self.cat_keys(s,p):continue
                 if d.get('object') and p.get('profile') not in family:continue

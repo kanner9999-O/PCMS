@@ -32,26 +32,34 @@ class P33Acceptance(base.P18Acceptance):
         self.err('business-set',category=k,profile=self.person,type='LOAN_LENT')                                           # không là thành viên
 
     def test_loan_kind_direction_and_property_mismatch(self):
-        r=self.store.view()['business']['migration'];self.assertEqual({x['name']:x['action'] for x in r},{'Kết 5tr':'ADD_AND_SET','Kết 10tr':'ADD_AND_SET'})
+        self.err('business-set',category='principal',profile=self.l10,type='LOAN_LENT',effective_date='2026-09-01')              # nghiệp vụ gắn cho người, không gắn cho hồ sơ khoản vay
+        r=self.store.view()['business']['migration'];kt=next(x for x in r if x['name']=='Kết')
+        self.assertEqual((kt['action'],kt['type'],sorted(kt['loans']),kt['category']),('ADD_AND_SET','LOAN_LENT',['Kết 10tr','Kết 5tr'],'principal'))
         self.act('business-migrate',confirm=True)
-        self.err('business-set',category='principal',profile=self.l10,type='LOAN_BORROWED',effective_date='2026-09-01',reason='x')   # khoản vay thiết lập Phải thu
-        self.err('business-set',category='principal',profile=self.l10,type='PROPERTY',effective_date='2026-09-01',reason='x')
+        self.err('business-set',category='principal',profile=self.person,type='LOAN_BORROWED',effective_date='2026-09-01',reason='x')   # các khoản của Kết thiết lập Phải thu
+        self.err('business-set',category='principal',profile=self.person,type='PROPERTY',effective_date='2026-09-01',reason='x')
 
     def test_migration_idempotent_totals_unchanged_and_ledger(self):
-        self.act('object-quick-create',kind='LOAN',party_name='Mới',name='Chưa thiết lập')
+        self.act('object-quick-create',kind='LOAN',party_name='Mới',name='Chưa thiết lập');self.act('category-object-add',category='principal',profile=self.l5)      # khoản vay đang là thành viên (cấu trúc cũ)
+        iss=self.store.view()['objects']['issues'];self.assertEqual({(i['code'],i['name']) for i in iss},{('LOAN_AS_MEMBER','Kết 5tr'),('PERSON_NOT_MEMBER','Kết'),('PERSON_NOT_MEMBER','Mới')})
         c0=self.store.view()['categories'];rep0=self.store.report(self.store.state(),self.account);debt0=self.store.debt_register(self.store.state())
-        prev={x['name']:x for x in self.biz()['migration']};self.assertEqual((prev['Chưa thiết lập']['action'],prev['Kết 10tr']['type']),('ADD_ONLY','LOAN_LENT'));self.assertIn('không đoán',prev['Chưa thiết lập']['message'])
+        prev={x['name']:x for x in self.biz()['migration'] if x['kind']=='PERSON'};self.assertEqual((prev['Mới']['action'],prev['Kết']['type'],len(prev['Kết']['retire'])),('ADD_ONLY','LOAN_LENT',1));self.assertIn('không đoán',prev['Mới']['message'])
         self.err('business-migrate');self.err('business-migrate',confirm=False)
         self.act('business-migrate',confirm=True);self.err('business-migrate',confirm=True)                                 # chạy lại: không còn gì để làm
         self.assertEqual(len(self.store.state()['business_migrations']),1)
-        l10=self.loan(self.l10);self.assertEqual((l10['type'],D_(l10['increase']),D_(l10['decrease']),D_(l10['balance']),D_(l10['interest']),l10['side']),('LOAN_LENT',10000000,3000000,7000000,200000,'Phải thu'))
-        l5=self.loan(self.l5);self.assertEqual((D_(l5['balance']),l5['issues']),(5000000,[]))
-        self.assertEqual(l10['register']['principal'],'7000000');self.assertNotIn('REGISTER_MISMATCH',l10['issues'])
-        self.assertEqual([x['name'] for x in self.biz()['unassigned']],['Chưa thiết lập']);self.assertEqual(D_(self.biz()['totals']['receivable']),12000000)
+        e5=next(e for e in self.store.state()['category_objects'] if e['profile']==self.l5);self.assertEqual((e5['status'],e5['history'][-1]['action']),('REMOVED','MIGRATED_TO_PERSON'))     # giữ bản ghi, thôi là thành viên
+        kt=next(x for x in self.biz()['loans'] if x['profile']==self.person)
+        self.assertEqual((kt['type'],D_(kt['increase']),D_(kt['decrease']),D_(kt['balance']),D_(kt['interest']),kt['side']),('LOAN_LENT',15000000,3000000,12000000,200000,'Phải thu'))
+        self.assertEqual(sorted((k['name'],D_(k['balance'])) for k in kt['khoan']),[('Kết 10tr',7000000),('Kết 5tr',5000000)]);self.assertEqual(kt['issues'],[])
+        self.assertEqual([x['name'] for x in self.biz()['unassigned']],['Mới']);self.assertEqual(D_(self.biz()['totals']['receivable']),12000000)
+        self.assertEqual(self.store.view()['objects']['issues'],[])                                                         # Danh mục và Đối tượng đã đồng nhất
+        node=next(r for r in self.store.view()['categories']['roots'] if r['key']=='principal');o=next(x for x in node['objects'] if x['profile']==self.person)
+        self.assertEqual((o['name'],sorted(k['name'] for k in o['loans']),o['totals']['transactions']),('Kết',['Kết 10tr','Kết 5tr'],4));self.assertNotIn(self.l5,[x['profile'] for x in node['objects']])
         c1=self.store.view()['categories']
         for r0,r1 in zip(c0['roots'],c1['roots']):self.assertEqual(r0['totals'],r1['totals'])
         self.assertEqual(self.store.report(self.store.state(),self.account),rep0);self.assertEqual(self.store.debt_register(self.store.state()),debt0)
-        self.assertFalse(any(x['action']=='SET' for x in self.biz()['migration']))
+        h=self.store.category_history(dict(category='principal',object=self.person));self.assertTrue({'K1','K2','K3'}<={r['reference'] for r in h['rows']})   # lịch sử của người gồm khoản vay của họ
+        self.err('category-object-remove',category='principal',profile=self.person,reason='x')                                 # còn khoản vay thuộc danh mục
         self.act('classify',ids=[self.tx('X1')['id']],parts=[dict(category='principal',profile=self.l5)])               # vẫn phân loại được sau hợp nhất
 
     def test_object_pair_ledger_interest_and_two_pairs(self):
