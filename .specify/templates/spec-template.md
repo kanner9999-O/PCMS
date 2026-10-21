@@ -117,6 +117,21 @@
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
 
+## Bản đồ tác động *(bắt buộc nếu đổi nghiệp vụ/cấu trúc; Constitution nguyên tắc IX)*
+
+<!--
+  Lập bằng cách TÌM TRONG MÃ NGUỒN (grep), không dựa trí nhớ. Mỗi dòng nêu: nơi bị chạm, vì sao, cách xử lý trong spec này (làm / để lại có chủ ý / không áp dụng).
+-->
+
+- **Module backend**: [file và hàm bị chạm]
+- **Màn hình / giao diện**: [mọi màn, hộp thoại, nhãn hiển thị]
+- **Đường tạo/sửa/xóa song song**: [mọi nơi cùng tạo hoặc đổi dữ liệu này]
+- **Nguồn số liệu trùng nhau**: [các nơi cùng tính một con số, chọn một nguồn sự thật]
+- **Dữ liệu đã lưu / dữ liệu thật**: [cấu trúc hiện có, cách chuyển; chỉ đọc bản sao]
+- **Báo cáo / snapshot / mốc**: [có đổi không]
+- **Spec & quy tắc cũ bị thay thế**: [Rxx, spec NNN]
+- **Kiểm tra đồng nhất giữa các màn**: [so sánh nào, bằng test nào]
+
 ## Tư vấn kế toán *(bắt buộc nếu có business logic; Constitution nguyên tắc VIII)*
 
 - **Phương án và khuyến nghị kế toán**: [phương án đúng nghiệp vụ kế toán, lý do]
