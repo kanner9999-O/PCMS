@@ -791,6 +791,8 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R169 | Hộp **phân loại giao dịch** chọn danh mục **theo cấp cha → con** như màn Danh mục: cấp 1 = gốc hệ thống + gốc tự tạo (ngang hàng, không còn nhóm chi/thu), cộng Chưa phân loại và Chuyển nội bộ chờ đối ứng; cấp sau = con trực tiếp đang hoạt động, tối đa 4 cấp, luôn có lựa chọn dừng ở cấp hiện tại. |
 | R170 | Loại gốc ghi nhận và danh mục gửi lên khi lưu suy từ danh mục cấp sâu nhất; không đổi API, quy tắc, báo cáo. Đối tượng chỉ tải từ danh mục đang chọn; danh mục con tạo nhanh nằm dưới danh mục đang chọn. |
 | R171 | Tiền ra không hiện gốc loại thu; đường dẫn đã phân loại được dựng sẵn khi mở lại (kể cả gốc tự tạo và danh mục đã lưu trữ có ghi chú). |
+| R172 | Trình **migrate lịch sử cũ** nhận cấu hình mở sẵn (danh mục theo cấp, đối tượng hoặc tên mới); lối vào từ hộp "Thêm đối tượng" của danh mục và từ từng đối tượng của danh mục. |
+| R173 | **Chống ghi nhầm**: chọn đối tượng có sẵn mà đồng thời nhập tên khác thì bị chặn (không im lặng ghi vào đối tượng đã chọn); nhập tên thì ô chọn đối tượng tự bỏ và ngược lại; bản xem trước nêu rõ "Sẽ ghi vào đối tượng «X» (có sẵn / tạo mới)". Phát hiện từ ca "Đồng Cạn" 21/10/2026: hai lần migrate đã ghi vào đối tượng Xuân Mai. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -805,3 +807,5 @@ Triển khai: [specs/034-category-cleanup](specs/034-category-cleanup/spec.md).
 Triển khai: [specs/035-object-suggest](specs/035-object-suggest/spec.md).
 
 Triển khai: [specs/036-classify-cascade](specs/036-classify-cascade/spec.md).
+
+Triển khai: [specs/037-legacy-shortcut](specs/037-legacy-shortcut/spec.md).

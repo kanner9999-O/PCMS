@@ -106,7 +106,9 @@ class LegacyImport:
             text=str(d.get('text') or '');require(text.strip(),'Dán dữ liệu copy từ Google Sheets.');require(len(text)<=2_000_000,'Dữ liệu dán quá lớn.')
             parsed=self.legacy_parse(text,d.get('mapping'))
             pid=d.get('profile') or None;name=str(d.get('name') or '').strip()
-            if pid:prof=item(s['profiles'],pid)
+            if pid:
+                prof=item(s['profiles'],pid)
+                require(not name or norm_name(name)==norm_name(prof['name']),f"Bạn vừa chọn đối tượng có sẵn «{prof['name']}» vừa nhập tên «{name}». Dữ liệu sẽ ghi vào đối tượng đã chọn; bỏ chọn đối tượng nếu muốn tạo đối tượng mới, hoặc xóa ô tên.")
             else:
                 require(1<=len(name)<=100,'Chọn đối tượng có sẵn hoặc nhập tên đối tượng mới (1–100 ký tự).')
                 prof=self.profile_clash(s,name)
