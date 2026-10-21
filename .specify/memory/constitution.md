@@ -34,6 +34,14 @@ Thạch không am hiểu nghiệp vụ kế toán và muốn hệ thống vận 
 3. **Trong mỗi spec có business logic** có mục "Tư vấn kế toán": phương án, khuyến nghị kế toán, rủi ro/hệ quả, điều cần kế toán viên/thuế xác nhận. Nếu yêu cầu của Thạch trái nguyên tắc kế toán, assistant nói rõ và đề xuất cách đúng; Thạch quyết định cuối cùng và quyết định đó được ghi lại kèm cảnh báo.
 4. **Giới hạn trung thực**: assistant tư vấn theo nguyên tắc kế toán phổ biến, không thay kế toán viên/chuyên viên thuế có chứng chỉ; vấn đề thuế, pháp lý, báo cáo nộp cơ quan nhà nước phải được đánh dấu "cần kế toán viên/thuế xác nhận" và không khẳng định thay.
 
+### IX. Khi Thạch chốt hoặc đổi quyết định nghiệp vụ/cấu trúc: rà soát toàn hệ thống trước, phát hành một lần (Thạch yêu cầu 21/10/2026)
+Sửa lắt nhắt từng màn gây giật cục, lệch dữ liệu giữa các màn, tốn thời gian và usage. Vì vậy với mọi quyết định mới hoặc thay đổi về nghiệp vụ, cấu trúc danh mục/đối tượng/khoản vay, loại dữ liệu:
+1. **Lập bản đồ tác động trước khi sửa code**: liệt kê mọi module backend, màn hình, hành động, dữ liệu đã lưu, báo cáo, tài liệu lõi và test chạm vào khái niệm đó (tìm bằng mã nguồn, không dựa trí nhớ), kể cả đường tạo/sửa/xóa song song và dữ liệu thật đang có (đọc bản sao chỉ đọc, không đổi dữ liệu thật).
+2. **Phỏng vấn Thạch một lần**, gộp mọi điểm cần quyết (kèm đề xuất theo nghiệp vụ kế toán và hệ quả lên từng module), thay vì hỏi rải rác.
+3. **Cập nhật tài liệu lõi trước** (PRODUCT-SPEC, Constitution nếu là quyết định cấu trúc) và dùng một spec bao trùm cho thay đổi; đánh dấu quy tắc cũ bị thay thế.
+4. **Phát hành một lần**, kèm **kiểm tra đồng nhất giữa các màn** (so sánh danh sách, tổng, nhãn giữa các màn liên quan, ví dụ Danh mục và Đối tượng) bằng test tự động và bằng dữ liệu giả mô phỏng cấu trúc dữ liệu thật.
+5. Phần chưa làm trong lần này phải được nêu rõ là còn lệch, không để người dùng phát hiện sau.
+
 ### VI. Gọn và tiết kiệm usage
 Một coder với ngữ cảnh gọn cho mỗi đợt vừa phải; không đọc toàn bộ lịch sử, không tạo nhiều agent, không chạy test rộng hoặc lặp khi không có lý do. Không viết lại kiến trúc vô cớ; ghi phát hiện cụ thể rồi mới giao sửa.
 
@@ -56,4 +64,4 @@ Một coder với ngữ cảnh gọn cho mỗi đợt vừa phải; không đọ
 
 Constitution này gom các quy tắc đã thống nhất; sửa đổi cần có sự đồng ý của người dùng (Thạch) và ghi lại trong `IMPLEMENTATION-STATUS.md`. Mọi bước plan/analyze phải kiểm tra tuân thủ. Mọi vi phạm phải được ghi chú và biện minh, không im lặng bỏ qua. Hướng dẫn vận hành hằng ngày xem `CLAUDE.md` và `HANDOFF.md`.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-15 (thêm nguyên tắc VII về cấu trúc danh mục và VIII về nghiệp vụ kế toán theo yêu cầu của Thạch)
+**Version**: 1.3.0 | **Ratified**: 2026-10-11 | **Last Amended**: 2026-10-21 (thêm nguyên tắc IX: rà soát tác động toàn hệ thống và phát hành một lần khi nghiệp vụ thay đổi, theo yêu cầu của Thạch; trước đó 15/10: VII cấu trúc danh mục, VIII nghiệp vụ kế toán)

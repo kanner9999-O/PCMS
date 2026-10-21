@@ -17,3 +17,7 @@ Mọi tính năng liên quan danh mục phải theo `.specify/memory/constitutio
 ## Nghiệp vụ kế toán là chuẩn (từ 15/10/2026)
 
 Thạch không am hiểu kế toán và muốn vận hành đúng nghiệp vụ kế toán. Mọi quyết định business logic phải kèm tư vấn kế toán (phương án đúng kế toán làm đề xuất, nêu lý do và hệ quả); mỗi spec có business logic có mục "Tư vấn kế toán"; vấn đề thuế/pháp lý đánh dấu cần kế toán viên xác nhận. Chi tiết: `.specify/memory/constitution.md` nguyên tắc VIII.
+
+## Khi nghiệp vụ thay đổi (từ 21/10/2026)
+
+Quyết định nghiệp vụ/cấu trúc mới hoặc đổi: rà soát tác động toàn hệ thống (mọi module, màn hình, dữ liệu, tài liệu, test) và phỏng vấn Thạch một lần gộp trước khi sửa; phát hành một lần kèm kiểm tra đồng nhất giữa các màn. Chi tiết: `.specify/memory/constitution.md` nguyên tắc IX.
