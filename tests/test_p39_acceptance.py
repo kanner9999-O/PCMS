@@ -7,7 +7,7 @@ def D_(x):return Decimal(str(x))
 class P39Acceptance(base.P18Acceptance):
     """Người là đối tượng của danh mục, khoản vay là mục con (spec 040) trên dữ liệu P18: Kết có Kết 5tr, Kết 10tr (Phải thu)."""
     def setUp(self):
-        super().setUp()
+        super().setUp();self.store.business_enabled=True
         self.act('object-quick-create',kind='LOAN',party=self.person,name='Kết vay ngược');self.l3=next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Kết vay ngược')
         self.act('loan-setup',profile=self.l3,direction='PAYABLE',opening='1000000',effective_date='2026-09-01',source='QA',reason='QA')
     def pairs(self):return {(p['category'],p['type']) for p in self.store.view()['business']['loans'] if p['profile']==self.person}

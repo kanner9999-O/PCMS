@@ -48,20 +48,35 @@ class Objects:
         if prof['kind']=='LOAN':return 'Khoản vay quản lý ở Công nợ.'
         for loan in self.debt_register(s)['loans']:
             if loan['party']==prof['id'] and loan['current_principal'] is not None and D(loan['current_principal'])!=0:return 'Còn khoản vay có dư nợ gốc; hoàn tất khoản vay trước.'
-        for row in self.business_view(s)['loans']:
+        for row in self.business_view(s).get('loans',[]):
             if row['profile']==prof['id'] and D(row['balance'])!=0:return 'Còn dư nợ gốc theo nghiệp vụ; hoàn tất trước khi lưu trữ.'
         return None
+
+    def create_profile(self,s,name,kind,category=None):
+        """The single way to create an object: unique name over the whole system (archived included) and a type (spec 041)."""
+        from .p01 import now
+        require(kind in EDITABLE_TYPES,'Chọn loại đối tượng: Người, Bất động sản hoặc Khác.')
+        name=str(name or '').strip();require(1<=len(name)<=100,'Tên đối tượng dài 1–100 ký tự.');self.require_free_name(s,name)
+        prof={'id':uid(),'kind':kind,'name':name,'party':None};s['profiles'].append(prof)
+        if category:
+            self.cat_target_root(s,category)
+            s['category_objects'].append(dict(id=uid(),category=category,profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=category)]))
+        return prof
+
+    def disp_name(self,s,pid):
+        """Name shown to the user: a loan record is shown as the person who owns it."""
+        p=next((x for x in s['profiles'] if x['id']==pid),None)
+        if p is None:return ''
+        if p['kind']=='LOAN' and p.get('party'):
+            owner=next((x for x in s['profiles'] if x['id']==p['party']),None)
+            return owner['name'] if owner else p['name']
+        return p['name']
 
     def change_object(self,s,action,d):
         from .p01 import now
         if action=='object-create':
-            typ=d.get('type');require(typ in EDITABLE_TYPES,'Chọn loại đối tượng: Người, Bất động sản hoặc Khác.')
-            name=str(d.get('name') or '').strip();require(1<=len(name)<=100,'Tên đối tượng dài 1–100 ký tự.');self.require_free_name(s,name)
-            prof={'id':uid(),'kind':typ,'name':name,'party':None};s['profiles'].append(prof)
-            if d.get('category'):
-                self.cat_target_root(s,d['category'])
-                s['category_objects'].append(dict(id=uid(),category=d['category'],profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=d['category'])]))
-            return f"Tạo đối tượng {name} ({TYPES[typ]})"
+            prof=self.create_profile(s,d.get('name'),d.get('type'),d.get('category') or None)
+            return f"Tạo đối tượng {prof['name']} ({TYPES[prof['kind']]})"
         prof=item(s['profiles'],d.get('profile'));require(not prof.get('merged_into'),'Hồ sơ đã bị gộp.')
         reason=str(d.get('reason') or '').strip()[:500]
         if action=='object-edit':
@@ -96,12 +111,12 @@ class Objects:
             for p in s['profiles']:
                 if p['kind']=='LOAN' or p.get('merged_into'):continue
                 fam=self.obj_family(s,p);tin=sum((acc.get(i,{}).get('in_',Decimal(0)) for i in fam),Decimal(0));tout=sum((acc.get(i,{}).get('out',Decimal(0)) for i in fam),Decimal(0));tx=set().union(*[acc.get(i,{}).get('tx',set()) for i in fam])
-                cats=[dict(category=e['category'],path=self.cat_path(s,e['category']) if e['category'] not in self.ROLES_ else self.ROLES_[e['category']],business=(e.get('business') or {}).get('type')) for e in s['category_objects'] if e['status']=='ACTIVE' and e['profile']==p['id']]
+                cats=[dict(category=e['category'],path=self.cat_path(s,e['category']) if e['category'] not in self.ROLES_ else self.ROLES_[e['category']],business=((e.get('business') or {}).get('type') if self.business_enabled else None)) for e in s['category_objects'] if e['status']=='ACTIVE' and e['profile']==p['id']]
                 have={c['category'] for c in cats}
                 for l in self.obj_party_loans(s,p):
                     home=self.loan_home(l)
                     if home not in have:have.add(home);cats.append(dict(category=home,path=self.cat_path(s,home) if home not in self.ROLES_ else self.ROLES_[home],business=None,via_loan=True))
-                mine=[dict(id=x['id'],name=x['name'],direction=(x.get('debt_setup') or {}).get('direction'),current=loans[x['id']]['current_principal'],status=loans[x['id']]['completion_status'],setup=bool(x.get('debt_setup')),
+                mine=[] if not self.business_enabled else [dict(id=x['id'],name=x['name'],direction=(x.get('debt_setup') or {}).get('direction'),current=loans[x['id']]['current_principal'],status=loans[x['id']]['completion_status'],setup=bool(x.get('debt_setup')),
                     category=(self.cat_path(s,x['group']) if x.get('group') else self.ROLES_['principal'])) for x in self.obj_party_loans(s,p)]
                 rows.append(dict(id=p['id'],name=p['name'],kind=p['kind'],type_name=TYPES[p['kind']],status=p.get('status','ACTIVE'),categories=cats,loans=mine,totals={'in':S(tin),'out':S(tout),'transactions':len(tx)},
                     type_reason=self.obj_type_reason(s,p),delete_reason=self.obj_in_use(s,p),renames=len(p.get('rename_history',[])),archive_history=p.get('archive_history',[]),type_history=p.get('type_history',[])))

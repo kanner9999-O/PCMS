@@ -34,16 +34,17 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 028 | [legacy-cascade](028-legacy-cascade/spec.md) | P30 (R135–R136, chọn danh mục theo cấp; quyết định cấu trúc) | Implemented | R123–R136 |
 | 029 | [object-unique](029-object-unique/spec.md) | P31 (R138–R140, tên đối tượng duy nhất, gộp trùng) | Implemented | R125, R138–R140 |
 | 030 | [note-capitalized-costs](030-note-capitalized-costs/spec.md) | P32 (R141–R145, ghi chú, vốn hóa chi phí mua BĐS, chi không chứng từ) | Implemented | R71–R73, R141–R145 |
-| 031 | [loan-business-objects](031-loan-business-objects/spec.md) | P33 (R146–R153, nghiệp vụ gắn đối tượng trong danh mục, Cho vay trước) | Implemented | R84–R86, R136–R145, R146–R153 |
-| 032 | [default-group](032-default-group/spec.md) | P34 (R154–R157, nhóm mặc định cho danh mục, phương án A) | Implemented | R136, R146–R157 |
-| 033 | [object-management](033-object-management/spec.md) | P35 (R158–R163, màn quản lý đối tượng) | Implemented | R136, R158–R163 |
+| 031 | [loan-business-objects](031-loan-business-objects/spec.md) | P33 (R146–R153, nghiệp vụ gắn đối tượng trong danh mục, Cho vay trước) | Implemented (bị thay thế một phần bởi 041) | R84–R86, R136–R145, R146–R153 |
+| 032 | [default-group](032-default-group/spec.md) | P34 (R154–R157, nhóm mặc định cho danh mục, phương án A) | Implemented (bị thay thế một phần bởi 041) | R136, R146–R157 |
+| 033 | [object-management](033-object-management/spec.md) | P35 (R158–R163, màn quản lý đối tượng) | Implemented (bị thay thế một phần bởi 041) | R136, R158–R163 |
 | 034 | [category-cleanup](034-category-cleanup/spec.md) | P36 (R164–R165, dọn danh mục con chưa dùng) | Implemented | R136, R164–R165 |
-| 035 | [object-suggest](035-object-suggest/spec.md) | P37 (R166–R168, thêm đối tượng theo loại, gợi ý tìm kiếm) | Implemented | R136, R166–R168 |
+| 035 | [object-suggest](035-object-suggest/spec.md) | P37 (R166–R168, thêm đối tượng theo loại, gợi ý tìm kiếm) | Implemented (bị thay thế một phần bởi 041) | R136, R166–R168 |
 | 036 | [classify-cascade](036-classify-cascade/spec.md) | P38 (R169–R171, phân loại theo cây danh mục cha con) | Implemented | R84–R86, R136, R169–R171 |
-| 037 | [legacy-shortcut](037-legacy-shortcut/spec.md) | P39 (R172–R173, migrate lịch sử cũ từ đối tượng của danh mục, chống ghi nhầm) | Implemented | R84–R86, R136, R172–R173 |
+| 037 | [legacy-shortcut](037-legacy-shortcut/spec.md) | P39 (R172–R173, migrate lịch sử cũ từ đối tượng của danh mục, chống ghi nhầm) | Implemented (bị thay thế một phần bởi 041) | R84–R86, R136, R172–R173 |
 | 038 | [transaction-note-inline](038-transaction-note-inline/spec.md) | P40 (R174–R176, ghi chú sửa tại dòng lịch sử, cột Ghi chú khi migrate) | Implemented | R141–R145, R174–R176 |
 | 039 | [history-note-layout](039-history-note-layout/spec.md) | P41 (R177–R178, ghi chú cạnh cột nhãn, bỏ tên thừa trong lịch sử) | Implemented | R84–R86, R174–R178 |
-| 040 | [person-owns-loan](040-person-owns-loan/spec.md) | P42 (R179–R184, người là đối tượng của danh mục, khoản vay là mục con) | Implemented | R136, R146–R153, R158–R163, R179–R184 |
+| 040 | [person-owns-loan](040-person-owns-loan/spec.md) | P42 (R179–R184, người là đối tượng của danh mục, khoản vay là mục con) | Implemented (bị thay thế một phần bởi 041) | R136, R146–R153, R158–R163, R179–R184 |
+| 041 | [unified-object-model](041-unified-object-model/spec.md) | P43 (R185–R190, tách danh mục/đối tượng, tạm dừng nghiệp vụ, đồng nhất các màn) | Implemented | R136, R185–R190 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

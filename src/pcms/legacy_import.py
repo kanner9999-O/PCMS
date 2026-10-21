@@ -106,6 +106,7 @@ class LegacyImport:
             text=str(d.get('text') or '');require(text.strip(),'Dán dữ liệu copy từ Google Sheets.');require(len(text)<=2_000_000,'Dữ liệu dán quá lớn.')
             parsed=self.legacy_parse(text,d.get('mapping'))
             pid=d.get('profile') or None;name=str(d.get('name') or '').strip()
+            require(not d.get('type') or d['type'] in {'PERSON','PROPERTY','OBJECT'},'Loại đối tượng không hợp lệ.')
             if pid:
                 prof=item(s['profiles'],pid)
                 require(not name or norm_name(name)==norm_name(prof['name']),f"Bạn vừa chọn đối tượng có sẵn «{prof['name']}» vừa nhập tên «{name}». Dữ liệu sẽ ghi vào đối tượng đã chọn; bỏ chọn đối tượng nếu muốn tạo đối tượng mới, hoặc xóa ô tên.")
@@ -125,7 +126,7 @@ class LegacyImport:
             declared=parsed['declared'];totals_ok=None if declared is None else (declared['in']==tin and declared['out']==tout)
             importable=sum(1 for r in rows if r['status'] in {'OK','MATCHED_BANK'})
             return dict(columns=parsed['columns'],mapping=parsed['mapping'],rows=rows,issues=parsed['issues'],totals={'in':str(tin),'out':str(tout)},declared={k:str(v) for k,v in declared.items()} if declared else None,totals_ok=totals_ok,
-                importable=importable,matched_bank=matched,duplicates=dups,object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof),kind=prof['kind'] if prof else 'OBJECT'),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
+                importable=importable,matched_bank=matched,duplicates=dups,object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof),kind=prof['kind'] if prof else (d.get('type') or 'OBJECT')),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
 
     def change_legacy(self,s,action,d):
         from .p01 import now
@@ -136,7 +137,7 @@ class LegacyImport:
             key=d['category']
             if p['object']['exists']:prof=item(s['profiles'],p['object']['profile'])
             else:
-                prof={'id':uid(),'kind':'OBJECT','name':p['object']['name'],'party':None};s['profiles'].append(prof)
+                prof=self.create_profile(s,p['object']['name'],d.get('type') or 'OBJECT')
             if not any(e['category']==key and e['profile']==prof['id'] and e['status']=='ACTIVE' for e in s['category_objects']):
                 s['category_objects'].append(dict(id=uid(),category=key,profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=key)]))
             text=str(d['text']);bid=uid()

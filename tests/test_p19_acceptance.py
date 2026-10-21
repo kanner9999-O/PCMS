@@ -15,7 +15,7 @@ class P19Acceptance(base.P18Acceptance):
         for r in h['rows']:
             self.assertTrue(r['label'] and isinstance(r['source_count'],int) and r['source_count']>=1);self.assertFalse(r['split'])
             self.assertEqual(D_(r['tx_amount']),D_(r['amount']))
-        self.assertEqual(h['rows'][0]['label'],'Gốc vay · Kết 10tr')
+        self.assertEqual(h['rows'][0]['label'],'Gốc vay · Kết')
         inc=sum(D_(r['amount']) for r in h['rows'] if r['direction']=='IN');out=sum(D_(r['amount']) for r in h['rows'] if r['direction']=='OUT')
         self.assertEqual((inc,out,len(h['rows'])),(D_(h['totals']['in']),D_(h['totals']['out']),h['totals']['parts']))
         e=self.store.category_history(dict(category='expense'));self.assertEqual((e['rows'][0]['label'],len(e['rows'])),('Chi tiêu › Ăn',1))
@@ -39,7 +39,7 @@ class P19Acceptance(base.P18Acceptance):
         self.assertEqual((D_(by['interest']['in']),by['interest']['transactions']),(0,0));self.assertEqual(D_(by0['interest']['in']),200000)
         self.assertEqual(D_(by['principal']['in'])+D_(by['interest']['in']),D_(by0['principal']['in'])+D_(by0['interest']['in']))      # tiền không mất, chỉ đổi chỗ
         self.assertEqual(self.store.report(self.store.state(),self.account)['totals'],rep0)                                            # báo cáo theo loại không đổi
-        h=self.store.category_history(dict(category=self.nodes()['Long debt']['id']));self.assertEqual({r['reference']:r['label'] for r in h['rows']}['K4'],'Lãi vay · Kết 10tr')
+        h=self.store.category_history(dict(category=self.nodes()['Long debt']['id']));self.assertEqual({r['reference']:r['label'] for r in h['rows']}['K4'],'Lãi vay · Kết')
         self.assertEqual(v['debts'],v0['debts'])
 
     def test_read_only(self):
