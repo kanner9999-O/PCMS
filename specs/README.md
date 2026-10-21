@@ -41,6 +41,7 @@ Migrate ngày 11/10/2026 từ bộ tài liệu cũ. **Nguồn yêu cầu vẫn l
 | 035 | [object-suggest](035-object-suggest/spec.md) | P37 (R166–R168, thêm đối tượng theo loại, gợi ý tìm kiếm) | Implemented | R136, R166–R168 |
 | 036 | [classify-cascade](036-classify-cascade/spec.md) | P38 (R169–R171, phân loại theo cây danh mục cha con) | Implemented | R84–R86, R136, R169–R171 |
 | 037 | [legacy-shortcut](037-legacy-shortcut/spec.md) | P39 (R172–R173, migrate lịch sử cũ từ đối tượng của danh mục, chống ghi nhầm) | Implemented | R84–R86, R136, R172–R173 |
+| 038 | [transaction-note-inline](038-transaction-note-inline/spec.md) | P40 (R174–R176, ghi chú sửa tại dòng lịch sử, cột Ghi chú khi migrate) | Implemented | R141–R145, R174–R176 |
 
 **Pending, không mở lại:** Shop (R08, R28, R32), cổ phiếu (R24), chốt tháng (R22).
 

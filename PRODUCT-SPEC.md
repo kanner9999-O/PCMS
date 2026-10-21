@@ -793,6 +793,9 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R171 | Tiền ra không hiện gốc loại thu; đường dẫn đã phân loại được dựng sẵn khi mở lại (kể cả gốc tự tạo và danh mục đã lưu trữ có ghi chú). |
 | R172 | Trình **migrate lịch sử cũ** nhận cấu hình mở sẵn (danh mục theo cấp, đối tượng hoặc tên mới); lối vào từ hộp "Thêm đối tượng" của danh mục và từ từng đối tượng của danh mục. |
 | R173 | **Chống ghi nhầm**: chọn đối tượng có sẵn mà đồng thời nhập tên khác thì bị chặn (không im lặng ghi vào đối tượng đã chọn); nhập tên thì ô chọn đối tượng tự bỏ và ngược lại; bản xem trước nêu rõ "Sẽ ghi vào đối tượng «X» (có sẵn / tạo mới)". Phát hiện từ ca "Đồng Cạn" 21/10/2026: hai lần migrate đã ghi vào đối tượng Xuân Mai. |
+| R174 | Migrate lịch sử cũ có vai trò cột **Ghi chú**: cột chọn làm Ghi chú nhập thành note từng dòng (≤1000, bỏ trống = không có), hiện ở bản xem trước và mọi lịch sử; mặc định không chọn cột nào. |
+| R175 | `transaction-note` nhận cả **dòng lịch sử cũ**: note ghi trên chính dòng với lịch sử thay đổi, không đổi số tiền, phân loại, bản dán gốc, snapshot; danh mục yêu cầu ghi chú vẫn chặn để trống. Nội dung ngân hàng gốc giữ nguyên, note là lớp diễn giải mục đích. |
+| R176 | Mọi dòng lịch sử có mã giao dịch có nút **"+ Ghi chú / Sửa ghi chú"** sửa ngay tại dòng (kèm số chứng từ tùy chọn), cập nhật tại chỗ không đóng lịch sử. |
 
 Triển khai: [specs/030-note-capitalized-costs](specs/030-note-capitalized-costs/spec.md).
 
@@ -809,3 +812,5 @@ Triển khai: [specs/035-object-suggest](specs/035-object-suggest/spec.md).
 Triển khai: [specs/036-classify-cascade](specs/036-classify-cascade/spec.md).
 
 Triển khai: [specs/037-legacy-shortcut](specs/037-legacy-shortcut/spec.md).
+
+Triển khai: [specs/038-transaction-note-inline](specs/038-transaction-note-inline/spec.md).

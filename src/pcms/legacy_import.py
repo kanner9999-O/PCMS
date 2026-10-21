@@ -13,7 +13,7 @@ from .product import S, uid, item
 from .categories import ROOTS, cat_state, norm_name
 
 DEFAULT_MAPPING=['date','description','reference','out','in','balance']
-ROLES={'date','description','reference','out','in','amount','balance','skip'}
+ROLES={'date','description','reference','out','in','amount','balance','note','skip'}
 
 def norm_ref(value):
     return str(value or '').split('\\')[0].strip().upper()
@@ -58,7 +58,7 @@ class LegacyImport:
                 if node is None:continue
                 part['category']=node['root'];part['node']=key
             t=dict(id=e['id'],account=None,date=e['date'],reference=e['reference'] or '—',description=e['description'],signed_amount=e['amount'] if e['direction']=='IN' else '-'+e['amount'],
-                allocations=[part],sources=[],legacy=True,order=0,classification_history=[],source_row=e['row'],bank_balance=e.get('bank_balance'))
+                allocations=[part],sources=[],legacy=True,order=0,classification_history=[],source_row=e['row'],bank_balance=e.get('bank_balance'),note=e.get('note',''),voucher=e.get('voucher',''))
             yield t,part
 
     def legacy_parse(self,text,mapping=None):
@@ -95,7 +95,7 @@ class LegacyImport:
                 amount=o or i_;direction='OUT' if o>0 else 'IN'
             if bad:
                 msg='Dòng cần đúng một trong tiền ra hoặc tiền vào (lớn hơn 0).';issues.append(dict(row=n,message=msg));out_rows.append(dict(row=n,status='ERROR',message=msg,date=iso,description=desc,reference=ref,amount=None,direction=None,bank_balance=vals['balance']));continue
-            out_rows.append(dict(row=n,status='OK',date=iso,description=desc[:500],reference=ref[:100],amount=str(amount),direction=direction,bank_balance=str(vals['balance']) if vals['balance'] is not None else None))
+            out_rows.append(dict(row=n,status='OK',note=cell(r,'note')[:1000],date=iso,description=desc[:500],reference=ref[:100],amount=str(amount),direction=direction,bank_balance=str(vals['balance']) if vals['balance'] is not None else None))
         return dict(columns=cols,mapping=mapping,rows=out_rows,issues=issues,declared=declared)
 
     def legacy_preview(self,d,s=None):
@@ -145,7 +145,7 @@ class LegacyImport:
             n=0
             for r in p['rows']:
                 if r['status'] not in {'OK','MATCHED_BANK'}:continue
-                s['legacy_entries'].append(dict(id=uid(),batch=bid,row=r['row'],date=r['date'],description=r['description'],reference=r['reference'],amount=r['amount'],direction=r['direction'],bank_balance=r['bank_balance'],category=key,profile=prof['id']));n+=1
+                s['legacy_entries'].append(dict(id=uid(),batch=bid,row=r['row'],date=r['date'],description=r['description'],reference=r['reference'],amount=r['amount'],direction=r['direction'],bank_balance=r['bank_balance'],category=key,profile=prof['id'],**({'note':r['note']} if r.get('note') else {})));n+=1
             return f"Migrate {n} dòng lịch sử cũ cho {prof['name']}"+(f"; bỏ qua {p['duplicates']} dòng trùng lần trước" if p['duplicates'] else '')
         if action=='legacy-void':
             b=item(s['legacy_batches'],d.get('batch'));require(b['status']=='ACTIVE','Lần migrate đã hủy.');reason=str(d.get('reason','')).strip();require(reason,'Cần lý do hủy.')
