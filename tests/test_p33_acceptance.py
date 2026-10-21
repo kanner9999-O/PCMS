@@ -8,6 +8,8 @@ def D_(x):return Decimal(str(x))
 
 class P33Acceptance(base.P18Acceptance):
     """Dùng dữ liệu P18 (Kết 5tr/10tr: giải ngân 5tr và 10tr, thu gốc 3tr, lãi 200k, lương 20tr)."""
+    def setUp(self):
+        super().setUp();self.store.business_enabled=True                                                          # nghiệp vụ tạm dừng mặc định (spec 041); test này kiểm tra lớp nghiệp vụ nên bật
     def biz(self):return self.store.view()['business']
     def loan(self,pid):return next(x for x in self.biz()['loans'] if x['profile']==pid)
     def members(self,key):

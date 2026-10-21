@@ -435,3 +435,6 @@ Phương án B của Thạch: đồng nhất màn Danh mục và màn Đối tư
 
 ## 21/10/2026 – Quy trình: nguyên tắc IX (rà soát tác động, phỏng vấn gộp, phát hành một lần)
 Thạch phản ánh việc sửa lắt nhắt sau mỗi lần chốt nghiệp vụ gây tốn thời gian và lệch giữa các màn. Constitution v1.3.0 thêm nguyên tắc IX; CLAUDE.md có mục tương ứng.
+
+## P43 (21/10/2026) – Tách danh mục/đối tượng, tạm dừng nghiệp vụ, đồng nhất các màn (spec 041, R185–R190)
+Làm theo đủ quy trình Spec Kit (specify → clarify → plan có research/data-model/quickstart → tasks → analyze → implement) và Constitution IX. Nghiệp vụ tạm dừng (cờ, ẩn giao diện, dữ liệu giữ nguyên); bỏ hộp Hồ sơ liên kết; một hàm tạo đối tượng có loại cho mọi lối; hiển thị tên người; "Đồng bộ danh mục và đối tượng" (không gắn nghiệp vụ). 370 test Python + test node; QA trình duyệt trên bộ giả mô phỏng cấu trúc dữ liệu thật. Dữ liệu thật chỉ đổi khi Thạch bấm đồng bộ.

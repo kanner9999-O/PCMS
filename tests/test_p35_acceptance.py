@@ -6,6 +6,8 @@ def D_(x):return Decimal(str(x))
 
 class P35Acceptance(base.P18Acceptance):
     """Quản lý đối tượng (spec 033) trên dữ liệu P18: người Kết có hai khoản vay 5tr/10tr."""
+    def setUp(self):
+        super().setUp();self.store.business_enabled=True
     def objs(self):return {o['name']:o for o in self.store.view()['objects']['rows']}
     def prof(self,pid):return next(p for p in self.store.state()['profiles'] if p['id']==pid)
     def make(self,name,typ='OBJECT',**k):

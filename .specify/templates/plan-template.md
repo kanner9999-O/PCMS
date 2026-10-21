@@ -36,6 +36,10 @@
 
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
+## Nghiên cứu tác động *(bắt buộc nếu đổi nghiệp vụ/cấu trúc)*
+
+Phải có `research.md` ghi kết quả tìm kiếm trong mã nguồn cho mọi khái niệm bị đổi (nơi tạo/sửa, nơi hiển thị, nơi tính số liệu), và `quickstart.md` có kịch bản **kiểm tra đồng nhất giữa các màn** trên dữ liệu giả mô phỏng cấu trúc dữ liệu thật. `/speckit-analyze` phải chạy xong và không còn lỗi nghiêm trọng trước khi `/speckit-implement`.
+
 ## Constitution Check
 
 > Kiểm tra thêm: nguyên tắc VII (danh mục) và VIII (nghiệp vụ kế toán: spec có mục "Tư vấn kế toán" khi có business logic).

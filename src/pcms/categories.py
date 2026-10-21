@@ -139,10 +139,7 @@ class Categories:
             key=d.get('category');self.cat_target_root(s,key);pid=d.get('profile');name=str(d.get('name') or '').strip()
             if pid:
                 prof=item(s['profiles'],pid);require(prof.get('status')!='ARCHIVED' and not prof.get('merged_into'),'Đối tượng đã lưu trữ hoặc đã gộp; khôi phục ở màn Đối tượng trước.')
-            else:
-                require(1<=len(name)<=100,'Tên đối tượng dài 1–100 ký tự.')
-                self.require_free_name(s,name)
-                prof={'id':uid(),'kind':'OBJECT','name':name,'party':None};s['profiles'].append(prof)
+            else:prof=self.create_profile(s,name,d.get('type') or 'OBJECT')
             require(not any(e['category']==key and e['profile']==prof['id'] and e['status']=='ACTIVE' for e in s['category_objects']),'Đối tượng đã có trong danh mục này.')
             s['category_objects'].append(dict(id=uid(),category=key,profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=key)]));return 'Thêm đối tượng '+prof['name']+' vào danh mục'
         if action=='category-object-rename':
@@ -245,18 +242,14 @@ class Categories:
             self.require_free_name(s,name)
         def clean(name,message):
             name=str(name or '').strip();require(1<=len(name)<=100,message);return name
-        if kind=='PERSON':
-            name=clean(d.get('name'),'Tên người dài 1–100 ký tự.');unique('người / tổ chức',name,'PERSON')
-            profiles.append({'id':new_id(),'kind':'PERSON','name':name,'party':None});return 'Tạo nhanh người '+name
-        if kind=='PROPERTY':
-            name=clean(d.get('name'),'Tên BĐS dài 1–100 ký tự.');unique('BĐS',name,'PROPERTY')
-            profiles.append({'id':new_id(),'kind':'PROPERTY','name':name,'party':None});return 'Tạo nhanh BĐS '+name
+        if kind in {'PERSON','PROPERTY'}:
+            prof=self.create_profile(s,d.get('name'),kind);return ('Tạo nhanh người ' if kind=='PERSON' else 'Tạo nhanh BĐS ')+prof['name']
         if kind=='LOAN':
             if d.get('party'):
                 person=next((p for p in profiles if p['id']==d['party']),None);require(person is not None and person['kind']=='PERSON','Chọn người có sẵn hoặc nhập tên người mới.')
                 created=None
             else:
-                pname=clean(d.get('party_name'),'Tên người dài 1–100 ký tự.');unique('người / tổ chức',pname,'PERSON')
+                pname=clean(d.get('party_name'),'Tên người dài 1–100 ký tự.');self.require_free_name(s,pname)
                 person={'id':new_id(),'kind':'PERSON','name':pname,'party':None};created=person
             raw=str(d.get('name') or '').strip();base=raw or 'Khoản '+person['name']
             require(len(base)<=100,'Tên khoản vay tối đa 100 ký tự.')
@@ -415,7 +408,7 @@ class Categories:
                 if pr.get('merged_into'):continue
                 dup=[dict(profile=x['id'],name=x['name'],kind=x['kind']) for x in s['profiles'] if x['id']!=pr['id'] and not x.get('merged_into') and norm_name(x['name'])==norm_name(pr['name'])];o=oacc.get((e['category'],e['profile']),dict(in_=Decimal(0),out=Decimal(0),tx=set()))
                 kids=[dict(id=x['id'],name=x['name'],direction=(x.get('debt_setup') or {}).get('direction'),setup=bool(x.get('debt_setup'))) for x in self.biz_pair_loans(s,e)]
-                objs.setdefault(e['category'],[]).append(dict(loans=kids,party_name=(by_profile.get(pr.get('party')) or {}).get('name') if pr['kind']=='LOAN' else None,business=e.get('business'),entry=e['id'],profile=pr['id'],name=pr['name'],kind=pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
+                objs.setdefault(e['category'],[]).append(dict(loans=kids if self.business_enabled else [],party_name=(by_profile.get(pr.get('party')) or {}).get('name') if pr['kind']=='LOAN' else None,business=e.get('business') if self.business_enabled else None,entry=e['id'],profile=pr['id'],name=self.disp_name(s,pr['id']),kind='PERSON' if (pr['kind']=='LOAN' and pr.get('party')) else pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
@@ -430,7 +423,7 @@ class Categories:
             everything=key=='*' and bool(d.get('object'))
             require(everything or key in ROOTS or any(n['id']==key for n in s['categories']),'Chọn danh mục.')
             approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']}
-            accounts={a['id']:a['name'] for a in s['accounts']};profiles={p['id']:p['name'] for p in s['profiles']}
+            accounts={a['id']:a['name'] for a in s['accounts']};profiles={p['id']:self.disp_name(s,p['id']) for p in s['profiles']}
             rows=[];tx=set();inc=out=Decimal(0);family=set()
             if d.get('object'):
                 owner=next((x for x in s['profiles'] if x['id']==d['object']),None);family={d['object']}|({x['id'] for x in self.obj_party_loans(s,owner)} if owner and owner['kind']=='PERSON' else set())
@@ -509,7 +502,7 @@ class Categories:
             if mode=='range':
                 start,end=self.cat_period(d);require(start or end,'Chọn ngày bắt đầu hoặc kết thúc.')
             moment=now();cutoff=(datetime.fromisoformat(moment)-timedelta(hours=24)).isoformat()
-            approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']};profiles={p['id']:p['name'] for p in s['profiles']}
+            approved={t['id'] for snap in s['snapshots'] for t in snap['report']['transactions']};profiles={p['id']:self.disp_name(s,p['id']) for p in s['profiles']}
             def when(t):
                 h=t.get('classification_history') or []
                 return h[-1]['at'] if h and t['allocations'] else None

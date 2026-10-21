@@ -20,6 +20,7 @@ def active_pair(s,category,profile):
 
 class Business:
     ROLES_=ROLES
+    business_enabled=False      # spec 041: nghiệp vụ tạm dừng (chờ Thạch quyết định); mã và dữ liệu giữ nguyên, giao diện ẩn
     def biz_kind_error(self,s,profile,btype):
         """Why this profile cannot carry the business type, or None. Used by set, merge and migrate (chặn hẳn)."""
         spec=BUSINESS[btype];kind=profile['kind']
@@ -88,6 +89,7 @@ class Business:
     def change_business(self,s,action,d):
         from .p01 import day,now
         if action=='business-migrate':return self.change_business_migrate(s,d)
+        require(self.business_enabled,'Nghiệp vụ tạm dừng, chờ quyết định cách làm. Hiện chỉ lưu giao dịch dưới dạng thu và chi.')
         e=active_pair(s,d.get('category'),d.get('profile'));require(e is not None,'Đối tượng không có trong danh mục này.')
         prof=item(s['profiles'],e['profile']);root=self.cat_target_root(s,e['category']);current=e.get('business');reason=str(d.get('reason') or '').strip()[:500]
         index=self.biz_pair_parts(s)
@@ -123,9 +125,9 @@ class Business:
             person=by[pid]
             try:self.cat_target_root(s,home)
             except Exception:rows.append(dict(profile=pid,name=person['name'],kind='PERSON',category=home,action='SKIP',message='Danh mục của khoản vay không còn hoạt động.',loans=[x['name'] for x in loans]));continue
-            dirs={(x.get('debt_setup') or {}).get('direction') for x in loans}-{None}
+            dirs=({(x.get('debt_setup') or {}).get('direction') for x in loans}-{None}) if self.business_enabled else set()
             retire=[e['id'] for e in s['category_objects'] if e['status']=='ACTIVE' and e['profile'] in {x['id'] for x in loans}]
-            pair=active_pair(s,home,pid);has=pair is not None and bool(pair.get('business'))
+            pair=active_pair(s,home,pid);has=self.business_enabled and pair is not None and bool(pair.get('business'))
             base=dict(profile=pid,name=person['name'],kind='PERSON',category=home,category_path=self.cat_path(s,home) if home not in ROLES else ROLES[home],loans=[x['name'] for x in loans],retire=retire)
             if len(dirs)>1:rows.append(dict(base,type=None,action='CONFLICT',message='Người này có khoản Phải thu lẫn Phải trả trong cùng một danh mục: chuyển một khoản sang danh mục khác (Công nợ → Chuyển danh mục) rồi hợp nhất lại.'));continue
             btype=None if not dirs else ('LOAN_LENT' if next(iter(dirs))=='RECEIVABLE' else 'LOAN_BORROWED')
@@ -135,7 +137,7 @@ class Business:
             elif btype is None:action,message=('ADD_ONLY' if pair is None else ('RETIRE_ONLY' if retire else 'NOOP')),'Khoản vay chưa thiết lập chiều (Phải thu / Phải trả): người được thêm vào danh mục nhưng chưa gắn loại; hệ thống không đoán chiều. Thiết lập ở màn Công nợ rồi hợp nhất lại.'
             else:action,message=('SET' if pair is not None else 'ADD_AND_SET'),''
             rows.append(dict(base,type=btype,type_name=BUSINESS[btype]['name'] if btype else None,effective_date=when,action=action,message=message))
-        for p in s['profiles']:
+        for p in (s['profiles'] if self.business_enabled else []):
             if p.get('merged_into') or p['kind']!='PROPERTY':continue
             category='investment';pair=active_pair(s,category,p['id']);has=pair is not None and bool(pair.get('business'))
             rows.append(dict(profile=p['id'],name=p['name'],kind='PROPERTY',category=category,category_path=ROLES[category],type='PROPERTY',type_name='Bất động sản',effective_date=None,retire=[],loans=[],
@@ -158,7 +160,7 @@ class Business:
                 pair.setdefault('business_history',[]).append(dict(at=now(),action='SET',type=r['type'],effective_date=when,params=copy.deepcopy(pair['business']['params']),reason='Hợp nhất hồ sơ nghiệp vụ',before=None))
             for e in s['category_objects']:                    # khoản vay thôi làm thành viên danh mục: người mới là đối tượng (giữ bản ghi, không xóa)
                 if e['id'] in r.get('retire',[]):
-                    if e.get('business'):e.setdefault('business_history',[]).append(dict(at=now(),action='CLEAR',type=None,effective_date=now()[:10],params=None,reason='Chuyển sang người sở hữu khoản vay',before=copy.deepcopy(e['business'])));e['business']=None
+                    if e.get('business') and self.business_enabled:e.setdefault('business_history',[]).append(dict(at=now(),action='CLEAR',type=None,effective_date=now()[:10],params=None,reason='Chuyển sang người sở hữu khoản vay',before=copy.deepcopy(e['business'])));e['business']=None
                     e.update(status='REMOVED',removed_at=now());e['history'].append(dict(at=now(),action='MIGRATED_TO_PERSON',to=prof['id'],reason='Người là đối tượng của danh mục, khoản vay là mục con'))
             done.append(dict(profile=prof['id'],category=r['category'],type=r['type'],action=r['action'],retired=len(r.get('retire',[]))))
         require(done,'Không có hồ sơ nào cần hợp nhất.')
@@ -167,13 +169,15 @@ class Business:
     # ---- guards used by category actions ------------------------------------
     def biz_guard_remove(self,s,e):
         require(not self.biz_pair_loans(s,e),'Người này còn khoản vay thuộc danh mục này; chuyển khoản vay sang danh mục khác (Công nợ → Chuyển danh mục) trước khi gỡ.')
-        require(not e.get('business'),'Đối tượng đang mang nghiệp vụ; gỡ nghiệp vụ (có lý do) trước khi gỡ khỏi danh mục.')
+        require(not (self.business_enabled and e.get('business')),'Đối tượng đang mang nghiệp vụ; gỡ nghiệp vụ (có lý do) trước khi gỡ khỏi danh mục.')
 
     def biz_guard_archive(self,s,node):
+        if not self.business_enabled:return
         bad=[e for e in s.get('category_objects',[]) if e['status']=='ACTIVE' and e['category']==node['id'] and e.get('business')]
         require(not bad,'Còn đối tượng mang nghiệp vụ trong danh mục này; gỡ hoặc chuyển nghiệp vụ trước.')
 
     def biz_guard_merge(self,s,src,dst):
+        if not self.business_enabled:return
         for e in s.get('category_objects',[]):
             if e['profile']!=src['id'] or e['status']!='ACTIVE' or not e.get('business'):continue
             why=self.biz_kind_error(s,dst,e['business']['type']);require(why is None,'Không gộp được: '+(why or ''))
@@ -182,6 +186,8 @@ class Business:
 
     # ---- read model -----------------------------------------------------------
     def business_view(self,s):
+        if not self.business_enabled:
+            s2=dict(s);s2.setdefault('category_objects',[]);return dict(enabled=False,migration=self.business_migration_rows(s2),migrations=s.get('business_migrations',[]))
         with localcontext() as ctx:
             ctx.prec=60
             s=copy.deepcopy(s);s.setdefault('category_objects',[]);by={p['id']:p for p in s['profiles']};index=self.biz_pair_parts(s)
@@ -243,5 +249,5 @@ class Business:
                 if prof['kind']=='LOAN' and not prof.get('merged_into'):unassigned.append(dict(entry=e['id'],category=e['category'],profile=prof['id'],name=prof['name'],reason='LOAN_AS_MEMBER'))
                 elif prof['kind']=='PERSON' and self.biz_pair_loans(s,e):unassigned.append(dict(entry=e['id'],category=e['category'],profile=prof['id'],name=prof['name'],reason='NO_DIRECTION' if any(not l.get('debt_setup') for l in self.biz_pair_loans(s,e)) else 'NO_BUSINESS'))
             receivable=sum((D(x['balance']) for x in loans if x['type']=='LOAN_LENT'),Decimal(0));payable=sum((D(x['balance']) for x in loans if x['type']=='LOAN_BORROWED'),Decimal(0))
-            return dict(roles=ROLES,types={k:dict(name=v['name'],side=v['side'],root=v['root'],kinds=sorted(v['kinds'])) for k,v in BUSINESS.items()},plain=sorted(PLAIN),loans=loans,properties=other,unassigned=unassigned,
+            return dict(enabled=True,roles=ROLES,types={k:dict(name=v['name'],side=v['side'],root=v['root'],kinds=sorted(v['kinds'])) for k,v in BUSINESS.items()},plain=sorted(PLAIN),loans=loans,properties=other,unassigned=unassigned,
                 totals=dict(receivable=S(receivable),payable=S(payable)),migration=self.business_migration_rows(s),migrations=s.get('business_migrations',[]),basis='Tiền thực thu/chi; chưa dồn tích lãi, dự phòng, xóa nợ.',draft=True)

@@ -53,12 +53,12 @@ class P18Acceptance(unittest.TestCase):
         self.classify(['K1'],[dict(category='principal',profile=self.l5)])                    # danh mục con tùy chọn
 
     def test_review_one_group_per_object_and_child_is_label(self):
-        r=self.review();g=self.group(r,'Gốc vay · Kết 5tr');self.assertEqual(g['rows'][0]['label'],'Gốc vay › Kết')
-        self.assertFalse(any(x['name']=='Gốc vay › Kết · Kết 5tr' for x in r['groups']))
+        r=self.review();g=self.group(r,'Gốc vay · Kết');self.assertIn('Gốc vay › Kết',[x['label'] for x in g['rows']])                    # hiển thị tên người (spec 041)
+        self.assertFalse(any(x['name']=='Gốc vay › Kết · Kết' for x in r['groups']))
         self.classify(['K2'],[dict(category='principal',profile=self.l5,node=self.nodes()['Kết']['id'])])
-        r=self.review();g=self.group(r,'Gốc vay · Kết 5tr');self.assertEqual(g['transactions'],2);self.assertEqual(sorted(x['label'] for x in g['rows']),['Gốc vay › Kết','Gốc vay › Kết'])
+        r=self.review();g=self.group(r,'Gốc vay · Kết');self.assertEqual(g['transactions'],3);self.assertEqual(sorted(x['label'] for x in g['rows']),['Gốc vay','Gốc vay › Kết','Gốc vay › Kết'])   # hai khoản của Kết gộp theo tên người
         self.assertTrue(r['reconciled'])
-        self.assertIn('Lãi vay · Kết 10tr',[x['name'] for x in r['groups']])
+        self.assertIn('Lãi vay · Kết',[x['name'] for x in r['groups']])
 
     def test_regroup_moves_whole_loan_without_changing_debt(self):
         before=self.store.view();debts=copy.deepcopy(before['debts']);total0=D_(before['categories']['roots'][2]['totals']['out'])
@@ -67,13 +67,13 @@ class P18Acceptance(unittest.TestCase):
         ld=self.nodes()['Long debt'];self.assertEqual((D_(ld['totals']['out']),D_(ld['totals']['in'])),(10000000,3200000))
         loans=self.nodes()['Loans'];self.assertEqual((D_(loans['totals']['out']),D_(loans['totals']['in'])),(10000000,3200000))
         root=next(r for r in v['categories']['roots'] if r['key']=='principal');self.assertEqual(D_(root['totals']['out']),total0)       # gốc hệ thống vẫn gộp mọi con
-        r=self.review();g=self.group(r,'Gốc vay › Loans › Long debt · Kết 10tr');self.assertEqual(g['transactions'],3);self.assertTrue(r['reconciled'])
-        self.assertNotIn('Lãi vay · Kết 10tr',[x['name'] for x in r['groups']]);self.assertEqual(sorted(x['label'] for x in g['rows']),['Gốc vay','Gốc vay','Lãi vay'])   # lãi đi cùng khoản vay (R96)
+        r=self.review();g=self.group(r,'Gốc vay › Loans › Long debt · Kết');self.assertEqual(g['transactions'],3);self.assertTrue(r['reconciled'])
+        self.assertNotIn('Lãi vay · Kết',[x['name'] for x in r['groups']]);self.assertEqual(sorted(x['label'] for x in g['rows']),['Gốc vay','Gốc vay','Lãi vay'])   # lãi đi cùng khoản vay (R96)
         hist=self.store.category_history(dict(category=self.nodes()['Long debt']['id']));self.assertEqual({x['reference'] for x in hist['rows']},{'K2','K3','K4'})
         h=self.loans()[self.l10]['history'];self.assertEqual((len(h),h[0]['to'],h[0]['reason']),(1,ld['id'],'Thành nợ dài hạn'))
         self.act('loan-regroup',profile=self.l10,node='principal',effective_date='2026-10-02',reason='Quay lại');self.assertEqual(len(self.loans()[self.l10]['history']),2)
         self.assertEqual((D_(self.nodes()['Long debt']['totals']['out']),D_(self.nodes()['Long debt']['totals']['in'])),(0,0))
-        self.assertIn('Lãi vay · Kết 10tr',[x['name'] for x in self.review()['groups']])                                       # về Gốc vay: lãi trở lại Lãi vay
+        self.assertIn('Lãi vay · Kết',[x['name'] for x in self.review()['groups']])                                       # về Gốc vay: lãi trở lại Lãi vay
 
     def test_regroup_validation_and_snapshot_untouched(self):
         ld=self.nodes()['Long debt']['id'];good=dict(profile=self.l10,node=ld,effective_date='2026-10-01',reason='x')
