@@ -423,3 +423,6 @@ Hộp phân loại (và phiên điều chỉnh) chọn danh mục theo cấp, g�
 
 ## P39 (21/10/2026) – Migrate lịch sử cũ từ đối tượng của danh mục + chống ghi nhầm (spec 037, R172–R173)
 Lối vào migrate từ hộp "Thêm đối tượng" và từng đối tượng; chặn chọn đối tượng có sẵn kèm tên khác; xem trước nêu rõ đối tượng đích. 331 test Python + test node; QA trên bộ giả.
+
+## P40 (21/10/2026) – Ghi chú giao dịch sửa tại dòng lịch sử + nhập từ migrate (spec 038, R174–R176)
+Cột Ghi chú khi migrate lịch sử cũ; sửa/bổ sung note ngay trên dòng lịch sử cho cả giao dịch ngân hàng và dòng lịch sử cũ; note không đổi tiền/phân loại/snapshot, có lịch sử thay đổi. Test Python + test node; QA trình duyệt trên bộ giả.

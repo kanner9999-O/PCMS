@@ -103,10 +103,14 @@ class Categories:
         if new!=before:t.setdefault('note_history',[]).append(dict(at=now(),before=before,after=new));t.update(new)
 
     def change_note(self,s,d):
-        t=item(s['transactions'],d.get('transaction'));note=d.get('note');voucher=d.get('voucher')
+        note=d.get('note');voucher=d.get('voucher');key=d.get('transaction')
+        t=next((x for x in s['transactions'] if x['id']==key),None);nodes=None
+        if t is not None:nodes=[p.get('node') for p in t['allocations']]
+        else:
+            t=next((e for e in s.get('legacy_entries',[]) if e['id']==key),None);require(t is not None,'Không tìm thấy giao dịch.');nodes=[t['category']]       # dòng lịch sử cũ: ghi chú trên chính dòng, không đổi bản dán gốc
         require(note is not None or voucher is not None,'Nhập ghi chú hoặc số chứng từ.')
         final=str(note).strip() if note is not None else t.get('note','')
-        require(final or not any(self.cat_flag(s,p.get('node'),'note_required') for p in t['allocations']),'Danh mục này yêu cầu ghi chú; không được để trống.')
+        require(final or not any(self.cat_flag(s,n,'note_required') for n in nodes),'Danh mục này yêu cầu ghi chú; không được để trống.')
         self.apply_note(t,note,voucher);return 'Cập nhật ghi chú giao dịch'
 
     def cat_target(self,p):
