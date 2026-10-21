@@ -420,3 +420,6 @@ Hộp "Thêm đối tượng" ở màn Danh mục: nhóm theo loại, lọc lo�
 
 ## P38 (16/10/2026) – Phân loại theo cây danh mục cha → con (spec 036, R169–R171)
 Hộp phân loại (và phiên điều chỉnh) chọn danh mục theo cấp, gốc tự tạo ngang hàng gốc hệ thống, đối tượng chỉ của danh mục chọn; chỉ đổi giao diện. Test Python 315 + test node `classify_cascade`; QA trình duyệt trên bộ giả (chọn 3 cấp, lưu, mở lại dựng sẵn đường dẫn).
+
+## P39 (21/10/2026) – Migrate lịch sử cũ từ đối tượng của danh mục + chống ghi nhầm (spec 037, R172–R173)
+Lối vào migrate từ hộp "Thêm đối tượng" và từng đối tượng; chặn chọn đối tượng có sẵn kèm tên khác; xem trước nêu rõ đối tượng đích. 331 test Python + test node; QA trên bộ giả.
