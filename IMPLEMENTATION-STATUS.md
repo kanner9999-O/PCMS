@@ -432,3 +432,6 @@ Chỉ đổi hiển thị lịch sử: ghi chú cùng dòng với nhãn "Lịch 
 
 ## P42 (21/10/2026) – Người là đối tượng của danh mục, khoản vay là mục con (spec 040, R179–R184)
 Phương án B của Thạch: đồng nhất màn Danh mục và màn Đối tượng. Hợp nhất theo người (xem trước + xác nhận, idempotent, xung đột chiều báo rõ), sổ nghiệp vụ theo người với các khoản con, hộp phân loại chọn người rồi khoản vay, cảnh báo không đồng nhất ở màn Đối tượng. 359 test Python + test node; QA trình duyệt trên bộ giả có cấu trúc cũ giống dữ liệu thật. Dữ liệu thật chỉ đổi khi Thạch bấm hợp nhất.
+
+## 21/10/2026 – Quy trình: nguyên tắc IX (rà soát tác động, phỏng vấn gộp, phát hành một lần)
+Thạch phản ánh việc sửa lắt nhắt sau mỗi lần chốt nghiệp vụ gây tốn thời gian và lệch giữa các màn. Constitution v1.3.0 thêm nguyên tắc IX; CLAUDE.md có mục tương ứng.
