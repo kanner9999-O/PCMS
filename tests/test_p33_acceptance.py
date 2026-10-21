@@ -91,6 +91,6 @@ class P33Acceptance(base.P18Acceptance):
         self.err('business-set',category=pc,profile=xm,type='PROPERTY',effective_date='2026-09-01')                         # chưa là thành viên
         self.act('category-object-add',category=pc,profile=xm);self.act('business-set',category=pc,profile=xm,type='PROPERTY',effective_date='2026-09-01')
         self.err('business-set',category=pc,profile=xm,type='LOAN_LENT',effective_date='2026-09-01',reason='x')
-        self.assertEqual(self.biz()['properties'][0]['type_name'],'Bất động sản');self.assertTrue(self.store.view()['build'].startswith('P3'))
+        self.assertEqual(self.biz()['properties'][0]['type_name'],'Bất động sản');self.assertRegex(self.store.view()['build'],r'^P\d+-\d{4}-\d{2}-\d{2}$')
 
 if __name__=='__main__':unittest.main()
