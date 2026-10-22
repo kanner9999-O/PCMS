@@ -21,7 +21,7 @@ class P18Acceptance(unittest.TestCase):
     def err(self,*a,**k):
         with self.assertRaises(ValidationError):self.act(*a,**k)
     def tx(self,ref):return next(t for t in self.store.state()['transactions'] if t['reference']==ref)
-    def classify(self,refs,parts):self.act('classify',ids=[self.tx(r)['id'] for r in refs],parts=parts)
+    def classify(self,refs,parts):self.act('classify',ids=[self.tx(r)['id'] for r in refs],parts=parts,business_ack=True)      # tương đương đã xác nhận tác động ở "Sửa phân loại" (spec 043); chặn khi thiếu xác nhận kiểm ở test_p45
     def nodes(self):return {n['name']:n for n in self.store.view()['categories']['nodes']}
     def review(self,s=None):return self.store.classification_review(dict(account=self.account),s)
     def group(self,r,name):return next(g for g in r['groups'] if g['name']==name)

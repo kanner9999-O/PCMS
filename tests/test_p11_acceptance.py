@@ -32,18 +32,18 @@ class P11Acceptance(unittest.TestCase):
     # ---- US1: lý do tùy chọn -------------------------------------------------
     def test_reason_optional_for_classify_and_adjustment(self):
         self.load()
-        self.act('classify',ids=[self.tx('C-1')['id']],parts=[dict(category='expense')])                         # không có khóa reason
-        self.act('classify',ids=[self.tx('C-2')['id'],self.tx('C-3')['id']],parts=[dict(category='expense')],reason='   ')
+        self.act('classify',business_ack=True,ids=[self.tx('C-1')['id']],parts=[dict(category='expense')])                         # không có khóa reason
+        self.act('classify',business_ack=True,ids=[self.tx('C-2')['id'],self.tx('C-3')['id']],parts=[dict(category='expense')],reason='   ')
         self.assertEqual([h['reason'] for h in self.tx('C-1')['classification_history']],[''])
-        self.act('classify',ids=[self.tx('C-4')['id']],parts=[dict(category='income')],reason='Hoàn tiền')
+        self.act('classify',business_ack=True,ids=[self.tx('C-4')['id']],parts=[dict(category='income')],reason='Hoàn tiền')
         self.assertEqual(self.tx('C-4')['classification_history'][-1]['reason'],'Hoàn tiền')
         self.err('classify',ids=[self.tx('C-5')['id']],parts=[])                                                  # vẫn cần ít nhất một phần
-        self.act('classify',ids=[self.tx('C-5')['id']],parts=[dict(category='income')])
+        self.act('classify',business_ack=True,ids=[self.tx('C-5')['id']],parts=[dict(category='income')])
         self.act('approve',account=self.account,reason='Duyệt 1')
         self.act('begin-adjustment',account=self.account)                                                         # không lý do vẫn mở được
         self.assertTrue(self.store.state()['accounts'][0]['adjustment_open'])
         self.act('object-quick-create',kind='LOAN',party_name='Bình');loan=self.profiles('LOAN')[0]['id']
-        self.act('classify',ids=[self.tx('C-1')['id']],parts=[dict(category='principal',profile=loan)])
+        self.act('classify',business_ack=True,ids=[self.tx('C-1')['id']],parts=[dict(category='principal',profile=loan)])
         self.err('approve',account=self.account)                                                                  # duyệt bản mới vẫn đòi lý do (R21)
         self.act('approve',account=self.account,reason='Điều chỉnh')
 

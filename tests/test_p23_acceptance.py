@@ -49,9 +49,11 @@ class P23Acceptance(base.P13Acceptance):
         lid=self.inst('Đợt 1')['links'][0]['id'];self.err('realty-pay-unlink',link=lid,reason='');self.act('realty-pay-unlink',link=lid,reason='Gắn nhầm')
         self.assertEqual((self.inst('Đợt 1')['status'],len(self.inst('Đợt 1')['links'])),('UNPAID',0))
         self.act('realty-pay-link',installment=i1['id'],transaction=d1)
-        other=self.act('object-quick-create',kind='PROPERTY',name='Đất B');b=self.pid('Đất B');self.classify(['D-1'],[dict(category='investment',profile=b)])   # phân loại lại khỏi Đất A
-        l=self.inst('Đợt 1')['links'][0];self.assertTrue(l['broken']);self.assertEqual((D_(self.inst('Đợt 1')['paid']),self.inst('Đợt 1')['status']),(0,'UNPAID'))
-        self.act('realty-pay-unlink',link=l['id'],reason='Không còn là Đất A');self.act('realty-installment-void',installment=i2['id'],reason='Gộp đợt');self.assertEqual(len(self.prog()['installments']),2)
+        other=self.act('object-quick-create',kind='PROPERTY',name='Đất B');b=self.pid('Đất B')
+        self.err('classify',ids=[d1],parts=[dict(category='investment',profile=b)],business_ack=True)                                # spec 043: đã gắn đợt thanh toán BĐS → bỏ gắn trước
+        l=self.inst('Đợt 1')['links'][0];self.assertFalse(l['broken']);self.act('realty-pay-unlink',link=l['id'],reason='Không còn là Đất A')
+        self.classify(['D-1'],[dict(category='investment',profile=b)]);self.assertEqual((D_(self.inst('Đợt 1')['paid']),self.inst('Đợt 1')['status']),(0,'UNPAID'))   # phân loại lại khỏi Đất A sau khi bỏ gắn
+        self.act('realty-installment-void',installment=i2['id'],reason='Gộp đợt');self.assertEqual(len(self.prog()['installments']),2)
         self.err('realty-installment-void',installment=i2['id'],reason='lần hai')
 
     def test_no_schedule_unchanged_and_assets_unaffected(self):
