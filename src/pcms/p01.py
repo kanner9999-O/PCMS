@@ -38,7 +38,7 @@ from .interest_settlement import InterestSettlement
 
 from .loan_completion import LoanCompletion
 from .trx_energy import TrxEnergy
-from .categories import Categories, root_key
+from .categories import Categories, root_key, ROOTS as ROOT_NAMES
 from .business import Business
 from .objects import Objects
 from .realty import Realty
@@ -249,14 +249,19 @@ class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, C
         a=item(s['accounts'],b['account']); issues=list(b.get('parse_issues',[]));rows=b['rows']
         if b.get('source_account') != a['reference']:issues.append('Số tài khoản nguồn khác tài khoản đã chọn.')
         existing=sorted([t for t in s['transactions'] if t['account']==a['id']],key=lambda t:t['order'])
-        from .legacy_import import norm_ref
+        from .legacy_import import norm_ref,base_ref
         seen={norm_ref(t['reference']):t for t in existing}
+        active={x['id'] for x in s.get('legacy_batches',[]) if x['status']=='ACTIVE'}
+        scoped=[e for e in s.get('legacy_entries',[]) if e['batch'] in active and self.legacy_account(s,e)==a['id'] and norm_ref(e['reference'])]
+        legacy_full={norm_ref(e['reference']):e for e in scoped};near={base_ref(e['reference']):e['reference'] for e in scoped}
+        for t in existing:near.setdefault(base_ref(t['reference']),t['reference'])
         for r in rows:
-            for e in s.get('legacy_entries',[]):
-                active=any(b['id']==e['batch'] and b['status']=='ACTIVE' for b in s.get('legacy_batches',[]))
-                if active and self.legacy_account(s,e)==a['id'] and norm_ref(e['reference'])==norm_ref(r['reference']):
-                    signed=e['amount'] if e['direction']=='IN' else '-'+e['amount']
-                    if (e['date'],D(signed),e['description'])!=(r['date'],D(r['signed_amount']),r['description']):issues.append(f"Mã {r['reference']} xung đột lịch sử cũ trong tài khoản; cần đối chiếu trước khi nhập.")
+            ref=norm_ref(r['reference']);e=legacy_full.get(ref)
+            if e:
+                signed=e['amount'] if e['direction']=='IN' else '-'+e['amount']
+                if (e['date'],D(signed),e['description'])!=(r['date'],D(r['signed_amount']),r['description']):issues.append(f"Mã {r['reference']} xung đột lịch sử cũ trong tài khoản; cần đối chiếu trước khi nhập.")
+            elif ref not in seen and base_ref(r['reference']) in near and norm_ref(near[base_ref(r['reference'])])!=ref:
+                issues.append(f"Dòng {r['source_row']}: mã {r['reference']} gần trùng {near[base_ref(r['reference'])]} đã có trong tài khoản (khác hậu tố); cần đối chiếu, không tự gộp.")      # mọi thứ tự nhập (spec 042, PO review P1)
         new=[];duplicates=[];flags=[];file_refs=set()
         for r in rows:
             ref=norm_ref(r['reference'])
@@ -493,11 +498,11 @@ class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, C
                     if profile:
                         target=item(s['profiles'],profile);key=part.get('node') or root_key(category)
                         require(target.get('status')!='ARCHIVED' or any(x.get('profile')==profile for tt in selected for x in tt['allocations']),'Đối tượng đã lưu trữ; khôi phục ở màn Đối tượng trước khi phân loại mới.')
-                        members={e['profile'] for e in s.get('category_objects',[]) if e['status']=='ACTIVE' and e['category']==key}
-                        kept={x.get('profile') for t in selected for x in t['allocations'] if x.get('profile')}
-                        legacy={'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'},'expense':{'LOAN','PROPERTY'}}.get(category,set())
-                        native={'principal':{'LOAN'},'interest':{'LOAN'},'investment':{'PROPERTY'}}.get(category,set())
-                        require(profile in members or profile in kept or (not members and target['kind'] in legacy) or target['kind'] in native,'Đối tượng không thuộc danh mục này. Thêm đối tượng vào danh mục ở màn Danh mục trước.')
+                        # R191 (spec 042): mọi phân loại mới phải đúng quan hệ — đối tượng sở hữu (người của khoản vay) là thành viên của danh mục hiệu lực (sau nhóm khoản vay, chuyển đối tượng, gộp hồ sơ).
+                        # Không còn ngoại lệ theo loại hồ sơ; chỉ giữ nguyên được phần đã có sẵn y hệt trên chính giao dịch này (dữ liệu cũ xem được, sửa qua mục Cần đối chiếu).
+                        owner=self.part_owner(s,target);eff=self.cat_target(self.cat_eff(s,part))
+                        unchanged=any(x.get('profile')==profile and x['category']==category and (x.get('node') or None)==(part.get('node') or None) for x in t['allocations'])
+                        require(unchanged or not self.require_membership or self.is_member(s,eff,owner),f"{self.disp_name(s,owner)} chưa là thành viên danh mục {self.cat_path(s,eff) if eff not in ROOT_NAMES else ROOT_NAMES[eff]}. Thêm đối tượng vào danh mục ở màn Danh mục (hoặc mục Cần đối chiếu) trước.")
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})

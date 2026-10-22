@@ -13,7 +13,7 @@ from pcms.p01 import P01Store
 class P01Acceptance(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
-        self.store=P01Store(Path(self.tmp.name)/'original')
+        self.store=P01Store(Path(self.tmp.name)/'original');self.store.require_membership=False
         self.files=fixtures()
         self.act('account',name='QA A',reference='000123',opening='100000000',effective_date='2026-10-01',opening_source='Synthetic test opening')
         self.a=self.store.state()['accounts'][-1]['id']
@@ -42,7 +42,7 @@ class P01Acceptance(unittest.TestCase):
         self.assertEqual(len(self.tx('OUT-01')['sources']),2)
         self.assertEqual(next(r for r in self.store.view()['reports'] if r['account']==self.a)['source_end'],'2026-10-03')
         self.stage('01-first.xlsx');self.assertEqual(len(self.store.state()['transactions']),3)
-        self.store=P01Store(Path(self.tmp.name)/'original')
+        self.store=P01Store(Path(self.tmp.name)/'original');self.store.require_membership=False
         self.assertEqual(self.balance(self.a),112000000)
         self.assertEqual(len(self.store.state()['transactions']),3)
 
@@ -142,7 +142,7 @@ class P01Acceptance(unittest.TestCase):
         self.act('approve',account=self.a,confirm_unknown=True,reason='Correction of previous classification')
         self.assertEqual(self.store.state()['snapshots'][0],snapshot)
         self.assertEqual(len(self.store.state()['snapshots']),2)
-        self.store=P01Store(Path(self.tmp.name)/'original')
+        self.store=P01Store(Path(self.tmp.name)/'original');self.store.require_membership=False
         self.assertEqual(self.store.state()['snapshots'][0],snapshot)
 
     def test_P01_06_account_isolation_and_transfer(self):

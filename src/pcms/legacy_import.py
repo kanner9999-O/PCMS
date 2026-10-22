@@ -50,9 +50,9 @@ class LegacyImport:
     def legacy_identity_status(self,s):
         """Status of every active legacy row under the identity rule (account + full normalized reference, R192/R193).
         ACTIVE: counted; DUPLICATE / MATCHED_BANK: same identity and same content already recorded (not counted again);
-        CONFLICT: same identity, different content (not counted, needs review); UNRESOLVED(_MATCH): no account yet (old data, provisional)."""
+        CONFLICT: same identity, different content; NEAR_DUPLICATE: same account, reference differs only by suffix (both not counted, need review); UNRESOLVED(_MATCH): no account yet (old data, provisional)."""
         active={b['id'] for b in s.get('legacy_batches',[]) if b['status']=='ACTIVE'}
-        seen={};result={}
+        seen={};result={};near={(t['account'],base_ref(t['reference'])):norm_ref(t['reference']) for t in s['transactions'] if norm_ref(t['reference'])}
         for t in s['transactions']:
             seen[(t['account'],norm_ref(t['reference']))]=((t['date'],str(abs(Decimal(t['signed_amount']))),'IN' if Decimal(t['signed_amount'])>0 else 'OUT',t['description']),'MATCHED_BANK')
         for e in s.get('legacy_entries',[]):
@@ -64,7 +64,8 @@ class LegacyImport:
                 continue
             key=(account,ref);payload=(e['date'],e['amount'],e['direction'],e['description'])
             if key in seen:result[e['id']]=seen[key][1] if seen[key][0]==payload else 'CONFLICT'
-            else:seen[key]=(payload,'DUPLICATE');result[e['id']]='ACTIVE'
+            elif (account,base_ref(e['reference'])) in near and near[(account,base_ref(e['reference']))]!=ref:result[e['id']]='NEAR_DUPLICATE'     # gần trùng khác hậu tố với nguồn khác cùng tài khoản: không tự gộp, không cộng, cần đối chiếu
+            else:seen[key]=(payload,'DUPLICATE');near.setdefault((account,base_ref(e['reference'])),ref);result[e['id']]='ACTIVE'
         return result
 
     def legacy_items(self,s):
@@ -93,15 +94,13 @@ class LegacyImport:
         issues=[]
         for e in mine:
             if after.get(e['id'])=='CONFLICT':issues.append(dict(row=e['row'],message=f"Dòng {e['row']}: mã {e['reference']} đã có trong tài khoản này với nội dung khác; cần đối chiếu."))
-        bank_base={base_ref(t['reference']):t['reference'] for t in s['transactions'] if t['account']==account}
         for e in mine:
-            if after.get(e['id'])=='ACTIVE' and base_ref(e['reference']) in bank_base and norm_ref(bank_base[base_ref(e['reference'])])!=norm_ref(e['reference']):
-                issues.append(dict(row=e['row'],message=f"Dòng {e['row']}: mã {e['reference']} gần trùng giao dịch sao kê {bank_base[base_ref(e['reference'])]} (khác hậu tố); cần đối chiếu."))
+            if after.get(e['id'])=='NEAR_DUPLICATE':issues.append(dict(row=e['row'],message=f"Dòng {e['row']}: mã {e['reference']} gần trùng một mã đã có trong tài khoản này (khác hậu tố); cần đối chiếu, không tự gộp."))
         others=[e for e in s['legacy_entries'] if e['batch']!=b['id'] and before.get(e['id'])!=after.get(e['id'])]
         if others:issues.append(dict(row=None,message=f"Xác định tài khoản này làm đổi cách tính {len(others)} dòng của lần migrate khác; xử lý lần migrate trùng trước (hủy hoặc đối chiếu), không tự chuyển số giữa các đối tượng."))
         rows=[dict(row=e['row'],reference=e['reference'],date=e['date'],amount=e['amount'],direction=e['direction'],before=before.get(e['id']),after=after.get(e['id'])) for e in mine]
         return dict(batch=b['id'],account=account,rows=rows,issues=issues,before_total=str(total(before,mine)),after_total=str(total(after,mine)),
-            matched_bank=sum(after.get(e['id'])=='MATCHED_BANK' for e in mine),duplicates=sum(after.get(e['id'])=='DUPLICATE' for e in mine),conflicts=sum(after.get(e['id'])=='CONFLICT' for e in mine),draft=True)
+            matched_bank=sum(after.get(e['id'])=='MATCHED_BANK' for e in mine),duplicates=sum(after.get(e['id'])=='DUPLICATE' for e in mine),conflicts=sum(after.get(e['id']) in {'CONFLICT','NEAR_DUPLICATE'} for e in mine),draft=True)
 
     def legacy_parse(self,text,mapping=None):
         lines=text.replace('\r\n','\n').replace('\r','\n').split('\n')
@@ -163,6 +162,8 @@ class LegacyImport:
                 if t['account']==account:seen[norm_ref(t['reference'])]=(t['date'],str(abs(Decimal(t['signed_amount']))),'IN' if Decimal(t['signed_amount'])>0 else 'OUT',t['description'],'MATCHED_BANK')
             near={base_ref(t['reference']):t['reference'] for t in s['transactions'] if t['account']==account}
             for e in s['legacy_entries']:
+                if e['batch'] in active and self.legacy_account(s,e)==account and norm_ref(e['reference']):near.setdefault(base_ref(e['reference']),e['reference'])
+            for e in s['legacy_entries']:
                 if e['batch'] in active and self.legacy_account(s,e)==account:
                     seen.setdefault(norm_ref(e['reference']),(e['date'],e['amount'],e['direction'],e['description'],'DUPLICATE'))
             tin=tout=0;matched=dups=0;rows=parsed['rows']
@@ -174,7 +175,7 @@ class LegacyImport:
                     r.update(status='ERROR',message='Thiếu mã giao dịch nguồn; chưa thể định danh.');parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
                 old=seen.get(ref)
                 if not old and base_ref(r['reference']) in near and norm_ref(near[base_ref(r['reference'])])!=ref:
-                    r.update(status='ERROR',message=f"Mã gần trùng giao dịch sao kê {near[base_ref(r['reference'])]} (khác hậu tố); cần đối chiếu.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                    r.update(status='ERROR',message=f"Mã gần trùng {near[base_ref(r['reference'])]} đã có trong tài khoản này (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
                 if old:
                     if old[:4]!=payload:
                         r.update(status='ERROR',message='Cùng mã trong tài khoản nhưng nội dung khác; cần đối chiếu.');parsed['issues'].append(dict(row=r['row'],message=r['message']))

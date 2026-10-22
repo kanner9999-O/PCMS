@@ -1,5 +1,7 @@
 # Review — Spec 042 (cập nhật 22/10/2026, Claude) — **CHỜ PO NGHIỆM THU, CHƯA MERGE, CHƯA PHÁT HÀNH**
 
+> Vòng 2 (sau `docs/po-review-042-2026-10-22.md`) ở cuối tài liệu.
+
 ## 0. Hiện trạng khi tiếp quản và xử lý ngay
 - Bản nháp của coder Codex nằm **chưa commit trong thư mục vận hành** `PCMS/`. Server thật `:8792` (backend P43 nạp 21/10 19:37) đọc `src/pcms/web/p01.js` từ đĩa mỗi lần tải trang ⇒ **giao diện nháp đang được phục vụ cho app thật**, gọi API mà backend đang chạy không có.
 - Đã xử lý (không restart, không đụng dữ liệu): sao lưu bản nháp (`git diff` + file mới) → tạo worktree `../PCMS-042` nhánh `042-transaction-identity-impl` từ P43 và áp bản nháp vào đó → trả 7 file nháp trong `PCMS/` về HEAD P43. Kiểm chứng: SHA256 `p01.js` do `:8792` phục vụ = SHA256 `HEAD:src/pcms/web/p01.js` (`51dab7d4…`). Giữ nguyên các thay đổi cũ không thuộc đợt này (`README.md`, `specs/README.md`, `docs/product/`, `specs/008-product-map/`). Nhánh `codex/042-transaction-identity` vẫn trỏ P43 (không có mã nháp).
@@ -48,3 +50,33 @@ Không sửa/phân loại/gộp/xóa/duyệt/nhập vào `outputs/p01-user-trial
 
 ## 6. File thay đổi (worktree `../PCMS-042`, nhánh `042-transaction-identity-impl`)
 `src/pcms/categories.py`, `src/pcms/legacy_import.py`, `src/pcms/p01.py`, `src/pcms/server.py`, `src/pcms/web/p01.js`, `PRODUCT-SPEC.md` (R191–R194), `ACCEPTANCE.md` (A58–A59), `tests/test_p44_identity.py` (mới), `tests/test_p29,p31,p33,p36,p37,p38,p40_acceptance.py`, `specs/042-transaction-identity/*`, `docs/transaction-classification-pending.md`. Script dựng QA: `specs/042-transaction-identity/qa_seed.py`.
+
+
+---
+## Vòng 2 — sửa hai lỗi P1 của PO review (22/10/2026)
+
+### Đã sửa
+1. **Gần trùng phụ thuộc thứ tự nhập** — nay chặn ở mọi thứ tự trong **cùng tài khoản**: lịch sử trước rồi sao kê (kiểm ở staging, kiểm lại và ghi: `check_batch` gọi chung), sao kê trước rồi lịch sử (`legacy_preview`), hai lần dán lịch sử, và dữ liệu đã lỡ có (trạng thái `NEAR_DUPLICATE`: không cộng, đếm vào "xung đột", xác định tài khoản bị chặn). Khác tài khoản: không coi là gần trùng. Không tự gộp hậu tố.
+2. **Tạo mới quan hệ phân loại không hợp lệ** — `classify` (đường ghi duy nhất của phân loại: giao diện, API, điều chỉnh) kiểm đối tượng sở hữu (người của khoản vay; hồ sơ khác là chính nó) là **thành viên danh mục hiệu lực** sau `cat_eff` (nhóm khoản vay, chuyển đối tượng, gộp hồ sơ). Bỏ ngoại lệ native/legacy/kept cho LOAN/PROPERTY. Phần **y hệt** đã có trên chính giao dịch được giữ nguyên (dữ liệu cũ xem được, có thể lưu kèm ghi chú), sửa qua mục "Cần đối chiếu". Giao diện phân loại chỉ liệt kê thành viên (bỏ phần P42 liệt kê thêm người có khoản vay).
+3. Phát hiện thêm khi đối chiếu lại: vòng 1 tôi báo "danh sách migrate giống hệt" nhưng chỉ so số dòng; thực tế tổng của **lần migrate đã hủy** bị hiện 0. Đã khôi phục cách hiện như P43 (tổng bản dán để tham chiếu, không tính) + test.
+
+### Bằng chứng
+- `cd ../PCMS-042/tests && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=../src python3 -m unittest discover -s . -p "test_*.py"` → **Ran 396 tests, OK**; node 9/9 OK.
+- `test_p44_identity.py`: 26 tests (19 ca riêng 042 + 7 ca kế thừa P18). Ca mới vòng 2: gần trùng lịch sử→sao kê (kiểm + ghi bị từ chối, không giao dịch nào được ghi), sao kê→lịch sử, khác tài khoản không gắn cờ / cùng tài khoản vẫn chặn, hai lần dán lịch sử + xác định tài khoản bị chặn + `NEAR_DUPLICATE` không cộng; phân loại mới bị chặn khi người không thuộc danh mục (ca PO tái hiện X1 → Gốc vay › Kết; ngay sau đó X1 không có trong "Cần đối chiếu" vì không được ghi), BĐS chưa thuộc Đầu tư BĐS, nhóm khoản vay đưa danh mục hiệu lực sang Long debt, chuyển đối tượng A→B, phần cũ y hệt lưu lại được nhưng không chuyển sang chỗ sai khác; lần migrate đã hủy.
+- Test cũ cập nhật theo hợp đồng mới (P18, P19, P28, P40) — mỗi chỗ đều có khẳng định **bị chặn trước** rồi mới thêm thành viên; P01–P17 và bước dựng P18 tạo dữ liệu kiểu cũ bằng cờ nội bộ `require_membership=False` (mặc định bật, không có đường bật/tắt từ giao diện/API).
+- Đối chiếu bản sao chỉ đọc dữ liệu thật (P43 vs mã vòng 2): tổng gốc/con danh mục, báo cáo tài khoản, sổ Công nợ, **danh sách migrate (kể cả tổng)** giống hệt; 9 dòng "Cần đối chiếu".
+- QA trình duyệt trên bản sao riêng (đã tắt): phân loại X1 → Gốc vay › Kết không có Kết trong danh sách; gọi thẳng API bị chặn với thông báo "Kết chưa là thành viên danh mục Gốc vay › Kết…"; file `sao-ke-gan-trung.xlsx` BLOCKED "gần trùng … khác hậu tố"; xem trước lịch sử dán `FT26267843740784\BNK` vào QA vay báo gần trùng.
+
+### QA mới cho PO (bộ sạch, riêng)
+- **`http://localhost:8805`**, dữ liệu `/tmp/pcms-042-qa-r2` (giả), dựng bằng `specs/042-transaction-identity/qa_seed.py` (đổi đường dẫn dữ liệu sang `-r2`). Bộ `:8803` của PO giữ nguyên trạng PO đã thao tác.
+- Kịch bản vòng 2 (bổ sung vào mục 3 ở trên):
+  7. **P1 gần trùng, lịch sử trước**: tài khoản "QA tài khoản gần trùng" có lịch sử "Gần Trùng QA" mã `FT26267843740784\BNK`; file `sao-ke-gan-trung.xlsx` của tài khoản đó đang **BLOCKED** (dòng 9 gần trùng). Thử "Ghi toàn đợt": bị từ chối.
+  8. **P1 gần trùng, sao kê trước**: Migrate lịch sử cũ → tài khoản QA vay → dán `20/09/2026⇥Cho Ket vay 5tr⇥FT26267843740784\BNK⇥5,000,000⇥⇥1` → Xem trước báo gần trùng, không ghi được.
+  9. **P1 quan hệ**: phân loại `X1` → Gốc vay › Kết: không có đối tượng Kết để chọn; thêm Kết vào Gốc vay › Kết (màn Danh mục) rồi mới phân loại được.
+
+### Giới hạn (không đổi so với vòng 1) + mới
+- Sàn chưa có importer sao kê; định danh/chống trùng chỉ cho sao kê ngân hàng và lịch sử dán.
+- Gần trùng trong **cùng một file** sao kê (hai dòng khác hậu tố) chưa kiểm (chỉ kiểm mã trùng y hệt trong file).
+- Với dữ liệu thật sau phát hành: phân loại mới tiền lãi vào Lãi vay sẽ cần người (Kết, Thái…) là thành viên Lãi vay trước — dùng nút "Thêm … vào Lãi vay" ở mục Cần đối chiếu.
+
+### Commit vòng 2: xem `git log` nhánh `042-transaction-identity-impl` (sau `8379d78`).

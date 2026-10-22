@@ -33,6 +33,7 @@ def cat_state(s):
     return s
 
 class Categories:
+    require_membership=True     # spec 042: phân loại mới phải đúng quan hệ đối tượng–danh mục. Chỉ fixture test tắt để dựng dữ liệu kiểu cũ (trước 042).
     # ---- tree helpers -------------------------------------------------
     def cat_find(self,s,cid):
         found=next((n for n in cat_state(s)['categories'] if n['id']==cid),None)
@@ -290,11 +291,13 @@ class Categories:
 
     def legacy_summary(self,s):
         """Batches migrated from spreadsheets with totals of the rows that count (not hidden by a bank-statement match)."""
-        profiles={p['id']:p['name'] for p in s['profiles']};statuses=self.legacy_identity_status(s);out=[]
+        from .legacy_import import base_ref
+        profiles={p['id']:p['name'] for p in s['profiles']};statuses=self.legacy_identity_status(s);out=[];bank_bases={base_ref(t['reference']) for t in s['transactions'] if base_ref(t['reference'])}
         for b in s.get('legacy_batches',[]):
-            es=[e for e in s.get('legacy_entries',[]) if e['batch']==b['id']];counted=[e for e in es if statuses.get(e['id']) in {'ACTIVE','UNRESOLVED'}]
+            es=[e for e in s.get('legacy_entries',[]) if e['batch']==b['id']]
+            counted=[e for e in es if statuses.get(e['id']) in {'ACTIVE','UNRESOLVED'}] if b['status']=='ACTIVE' else [e for e in es if not (base_ref(e['reference']) and base_ref(e['reference']) in bank_bases)]   # lần đã hủy: hiện tổng bản dán để tham chiếu như trước, không tính vào đâu
             tin=sum(int(e['amount']) for e in counted if e['direction']=='IN');tout=sum(int(e['amount']) for e in counted if e['direction']=='OUT')
-            out.append(dict(id=b['id'],at=b['at'],account=b.get('account'),unresolved=sum(statuses.get(e['id']) in {'UNRESOLVED','UNRESOLVED_MATCH'} for e in es),conflicts=sum(statuses.get(e['id'])=='CONFLICT' for e in es),category=b['category'],category_path=self.cat_path(s,b['category']),profile=b['profile'],profile_name=profiles.get(b['profile'],''),rows=len(es),active=len(counted),matched_bank=sum(statuses.get(e['id'])=='MATCHED_BANK' for e in es),duplicates=sum(statuses.get(e['id'])=='DUPLICATE' for e in es),
+            out.append(dict(id=b['id'],at=b['at'],account=b.get('account'),unresolved=sum(statuses.get(e['id']) in {'UNRESOLVED','UNRESOLVED_MATCH'} for e in es),conflicts=sum(statuses.get(e['id']) in {'CONFLICT','NEAR_DUPLICATE'} for e in es),category=b['category'],category_path=self.cat_path(s,b['category']),profile=b['profile'],profile_name=profiles.get(b['profile'],''),rows=len(es),active=len(counted) if b['status']=='ACTIVE' else 0,matched_bank=sum(statuses.get(e['id'])=='MATCHED_BANK' for e in es),duplicates=sum(statuses.get(e['id'])=='DUPLICATE' for e in es),
                 totals={'in':str(tin),'out':str(tout)},declared=b.get('declared'),status=b['status'],void_reason=b.get('void_reason'),source_text=b['source_text']))
         return sorted(out,key=lambda x:x['at'],reverse=True)
 
@@ -415,6 +418,13 @@ class Categories:
             nodes=[dict(group=n.get('group','default'),group_name=GROUPS[n.get('group','default')],role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
             return dict(classification_issues=self.classification_issues(s),roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),cleanup=[dict(id=n['id'],path=self.cat_path(s,n['id']),root=n['root'],status=n['status']) for n in self.cat_cleanup_candidates(s)],legacy=self.legacy_summary(s),groups=GROUPS,group_note=GROUP_NOTE,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
+    def part_owner(self,s,prof):
+        """Object a classified part belongs to: the person who owns a loan record, otherwise the profile itself."""
+        return prof.get('party') if prof['kind']=='LOAN' and prof.get('party') else prof['id']
+
+    def is_member(self,s,key,owner):
+        return any(e['status']=='ACTIVE' and e['category']==key and e['profile']==owner for e in s.get('category_objects',[]))
+
     def cat_root_of(self,s,key):
         return root_key(key) if key in ROOTS or key=='transfer_pending' else self.cat_find(s,key)['root']
 
@@ -425,7 +435,7 @@ class Categories:
         for t,p in self.cat_parts(s):
             pr=profiles.get(p.get('profile'))
             if not pr:continue
-            owner=pr.get('party') if pr['kind']=='LOAN' and pr.get('party') else pr['id'];key=self.cat_target(p)
+            owner=self.part_owner(s,pr);key=self.cat_target(p)
             if (key,owner) in members:continue
             root=self.cat_root_of(s,key)
             choices=[dict(category=k,path=self.cat_path(s,k) if k not in ROOTS else ROOTS[k]) for k,pid in sorted(members) if pid==owner and k!=key and self.cat_root_of(s,k)==root]

@@ -29,6 +29,7 @@ class P40Acceptance(base.P18Acceptance):
 
     def test_loan_money_shown_under_person_name_everywhere(self):
         self.act('object-quick-create',kind='LOAN',party_name='Anh',name='Khoản Anh');loan=self.pid('Khoản Anh');self.act('loan-setup',profile=loan,direction='RECEIVABLE',opening='0',confirm_zero=True,effective_date='2026-09-01',source='QA',reason='QA')
+        self.act('category-object-add',category='principal',profile=self.pid('Anh'))                                       # spec 042: người phải thuộc danh mục trước khi phân loại
         self.classify(['X1'],[dict(category='principal',profile=loan)])
         names=[g['name'] for g in self.review()['groups']];self.assertIn('Gốc vay · Anh',names);self.assertFalse(any('Khoản ' in n for n in names))
         h=self.store.category_history(dict(category='principal'));self.assertIn('Gốc vay · Anh',[r['label'] for r in h['rows']]);self.assertFalse(any('Khoản ' in r['label'] for r in h['rows']))

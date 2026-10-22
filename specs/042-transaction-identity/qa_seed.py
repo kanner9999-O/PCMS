@@ -26,6 +26,11 @@ else:
     act('import',account=aid,filename='sao-ke-sai-noi-dung.xlsx',content=base64.b64encode(statement([tuple(r) for r in bad],1000000000,1008190000,start='01/09/2026',end='30/09/2026')).decode())   # cùng mã K3 khác số tiền
     act('account',name='QA tài khoản khác',reference='000456',opening='1000000000',effective_date='2026-09-01',opening_source='QA giả');other=st.state()['accounts'][-1]['id']
     act('import',account=other,filename='sao-ke-tai-khoan-khac.xlsx',content=base64.b64encode(statement(ROWS,1000000000,1008190000,start='01/09/2026',end='30/09/2026',account='000456')).decode())   # cùng mã, khác tài khoản
+    # PO review P1: gần trùng khác hậu tố, lịch sử nhập trước rồi sao kê nhập sau (tài khoản thứ ba)
+    act('account',name='QA tài khoản gần trùng',reference='000789',opening='1000000000',effective_date='2026-09-01',opening_source='QA giả');third=st.state()['accounts'][-1]['id']
+    pc=next(n['id'] for n in st.state()['categories'] if n['name']=='Property')
+    act('legacy-import',category=pc,name='Gần Trùng QA',type='PERSON',account=third,text="20/09/2026\tCho Ket vay 5tr\tFT26267843740784\\BNK\t5,000,000\t\t1\n")
+    act('import',account=third,filename='sao-ke-gan-trung.xlsx',content=base64.b64encode(statement(ROWS,1000000000,1008190000,start='01/09/2026',end='30/09/2026',account='000789')).decode())
     for b in st.state()['imports']:
         if b['status']!='PUBLISHED':act('recheck-import',batch=b['id'])
 print('ok',stage)

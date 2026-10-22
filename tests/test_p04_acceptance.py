@@ -27,7 +27,7 @@ def seed(store):
 
 class P04Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.a,self.ids=seed(self.store)
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False;self.a,self.ids=seed(self.store)
     def tearDown(self):self.tmp.cleanup()
     def act(self,action,**data):return self.store.apply(action,data,str(uuid4()))
     def setup_loan(self,**kw):return self.act('loan-setup',**dict(profile=self.ids[0],direction='RECEIVABLE',opening='100000000',effective_date='2026-10-01',source='Evidence',reason='Correct fact',**kw))

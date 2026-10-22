@@ -27,6 +27,8 @@ class P19Acceptance(base.P18Acceptance):
 
     def test_realty_history_labels_and_order(self):
         self.act('object-quick-create',kind='PROPERTY',name='Đất A');a=next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Đất A')
+        self.err('classify',ids=[self.tx('K1')['id']],parts=[dict(category='investment',profile=a)])                         # spec 042: BĐS phải là thành viên danh mục trước
+        self.act('category-object-add',category='investment',profile=a);self.act('category-object-add',category='expense',profile=a)
         self.classify(['K1'],[dict(category='investment',profile=a)]);self.classify(['K2'],[dict(category='expense',profile=a)]);self.classify(['S1'],[dict(category='investment',profile=a)])
         h=self.store.realty_history(dict(property=a));self.assertEqual([r['reference'] for r in h['rows']],['S1','K2','K1'])
         self.assertEqual([r['label'] for r in h['rows']],['Vốn nhận lại','Chi phí','Vốn đã thanh toán']);self.assertTrue(all(r['source_count']>=1 for r in h['rows']))

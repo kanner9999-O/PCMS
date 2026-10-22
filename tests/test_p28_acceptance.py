@@ -46,10 +46,13 @@ class P28Acceptance(base.P18Acceptance):
 
     def test_legacy_rules_without_members_old_data_unchanged(self):
         before=[(t['reference'],t['allocations']) for t in self.store.state()['transactions']]
-        self.classify(['K1'],[dict(category='principal',profile=self.l10)]);self.err('classify',ids=[self.tx('K2')['id']],parts=[dict(category='principal',profile=self.person)])
-        self.err('classify',ids=[self.tx('S1')['id']],parts=[dict(category='income',profile=self.l5)]);self.classify(['X1'],[dict(category='expense',profile=self.l5)])
+        # spec 042 (PO review P1): bỏ ngoại lệ "danh mục chưa có thành viên"; mọi phân loại mới phải đúng quan hệ; dữ liệu cũ giữ nguyên, xem được
+        self.err('classify',ids=[self.tx('K1')['id']],parts=[dict(category='principal',profile=self.l10)]);self.err('classify',ids=[self.tx('K2')['id']],parts=[dict(category='principal',profile=self.person)])
+        self.err('classify',ids=[self.tx('S1')['id']],parts=[dict(category='income',profile=self.l5)]);self.err('classify',ids=[self.tx('X1')['id']],parts=[dict(category='expense',profile=self.l5)])
+        self.act('category-object-add',category='expense',profile=self.person);self.classify(['X1'],[dict(category='expense',profile=self.l5)])
+        self.assertTrue(self.store.category_history(dict(category='principal'))['rows'])                                        # dữ liệu cũ vẫn xem được
         for ref,alloc in before:
-            if ref not in {'K1','X1'}:self.assertEqual(next(t for t in self.store.state()['transactions'] if t['reference']==ref)['allocations'],alloc)
+            if ref not in {'X1'}:self.assertEqual(next(t for t in self.store.state()['transactions'] if t['reference']==ref)['allocations'],alloc)
 
     def test_rename_delete_rules(self):
         self.make_bds();a=self.pid['Chung cư A'];self.classify(['K1'],[dict(category='investment',node=self.cc,profile=a)])

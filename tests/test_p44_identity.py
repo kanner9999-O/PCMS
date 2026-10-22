@@ -129,4 +129,72 @@ class IdentityTests(base.P18Acceptance):
         s=self.store.state();b=copy.deepcopy(s['imports'][0]);b['rows'][0].update(reference='FT1')
         self.assertTrue(any('lịch sử cũ' in x for x in self.store.check_batch(s,b)[0]))
 
+    # ---- PO review P1 (22/10): gần trùng khác hậu tố, mọi thứ tự nhập -------------------------
+    def other_account(self):
+        self.act('account',name='QA B',reference='000456',opening='1000000000',effective_date='2026-09-01',opening_source='QA');return self.store.state()['accounts'][-1]['id']
+    def stage_b(self,acc):
+        content=base64.b64encode(statement(base.ROWS,1000000000,1008190000,start='01/09/2026',end='30/09/2026',account='000456')).decode()
+        self.act('import',account=acc,filename='b.xlsx',content=content);return self.store.state()['imports'][-1]
+    K1_SAME="20/09/2026\tCho Ket vay 5tr\tK1\\BNK\t5,000,000\t\t1\n"                                                  # cùng ngày/nội dung/tiền với K1 sao kê, chỉ khác hậu tố
+
+    def test_near_duplicate_legacy_first_then_bank_is_blocked_in_check_and_publish(self):
+        acc=self.other_account();self.act('legacy-import',category='principal',name='Alpha',account=acc,text=self.K1_SAME)
+        b=self.stage_b(acc);s=self.store.state();issues=self.store.check_batch(s,b)[0];self.assertTrue(any('gần trùng' in x for x in issues))
+        self.err('publish',batch=b['id']);self.assertFalse(any(t['account']==acc for t in self.store.state()['transactions']))   # không ghi, không cộng hai lần
+
+    def test_near_duplicate_bank_first_then_legacy_is_blocked(self):
+        p=self.store.legacy_preview(dict(category='principal',name='Alpha',account=self.account,text=self.K1_SAME));self.assertTrue(any('gần trùng' in x['message'] for x in p['issues']))
+        self.err('legacy-import',category='principal',name='Alpha',account=self.account,text=self.K1_SAME)
+
+    def test_near_duplicate_in_other_account_is_not_flagged(self):
+        acc=self.other_account();self.act('legacy-import',category='principal',name='Alpha',account=acc,text=self.K1_SAME)          # tài khoản B; sao kê K1 ở tài khoản A
+        st=self.store.legacy_identity_status(self.store.state());self.assertEqual(set(st.values()),{'ACTIVE'})
+        b=self.stage_b(acc);issues=self.store.check_batch(self.store.state(),b)[0];self.assertTrue(any('gần trùng' in x for x in issues))   # cùng tài khoản B thì vẫn chặn
+        self.assertFalse(any('gần trùng' in x for x in self.store.check_batch(self.store.state(),self.store.state()['imports'][0])[0]))   # file của tài khoản A không bị ảnh hưởng
+
+    def test_near_duplicate_between_two_legacy_pastes_and_resolution(self):
+        self.act('legacy-import',category='principal',name='Alpha',account=self.account,text="05/06/2023\tA\tFT9\t1,000,000\t\t1\n")
+        self.assertTrue(self.store.legacy_preview(dict(category='principal',name='Beta',account=self.account,text="05/06/2023\tA\tFT9\\X\t1,000,000\t\t1\n"))['issues'])
+        self.act('legacy-import',category='principal',name='Gamma',account=self.account,text="07/06/2023\tC\tFT7\t2,000,000\t\t1\n")
+        s=self.store.state();g=s['legacy_batches'][-1];g.pop('account');g_entry=next(e for e in s['legacy_entries'] if e['batch']==g['id']);g_entry['reference']='K1\\BNK'   # lịch sử cũ thiếu tài khoản, gần trùng K1 sao kê
+        p=self.store.legacy_account_preview(dict(batch=g['id'],account=self.account),s);self.assertTrue(any('gần trùng' in x['message'] for x in p['issues']))
+        with self.assertRaises(ValidationError):self.store.change_legacy(s,'legacy-resolve-account',dict(batch=g['id'],account=self.account,reason='x'))
+        g['account']=self.account;st=self.store.legacy_identity_status(s);self.assertEqual(st[g_entry['id']],'NEAR_DUPLICATE')            # kể cả khi dữ liệu đã lỡ có: không cộng, cần đối chiếu
+        self.assertNotIn(g_entry['id'],{t['id'] for t,_ in self.store.legacy_items(s)})
+
+    # ---- PO review P1 (22/10): mọi phân loại mới phải đúng quan hệ đối tượng–danh mục hiệu lực ----------
+    def test_new_classification_blocked_when_owner_not_member_of_effective_category(self):
+        self.ket_case();x1=self.tx('X1')['id'];kn=self.node('Kết')['id']
+        self.err('classify',ids=[x1],parts=[dict(category='principal',node=kn,profile=self.l5)])                                       # ca PO tái hiện: Kết thuộc Gốc vay, không thuộc Gốc vay › Kết
+        self.assertNotIn('X1',[i['reference'] for i in self.issues()]);self.assertEqual(self.tx('X1')['allocations'],[])
+        self.act('classify',ids=[x1],parts=[dict(category='principal',profile=self.l5)])                                                # đúng quan hệ: được
+        self.act('object-quick-create',kind='PROPERTY',name='Đất QA');prop=next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Đất QA')
+        self.err('classify',ids=[self.tx('S1')['id']],parts=[dict(category='investment',profile=prop)])                                # BĐS chưa thuộc Đầu tư BĐS
+        self.act('category-object-add',category='investment',profile=prop);self.act('classify',ids=[self.tx('S1')['id']],parts=[dict(category='investment',profile=prop)])
+        self.assertEqual(self.issues('X1')+self.issues('S1'),[])
+
+    def test_loan_group_and_object_move_use_effective_category(self):
+        self.ket_case();ld=self.node('Long debt')['id']
+        self.act('loan-regroup',profile=self.l5,node=ld,effective_date='2026-09-21',reason='QA')
+        self.err('classify',ids=[self.tx('X1')['id']],parts=[dict(category='principal',profile=self.l5)])                              # nhóm khoản vay đưa tiền về Long debt, Kết chưa thuộc Long debt
+        self.act('category-object-add',category=ld,profile=self.person);self.act('classify',ids=[self.tx('X1')['id']],parts=[dict(category='principal',profile=self.l5)])
+        self.act('category-create',name='A',description='',parent='expense');self.act('category-create',name='B',description='',parent='expense');self.act('category-create',name='C',description='',parent='expense')
+        a,b,c=(self.node(n)['id'] for n in 'ABC');self.act('object-create',name='Mỹ',type='PERSON',category=a);my=next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Mỹ')
+        self.act('category-object-move',profile=my,reason='QA',**{'from':a,'to':b})
+        self.act('classify',ids=[self.tx('S1')['id']],parts=[dict(category='expense',node=a,profile=my)])                              # chuyển đối tượng A→B: danh mục hiệu lực là B, Mỹ thuộc B
+        self.err('classify',ids=[self.tx('K3')['id']],parts=[dict(category='expense',node=c,profile=my)])
+        self.assertEqual(self.issues('S1'),[])
+
+    def test_unchanged_old_part_can_be_resaved_but_not_moved_to_another_invalid_place(self):
+        self.ket_case();k1=self.tx('K1');parts=copy.deepcopy(k1['allocations'])
+        self.act('classify',ids=[k1['id']],parts=parts,note='Ghi chú thêm')                                                            # dữ liệu cũ giữ nguyên được (kèm ghi chú)
+        self.assertEqual(self.tx('K1')['allocations'],parts);self.assertEqual(len(self.issues('K1')),1)                               # vẫn hiện ở mục Cần đối chiếu
+        self.err('classify',ids=[k1['id']],parts=[dict(category='principal',node=self.node('Loans')['id'],profile=self.l5)])
+
+    def test_void_batch_keeps_reference_totals_but_counts_nothing(self):
+        self.act('legacy-import',category='principal',name='Alpha',account=self.account,text="05/06/2023\tA\tFT1\t30,000,000\t\t1\n")
+        b=self.store.state()['legacy_batches'][-1];self.act('legacy-void',batch=b['id'],reason='QA')
+        row=next(x for x in self.store.view()['categories']['legacy'] if x['id']==b['id']);self.assertEqual((row['status'],row['active'],row['totals']['out']),('VOID',0,'30000000'))
+        self.assertEqual(list(self.store.legacy_items(self.store.state())),[])                                                  # đã hủy: không tính vào đâu
+
 if __name__=='__main__':unittest.main()

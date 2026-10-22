@@ -16,7 +16,7 @@ def seed(store):
 
 class P05Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.account,self.ids=seed(self.store)
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False;self.account,self.ids=seed(self.store)
     def tearDown(self):self.tmp.cleanup()
     def act(self,action,**data):return self.store.apply(action,data,str(uuid4()))
     def terms(self,**kw):

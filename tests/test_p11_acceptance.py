@@ -14,7 +14,7 @@ from test_p10_acceptance import ROWS
 
 class P11Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name)
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False
     def tearDown(self):self.tmp.cleanup()
     def act(self,a,**d):return self.store.apply(a,d,str(uuid4()))
     def err(self,a,**d):
