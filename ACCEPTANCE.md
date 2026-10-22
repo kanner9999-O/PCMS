@@ -379,3 +379,8 @@ Sau nạp chưa có bảng phân loại; chưa xác nhận nhập liệu thì kh
 Giao dịch của khoản Kết tại danh mục con không được cộng vào đối tượng Kết ở cha. Cảnh báo thiếu quan hệ; xem trước điều chỉnh và xác nhận có lý do; dòng đã duyệt cần phiên điều chỉnh; nguồn, tiền và snapshot không đổi. Có hai cách do người dùng chọn: thêm đối tượng vào danh mục phân bổ, hoặc điều chỉnh trong cùng loại gốc; tổng đối tượng ở màn Danh mục luôn bằng tổng lịch sử của đối tượng tại danh mục đó.
 ### A59 — Định danh theo tài khoản
 Cùng mã cùng tài khoản cùng nội dung không tăng tiền khi nhập lại, kể cả khác đối tượng; khác tài khoản giữ riêng. Xung đột bị chặn. Lịch sử thiếu tài khoản hiển thị chưa xác định, chọn tài khoản/xem trước trước ghi. Không tự gộp vì trùng số tiền/ngày.
+
+### A60 — Sửa phân loại (ca Kết và ca chung)
+Ca Kết: giao dịch 5 triệu ở Gốc vay › Kết, khoản vay của Kết → đích Gốc vay + Kết: giữ khoản vay; một giao dịch nguồn, số tiền và chứng từ không đổi; lịch sử Kết tại Gốc vay có 5 triệu; Gốc vay › Kết không còn phần này; tổng Gốc vay và số dư không đổi; danh mục con không bị xóa. Ca chung: chuyển giữa hai danh mục cùng bản chất, đổi đối tượng, đổi cả hai, sửa một phần của giao dịch nhiều phần; đích không hợp lệ bị chặn qua UI và API; xem trước = kết quả; đổi lựa chọn hoặc dữ liệu sau xem trước thì không ghi được.
+### A61 — Mức B và tham chiếu nghiệp vụ
+Đổi gốc↔lãi, đổi/gỡ khoản vay hoặc BĐS hiện tác động dư nợ/lãi/giá gốc trước→sau và cần xác nhận riêng (kể cả đã duyệt, qua phiên điều chỉnh, snapshot cũ giữ nguyên); thiếu xác nhận — kể cả qua hộp Phân loại cũ hay API — bị từ chối. Bảng kê lãi đã duyệt, khoản vay đã hoàn tất, đợt BĐS đã gắn, chuyển nội bộ đã ghép: chặn kèm đường xử lý.

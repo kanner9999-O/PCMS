@@ -72,8 +72,11 @@ class P07Acceptance(unittest.TestCase):
         self.act('loan-complete',**d,review_token=r['review_token'],reason='Agreed paid',basis='QA',confirm=True)
         self.assertEqual(self.store.completion_status(self.store.state(),loan),'COMPLETED')
         s=self.store.state();p=next(x for x in s['profiles'] if x['id']==loan);snapshot=copy.deepcopy(p['completion_history'][0])
-        t=s['transactions'][2];self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification')
-        self.assertEqual(self.store.completion_status(self.store.state(),loan),'NEEDS_REVIEW')
+        t=s['transactions'][2]
+        with self.assertRaises(ValidationError):self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification',business_ack=True)   # spec 043: khoản vay đã hoàn tất → mở lại trước
+        self.assertEqual(self.store.completion_status(self.store.state(),loan),'COMPLETED')
+        self.act('loan-reopen',profile=loan,reason='Sửa phân loại nguồn');self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification',business_ack=True)
+        self.assertEqual(self.store.completion_status(self.store.state(),loan),'ACTIVE')
         self.assertEqual(next(x for x in self.store.state()['profiles'] if x['id']==loan)['completion_history'][0],snapshot)
 
     def test_shared_coverage_staleness_and_expense_refunds(self):

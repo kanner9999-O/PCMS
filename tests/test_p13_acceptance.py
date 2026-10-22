@@ -30,7 +30,7 @@ class P13Acceptance(unittest.TestCase):
         self.account=self.store.state()['accounts'][0]['id']
         self.act('import',account=self.account,filename='bds.xlsx',content=base64.b64encode(statement(ROWS,1000000000,426000000,start='01/09/2026',end='30/09/2026')).decode())
         self.act('publish',batch=self.store.state()['imports'][-1]['id'])
-    def classify(self,refs,parts):self.act('classify',ids=[self.tx(r)['id'] for r in refs],parts=parts)
+    def classify(self,refs,parts):self.act('classify',ids=[self.tx(r)['id'] for r in refs],parts=parts,business_ack=True)      # tương đương đã xác nhận tác động ở "Sửa phân loại" (spec 043); chặn khi thiếu xác nhận kiểm ở test_p45
     def setup_land(self):
         self.load();self.act('object-quick-create',kind='PROPERTY',name='Đất A');a=self.pid('Đất A')
         self.classify(['D-1','D-2','D-3'],[dict(category='investment',profile=a)]);return a

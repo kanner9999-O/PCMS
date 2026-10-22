@@ -21,3 +21,4 @@ dialog{position:relative}.modal-x{position:absolute;top:10px;right:12px;width:36
 .c-lab .row-note{display:inline}.c-lab .stmt-note{margin-top:0}.c-lab .note-edit{margin-top:6px}
 @container (min-width:620px){.stmt-row{grid-template-columns:100px minmax(0,1fr) 150px minmax(220px,1.3fr)}}
 @container (min-width:1060px){.stmt-row{grid-template-columns:96px 190px minmax(0,1.2fr) 120px 130px minmax(260px,1.3fr)}}
+.rc-part{display:block;padding:6px 0;font-size:13px}.rc-part input{width:auto;display:inline;margin-right:6px}.stmt-reclass{font-size:11px;padding:2px 8px;border-radius:999px;color:#12675b;margin-top:0}#rc-result .source{font-size:13px}#rc-result .warn{background:#fff7e6}

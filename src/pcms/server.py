@@ -150,6 +150,7 @@ def serve(directory='private-data/product-demo', port=8787, p01=False):
                 elif p01 and self.path=='/api/category-review':result=store.category_review(data)
                 elif p01 and self.path=='/api/legacy-account-preview':result=store.legacy_account_preview(data)
                 elif p01 and self.path=='/api/classification-preview':result=store.classification_preview(data)
+                elif p01 and self.path=='/api/reclassify-preview':result={k:v for k,v in store.reclassify_preview(data).items() if k!='parts_raw'}
                 elif p01 and self.path=='/api/legacy-preview':result=store.legacy_preview(data)
                 elif p01 and self.path=='/api/source-preview':result=store.source_preview(data)
                 elif p01 and self.path=='/api/account-history':result=store.account_history(data)

@@ -1,0 +1,11 @@
+# Tasks — 043
+- [x] T01 Specify + bản đồ tác động + clarify (Q1 = A) — spec.md
+- [x] T02 Plan, research, data-model, quickstart
+- [x] T03 Backend `reclassify.py` (preview mô phỏng, mức A/B, tham chiếu, token, commit, dòng lịch sử cũ) — FR-001..006
+- [x] T04 `classify` chặn mức B thiếu xác nhận + tham chiếu (UI/API như nhau) — FR-003
+- [x] T05 UI hộp "Sửa phân loại" + nút trên mọi dòng lịch sử, màn phân loại, mục Cần đối chiếu — FR-001, FR-004
+- [x] T06 Tests `test_p45_reclassify.py` theo quickstart 1–9 — SC-001..003
+- [x] T07 QA trình duyệt dữ liệu giả (quickstart 10), đối chiếu bản sao dữ liệu thật — SC-002, SC-004
+- [x] T08a Tài liệu R195–R200, A60–A61, IMPLEMENTATION-STATUS
+- [x] T08b Nghiệm thu người dùng đại diện (PO theo CLAUDE.md) trên dữ liệu giả — `review.md` mục 3
+- [ ] T09 Phát hành: PR, merge, kiểm `main` sạch, cập nhật thư mục vận hành, khởi động lại `:8792`, xác minh
