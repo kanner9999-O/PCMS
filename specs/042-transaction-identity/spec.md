@@ -22,3 +22,8 @@ Một nguồn tiền ghi một lần trong tài khoản. Phân loại không t�
 - **Gần trùng mọi thứ tự nhập**: `check_batch` (staging, kiểm lại, ghi) so cả lịch sử cũ đã có tài khoản và giao dịch đã ghi cùng tài khoản; `legacy_identity_status` gắn `NEAR_DUPLICATE` (không cộng, cần đối chiếu) cho dòng lịch sử gần trùng nguồn khác cùng tài khoản; `legacy_preview` so cả sao kê và lịch sử cùng tài khoản. Khác tài khoản không bị coi là gần trùng.
 - **Quan hệ phân loại kiểm ngay khi ghi**: `classify` (mọi đường ghi phân loại, kể cả API và điều chỉnh) yêu cầu đối tượng sở hữu là thành viên danh mục hiệu lực (`cat_eff`: nhóm khoản vay, chuyển đối tượng, gộp hồ sơ). Bỏ các ngoại lệ native/legacy/kept; chỉ giữ phần y hệt đã có trên chính giao dịch (dữ liệu cũ xem được, sửa qua "Cần đối chiếu"). Giao diện phân loại chỉ liệt kê thành viên.
 - Cờ nội bộ `require_membership` (mặc định bật) chỉ để fixture test dựng **dữ liệu kiểu cũ** trước 042 (P01–P17, bước dựng của P18), không có đường bật/tắt từ giao diện hay API.
+
+## Sửa sau PO review vòng 2 (`docs/po-review-042-r2-2026-10-22.md`)
+- **Cùng một file sao kê**: `check_batch` thêm từng dòng của file vào tập kiểm tra; mã lặp y hệt hoặc chỉ khác hậu tố với dòng trước trong cùng file ⇒ BLOCKED, ghi toàn đợt bị từ chối, không giao dịch nào được ghi. Không phụ thuộc thứ tự hai dòng; số dư hợp lệ cũng vẫn chặn (đây là cặp cần đối chiếu, không phải bằng chứng là một giao dịch).
+- **Cùng một lần dán lịch sử**: trước đây dòng lặp y hệt trong cùng lần dán bị đánh "trùng" và **tự bỏ qua** (tức tự gộp) — nay là lỗi cần đối chiếu; mã chỉ khác hậu tố trong cùng lần dán cũng là lỗi. "Trùng lần migrate trước" vẫn chỉ áp cho dữ liệu đã ghi từ trước.
+- Khác tài khoản: không gắn cờ.

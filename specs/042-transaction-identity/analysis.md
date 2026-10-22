@@ -16,3 +16,10 @@ Phát hiện khi rà bản nháp (đã xử lý): (1) gợi ý điều chỉnh c
 | Tạo mới quan hệ phân loại không hợp lệ | `classify` kiểm thành viên danh mục hiệu lực, bỏ ngoại lệ | `test_new_classification_blocked_when_owner_not_member_of_effective_category` (LOAN, PROPERTY), `test_loan_group_and_object_move_use_effective_category`, `test_unchanged_old_part_can_be_resaved_but_not_moved_to_another_invalid_place` |
 Test cũ bị ảnh hưởng (theo hợp đồng mới, không chỉ đổi kỳ vọng): P18 (`object_rules`, `review_one_group`, `archive_blocked`: thêm bước "thêm đối tượng vào danh mục" + khẳng định bị chặn trước đó), P28 (`legacy_rules_without_members…` đảo thành "bị chặn, dữ liệu cũ giữ nguyên/xem được"), P19, P40 (thêm thành viên trước khi phân loại). P01–P17 dựng dữ liệu kiểu cũ bằng cờ nội bộ.
 Phát hiện thêm: tổng của lần migrate **đã hủy** trong danh sách bị hiện 0 (P43 hiện tổng bản dán) — vòng 1 tôi chỉ so số dòng nên báo nhầm "giống hệt"; đã khôi phục cách hiện cũ + test `test_void_batch_keeps_reference_totals_but_counts_nothing`.
+
+## Vòng 3 (sau PO review vòng 2)
+| Lỗi | Sửa | Test hồi quy |
+|---|---|---|
+| Gần trùng trong cùng file sao kê không kiểm | `check_batch` kiểm `file_bases` (mã gốc) bên cạnh `file_refs` | `test_same_file_near_duplicate_blocks_import_and_publish_in_both_orders`, `test_same_file_exact_duplicate_blocks_import_and_publish`, `test_suffix_variants_in_different_accounts_are_kept_separate` |
+| Cùng lần dán lịch sử: lặp y hệt bị tự bỏ qua; khác hậu tố không kiểm | `legacy_preview` dùng `paste_refs`/`paste_bases`; bỏ việc đưa dòng của lần dán vào tập "trùng lần trước" | `test_same_paste_exact_and_near_duplicates_block_preview_and_import` |
+Đối chiếu bản sao dữ liệu thật: không file nào có mã gốc lặp khác hậu tố; kết quả kiểm tra các file đang chờ (44), (45), (5) giống hệt P43; tổng các màn giống hệt.

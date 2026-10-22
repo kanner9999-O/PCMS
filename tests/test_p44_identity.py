@@ -197,4 +197,44 @@ class IdentityTests(base.P18Acceptance):
         row=next(x for x in self.store.view()['categories']['legacy'] if x['id']==b['id']);self.assertEqual((row['status'],row['active'],row['totals']['out']),('VOID',0,'30000000'))
         self.assertEqual(list(self.store.legacy_items(self.store.state())),[])                                                  # đã hủy: không tính vào đâu
 
+    # ---- PO review vòng 2 (22/10): gần trùng / lặp trong cùng file sao kê và cùng lần dán lịch sử -----------------
+    def fresh_account(self,ref):
+        self.act('account',name='QA '+ref,reference=ref,opening='1000000000',effective_date='2026-09-01',opening_source='QA');return self.store.state()['accounts'][-1]['id']
+    def stage_rows(self,acc,ref,refs,name):
+        bal=1000000000;rows=[]
+        for r in refs:bal-=5000000;rows.append(('20/09/2026','QA transfer',r,'5000000','',str(bal)))       # số dư từng dòng hoàn toàn hợp lệ
+        content=base64.b64encode(statement(rows,1000000000,bal,start='01/09/2026',end='30/09/2026',account=ref)).decode()
+        self.act('import',account=acc,filename=name,content=content);return self.store.state()['imports'][-1]
+    def tx_count(self,acc):return sum(1 for t in self.store.state()['transactions'] if t['account']==acc)
+
+    def test_same_file_near_duplicate_blocks_import_and_publish_in_both_orders(self):
+        for i,refs in enumerate((['FTQA','FTQA\\BNK'],['FTQA\\BNK','FTQA'])):
+            acc=self.fresh_account('00077'+str(i));b=self.stage_rows(acc,'00077'+str(i),refs,f'gan-trung-{i}.xlsx')
+            self.assertEqual(b['status'],'BLOCKED');self.assertTrue(any('gần trùng' in x and 'cùng file' in x for x in b['issues']),b['issues'])
+            issues,new,_=self.store.check_batch(self.store.state(),b);self.assertTrue(any('cùng file' in x for x in issues))
+            self.err('publish',batch=b['id']);self.assertEqual(self.tx_count(acc),0)                                         # bị chặn: không ghi giao dịch nào, không tự gộp
+
+    def test_same_file_exact_duplicate_blocks_import_and_publish(self):
+        acc=self.fresh_account('000775');b=self.stage_rows(acc,'000775',['FTQA','FTQA'],'lap.xlsx')
+        self.assertEqual(b['status'],'BLOCKED');self.assertTrue(any('lặp trong cùng file' in x for x in b['issues']))
+        self.err('publish',batch=b['id']);self.assertEqual(self.tx_count(acc),0)
+
+    def test_suffix_variants_in_different_accounts_are_kept_separate(self):
+        a=self.fresh_account('000776');b=self.fresh_account('000778')
+        ba=self.stage_rows(a,'000776',['FTQA'],'a.xlsx');bb=self.stage_rows(b,'000778',['FTQA\\BNK'],'b.xlsx')
+        self.assertEqual((ba['status'],ba['issues'],bb['status'],bb['issues']),('STAGED',[],'STAGED',[]))
+        self.act('publish',batch=ba['id']);self.act('publish',batch=bb['id']);self.assertEqual((self.tx_count(a),self.tx_count(b)),(1,1))
+
+    def test_same_paste_exact_and_near_duplicates_block_preview_and_import(self):
+        n0=len(self.store.state().get('legacy_entries',[]))
+        row=lambda ref:f"05/06/2023\tQA\t{ref}\t1,000,000\t\t1\n"
+        for text,word in ((row('FT8')+row('FT8'),'lặp trong cùng lần dán'),(row('FT8')+row('FT8\\X'),'gần trùng'),(row('FT8\\X')+row('FT8'),'gần trùng')):
+            p=self.store.legacy_preview(dict(category='principal',name='Alpha',type='PERSON',account=self.account,text=text))
+            self.assertTrue(any(word in x['message'] for x in p['issues']),p['issues']);self.assertFalse(p['can_import']);self.assertEqual(p['duplicates'],0)   # không coi là "trùng lần trước" để tự bỏ qua
+            self.err('legacy-import',category='principal',name='Alpha',type='PERSON',account=self.account,text=text)
+        self.assertEqual(len(self.store.state().get('legacy_entries',[])),n0)
+        other=self.fresh_account('000779')
+        self.act('legacy-import',category='principal',name='Alpha',type='PERSON',account=self.account,text=row('FT8'));self.act('legacy-import',category='principal',name='Alpha',account=other,text=row('FT8\\X'))   # khác tài khoản: giữ riêng
+        self.assertEqual(len(self.store.state()['legacy_entries']),n0+2)
+
 if __name__=='__main__':unittest.main()

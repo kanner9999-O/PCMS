@@ -31,6 +31,9 @@ else:
     pc=next(n['id'] for n in st.state()['categories'] if n['name']=='Property')
     act('legacy-import',category=pc,name='Gần Trùng QA',type='PERSON',account=third,text="20/09/2026\tCho Ket vay 5tr\tFT26267843740784\\BNK\t5,000,000\t\t1\n")
     act('import',account=third,filename='sao-ke-gan-trung.xlsx',content=base64.b64encode(statement(ROWS,1000000000,1008190000,start='01/09/2026',end='30/09/2026',account='000789')).decode())
+    # PO review vòng 2: gần trùng trong cùng file sao kê (số dư hợp lệ) — phải BLOCKED
+    act('account',name='QA cùng file',reference='000777',opening='1000000000',effective_date='2026-09-01',opening_source='QA giả');same=st.state()['accounts'][-1]['id']
+    act('import',account=same,filename='sao-ke-cung-file-gan-trung.xlsx',content=base64.b64encode(statement([('20/09/2026','QA transfer','FTQA','5000000','','995000000'),('20/09/2026','QA transfer','FTQA\\BNK','5000000','','990000000')],1000000000,990000000,start='01/09/2026',end='30/09/2026',account='000777')).decode())
     for b in st.state()['imports']:
         if b['status']!='PUBLISHED':act('recheck-import',batch=b['id'])
 print('ok',stage)

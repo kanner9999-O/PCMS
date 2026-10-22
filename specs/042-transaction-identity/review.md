@@ -1,6 +1,6 @@
 # Review — Spec 042 (cập nhật 22/10/2026, Claude) — **CHỜ PO NGHIỆM THU, CHƯA MERGE, CHƯA PHÁT HÀNH**
 
-> Vòng 2 (sau `docs/po-review-042-2026-10-22.md`) ở cuối tài liệu.
+> Vòng 2 (sau `docs/po-review-042-2026-10-22.md`) và vòng 3 (sau `docs/po-review-042-r2-2026-10-22.md`) ở cuối tài liệu.
 
 ## 0. Hiện trạng khi tiếp quản và xử lý ngay
 - Bản nháp của coder Codex nằm **chưa commit trong thư mục vận hành** `PCMS/`. Server thật `:8792` (backend P43 nạp 21/10 19:37) đọc `src/pcms/web/p01.js` từ đĩa mỗi lần tải trang ⇒ **giao diện nháp đang được phục vụ cho app thật**, gọi API mà backend đang chạy không có.
@@ -76,7 +76,31 @@ Không sửa/phân loại/gộp/xóa/duyệt/nhập vào `outputs/p01-user-trial
 
 ### Giới hạn (không đổi so với vòng 1) + mới
 - Sàn chưa có importer sao kê; định danh/chống trùng chỉ cho sao kê ngân hàng và lịch sử dán.
-- Gần trùng trong **cùng một file** sao kê (hai dòng khác hậu tố) chưa kiểm (chỉ kiểm mã trùng y hệt trong file).
+- ~~Gần trùng trong cùng một file sao kê chưa kiểm~~ → đã sửa ở vòng 3.
 - Với dữ liệu thật sau phát hành: phân loại mới tiền lãi vào Lãi vay sẽ cần người (Kết, Thái…) là thành viên Lãi vay trước — dùng nút "Thêm … vào Lãi vay" ở mục Cần đối chiếu.
 
 ### Commit vòng 2: xem `git log` nhánh `042-transaction-identity-impl` (sau `8379d78`).
+
+
+---
+## Vòng 3 — gần trùng / lặp trong cùng file sao kê và cùng lần dán lịch sử (22/10/2026)
+
+### Đã sửa
+- **Cùng file sao kê** (`p01.py check_batch`): mỗi dòng của file được đưa vào tập kiểm tra; dòng sau có mã lặp y hệt hoặc chỉ khác hậu tố với dòng trước ⇒ lỗi nêu rõ dòng nào trùng dòng nào; file BLOCKED; "Ghi toàn đợt" bị từ chối; **0 giao dịch được ghi**; không phụ thuộc thứ tự hai dòng; số dư hợp lệ vẫn chặn. Không tự gộp, không xóa.
+- **Cùng lần dán lịch sử** (`legacy_import.py legacy_preview`): trước đây dòng lặp y hệt trong cùng lần dán được đánh "Trùng lần migrate trước" và tự bỏ qua — tức tự gộp; nay là lỗi cần đối chiếu. Mã chỉ khác hậu tố trong cùng lần dán cũng là lỗi. Hai đường nhập (sao kê, dán lịch sử) cùng một hành vi.
+- Khác tài khoản: không gắn cờ ở cả hai đường.
+
+### Bằng chứng
+- Toàn bộ suite: **Ran 400 tests, OK**; node 9/9 OK. `test_p44_identity`: 30 tests (4 ca mới vòng 3).
+- Ca mới: file mới hai mã `FTQA` / `FTQA\BNK`, số dư từng dòng hợp lệ, **cả hai thứ tự**: import → BLOCKED với thông báo "gần trùng … trong cùng file", `check_batch` báo lỗi, `publish` bị từ chối, số giao dịch của tài khoản vẫn 0; mã lặp y hệt trong file: BLOCKED + publish từ chối + 0 giao dịch; hai biến thể hậu tố ở **hai tài khoản khác nhau**: STAGED, publish được, mỗi tài khoản 1 giao dịch; cùng lần dán lịch sử: lặp y hệt, khác hậu tố (cả hai thứ tự) ⇒ xem trước có lỗi, `can_import=False`, `duplicates=0`, import bị từ chối, số dòng lịch sử không tăng; khác tài khoản ⇒ nhập được.
+- QA API (xem trước, không ghi) trên `:8806`: lần dán `FT8`+`FT8` ⇒ "Mã lặp trong cùng lần dán (trùng dòng 1)"; `FT8\X`+`FT8` ⇒ "Mã gần trùng dòng 1 (FT8\X) trong cùng lần dán".
+- Bản sao chỉ đọc dữ liệu thật: 0 file có mã gốc lặp khác hậu tố; kiểm tra lại các file đang chờ (44), (45), (5) cho kết quả **giống hệt** P43 (không có file nào bị chặn thêm); tổng danh mục/báo cáo/Công nợ/danh sách migrate giống hệt.
+- Hash `outputs/p01-user-trial` (146 file) và `private-data/` giống hệt trước phiên.
+
+### QA vòng 3 cho PO (bộ sạch, riêng)
+- **`http://localhost:8806`**, dữ liệu giả `/tmp/pcms-042-qa-r3` (dựng bằng `qa_seed.py`, đường dẫn `-r3`). `:8803` (PO vòng 1) và `:8805` (vòng 2) giữ nguyên.
+- Thêm kịch bản:
+  10. Tài khoản "QA cùng file": `sao-ke-cung-file-gan-trung.xlsx` **BLOCKED** — "Dòng 10: mã FTQA\BNK gần trùng dòng 9 (FTQA) trong cùng file"; Ghi toàn đợt bị từ chối.
+  11. Migrate lịch sử cũ, tài khoản QA vay, dán hai dòng cùng mã `FT8` (hoặc `FT8\X` rồi `FT8`): Xem trước báo lỗi, không ghi được.
+
+### Commit vòng 3: nhánh `042-transaction-identity-impl`, sau `ea5706c`. T06 vẫn chờ PO.

@@ -262,12 +262,14 @@ class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, C
                 if (e['date'],D(signed),e['description'])!=(r['date'],D(r['signed_amount']),r['description']):issues.append(f"Mã {r['reference']} xung đột lịch sử cũ trong tài khoản; cần đối chiếu trước khi nhập.")
             elif ref not in seen and base_ref(r['reference']) in near and norm_ref(near[base_ref(r['reference'])])!=ref:
                 issues.append(f"Dòng {r['source_row']}: mã {r['reference']} gần trùng {near[base_ref(r['reference'])]} đã có trong tài khoản (khác hậu tố); cần đối chiếu, không tự gộp.")      # mọi thứ tự nhập (spec 042, PO review P1)
-        new=[];duplicates=[];flags=[];file_refs=set()
+        new=[];duplicates=[];flags=[];file_refs={};file_bases={}
         for r in rows:
-            ref=norm_ref(r['reference'])
+            ref=norm_ref(r['reference']);fb=base_ref(r['reference'])
             if ref in file_refs:
-                issues.append(f"Dòng {r['source_row']}: mã lặp trong cùng file; đối chiếu nguồn trước khi nhập.");flags.append('conflict');continue
-            file_refs.add(ref)
+                issues.append(f"Dòng {r['source_row']}: mã lặp trong cùng file (trùng dòng {file_refs[ref]}); đối chiếu nguồn trước khi nhập, không tự gộp.");flags.append('conflict');continue
+            if fb and fb in file_bases and file_bases[fb][0]!=ref:                                   # gần trùng trong cùng file: cùng quy tắc như giữa các nguồn (PO review vòng 2)
+                issues.append(f"Dòng {r['source_row']}: mã {r['reference']} gần trùng dòng {file_bases[fb][1]} ({file_bases[fb][2]}) trong cùng file (khác hậu tố); cần đối chiếu, không tự gộp.");flags.append('conflict');continue
+            file_refs[ref]=r['source_row'];file_bases.setdefault(fb,(ref,r['source_row'],r['reference']))
             old=seen.get(norm_ref(r['reference']))
             if old:
                 if any(old[k]!=r[k] for k in ('date','signed_amount','description','reported_balance')):

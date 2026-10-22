@@ -166,13 +166,19 @@ class LegacyImport:
             for e in s['legacy_entries']:
                 if e['batch'] in active and self.legacy_account(s,e)==account:
                     seen.setdefault(norm_ref(e['reference']),(e['date'],e['amount'],e['direction'],e['description'],'DUPLICATE'))
-            tin=tout=0;matched=dups=0;rows=parsed['rows']
+            tin=tout=0;matched=dups=0;rows=parsed['rows'];paste_refs={};paste_bases={}
             for r in rows:
                 if r['status']!='OK':continue
                 amt=int(r['amount']);tin+=amt if r['direction']=='IN' else 0;tout+=amt if r['direction']=='OUT' else 0
                 ref=norm_ref(r['reference']);payload=(r['date'],r['amount'],r['direction'],r['description'])
                 if not ref:
                     r.update(status='ERROR',message='Thiếu mã giao dịch nguồn; chưa thể định danh.');parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                if ref in paste_refs:
+                    r.update(status='ERROR',message=f"Mã lặp trong cùng lần dán (trùng dòng {paste_refs[ref]}); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                pb=base_ref(r['reference'])
+                if pb in paste_bases and paste_bases[pb][0]!=ref:                                   # gần trùng trong cùng lần dán: cùng quy tắc như giữa các nguồn
+                    r.update(status='ERROR',message=f"Mã gần trùng dòng {paste_bases[pb][1]} ({paste_bases[pb][2]}) trong cùng lần dán (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                paste_refs[ref]=r['row'];paste_bases.setdefault(pb,(ref,r['row'],r['reference']))
                 old=seen.get(ref)
                 if not old and base_ref(r['reference']) in near and norm_ref(near[base_ref(r['reference'])])!=ref:
                     r.update(status='ERROR',message=f"Mã gần trùng {near[base_ref(r['reference'])]} đã có trong tài khoản này (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
@@ -183,7 +189,6 @@ class LegacyImport:
                         r['status']=old[4]
                         if r['status']=='MATCHED_BANK':matched+=1
                         else:dups+=1
-                else:seen[ref]=payload+('DUPLICATE',)
             declared=parsed['declared'];totals_ok=None if declared is None else (declared['in']==tin and declared['out']==tout)
             importable=sum(1 for r in rows if r['status'] in {'OK','MATCHED_BANK'})       # dòng trùng sao kê vẫn được lưu làm chứng từ truy nguyên, không cộng tiền lần hai
             return dict(columns=parsed['columns'],mapping=parsed['mapping'],rows=rows,issues=parsed['issues'],totals={'in':str(tin),'out':str(tout)},declared={k:str(v) for k,v in declared.items()} if declared else None,totals_ok=totals_ok,
