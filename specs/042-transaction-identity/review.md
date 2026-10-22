@@ -1,4 +1,4 @@
-# Review — Spec 042 (cập nhật 22/10/2026, Claude) — **PO ĐẠT CÓ GIỚI HẠN (vòng 3); phát hành: xem mục cuối**
+# Review — Spec 042 (cập nhật 22/10/2026, Claude) — **ĐÃ PHÁT HÀNH P44 (22/10/2026), PO đạt có giới hạn**
 
 > Vòng 2 (sau `docs/po-review-042-2026-10-22.md`) và vòng 3 (sau `docs/po-review-042-r2-2026-10-22.md`) ở cuối tài liệu.
 
@@ -111,3 +111,11 @@ Không sửa/phân loại/gộp/xóa/duyệt/nhập vào `outputs/p01-user-trial
 - PO: **đạt có giới hạn** cho phạm vi ngân hàng/lịch sử dán và sửa sai lệch phân loại (`docs/po-review-042-r3-2026-10-22.md`). Không xác nhận importer sàn (backlog B1). Ghi chú không chặn: số dòng ứng viên trên file bị chặn (backlog B2).
 - Phát hành đúng mã đã nghiệm thu: commit `39c4881` (mã) + một commit chỉ tài liệu (tasks/review/IMPLEMENTATION-STATUS, ba biên bản PO). Không sửa mã sau nghiệm thu.
 - Bằng chứng sau phát hành: ghi ở `IMPLEMENTATION-STATUS.md` mục P44 (commit sau merge).
+
+### Bằng chứng phát hành (22/10/2026)
+- PR #39 merge → `main` = `facc5a6`; `git diff 39c4881 facc5a6 -- src tests` rỗng (mã/test đúng bản PO nghiệm thu).
+- Kiểm `main` từ worktree sạch: **400 tests OK**, 9/9 test node OK; build `P44-2026-10-22`.
+- Thư mục vận hành `PCMS/`: `git merge --ff-only origin/main` (không đụng `README.md`, `specs/README.md`, `docs/product/`, `specs/008-product-map/` đang sửa dở; ba biên bản PO chưa theo dõi được thay bằng bản giống hệt trong `main`).
+- Khởi động lại `:8792` (cùng lệnh, cùng thư mục dữ liệu). `/api/state`: build `P44-2026-10-22`, có capability `transaction-identity`; `p01.js` phục vụ = `main` (SHA256 `9e0fe8ed…`). Mở màn Danh mục (chỉ xem): có mục "Cần đối chiếu" với **9** dòng; **6** lần migrate đang hoạt động chưa có tài khoản (+1 lần đã hủy); màn Đối tượng 14 đối tượng.
+- Dữ liệu thật: SHA256 `outputs/p01-user-trial` (146 file `d5794465…`) và `private-data/` (`fa45318c…`) trước/sau phát hành **giống hệt**. Không phân loại, gộp, xác định tài khoản hay sửa dữ liệu thật nào; các việc đó chờ Thạch.
+- Đã tắt các server QA giả `:8803`, `:8805`, `:8806` (dữ liệu giả ở `/tmp/pcms-042-qa*` còn giữ, dựng lại bằng `qa_seed.py`).
