@@ -1,4 +1,4 @@
-# Review — Spec 042 (cập nhật 22/10/2026, Claude) — **CHỜ PO NGHIỆM THU, CHƯA MERGE, CHƯA PHÁT HÀNH**
+# Review — Spec 042 (cập nhật 22/10/2026, Claude) — **PO ĐẠT CÓ GIỚI HẠN (vòng 3); phát hành: xem mục cuối**
 
 > Vòng 2 (sau `docs/po-review-042-2026-10-22.md`) và vòng 3 (sau `docs/po-review-042-r2-2026-10-22.md`) ở cuối tài liệu.
 
@@ -104,3 +104,10 @@ Không sửa/phân loại/gộp/xóa/duyệt/nhập vào `outputs/p01-user-trial
   11. Migrate lịch sử cũ, tài khoản QA vay, dán hai dòng cùng mã `FT8` (hoặc `FT8\X` rồi `FT8`): Xem trước báo lỗi, không ghi được.
 
 ### Commit vòng 3: nhánh `042-transaction-identity-impl`, sau `ea5706c`. T06 vẫn chờ PO.
+
+
+---
+## Nghiệm thu PO vòng 3 và phát hành
+- PO: **đạt có giới hạn** cho phạm vi ngân hàng/lịch sử dán và sửa sai lệch phân loại (`docs/po-review-042-r3-2026-10-22.md`). Không xác nhận importer sàn (backlog B1). Ghi chú không chặn: số dòng ứng viên trên file bị chặn (backlog B2).
+- Phát hành đúng mã đã nghiệm thu: commit `39c4881` (mã) + một commit chỉ tài liệu (tasks/review/IMPLEMENTATION-STATUS, ba biên bản PO). Không sửa mã sau nghiệm thu.
+- Bằng chứng sau phát hành: ghi ở `IMPLEMENTATION-STATUS.md` mục P44 (commit sau merge).
