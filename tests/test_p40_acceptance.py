@@ -20,12 +20,12 @@ class P40Acceptance(base.P18Acceptance):
     def test_every_creation_path_creates_a_typed_object_with_the_same_name_rule(self):
         self.act('category-create',name='Property',type='investment');cat=self.nodes()['Property']['id']
         self.act('object-create',name='A1',type='PERSON');self.act('category-object-add',category=cat,name='A2');self.act('object-quick-create',kind='PERSON',name='A3');self.act('object-quick-create',kind='PROPERTY',name='A4')
-        self.act('profile',kind='PERSON',name='A5');self.act('profile',kind='PROPERTY',name='A6');self.act('legacy-import',category=cat,name='A7',type='PROPERTY',text=TXT);self.act('legacy-import',category=cat,name='A8',text=TXT.replace('FT1','FT2'))
+        self.act('profile',kind='PERSON',name='A5');self.act('profile',kind='PROPERTY',name='A6');self.act('legacy-import',account=self.account,category=cat,name='A7',type='PROPERTY',text=TXT);self.act('legacy-import',account=self.account,category=cat,name='A8',text=TXT.replace('FT1','FT2'))
         self.assertEqual({n:self.objs()[n]['kind'] for n in ('A1','A2','A3','A4','A5','A6','A7','A8')},{'A1':'PERSON','A2':'OBJECT','A3':'PERSON','A4':'PROPERTY','A5':'PERSON','A6':'PROPERTY','A7':'PROPERTY','A8':'OBJECT'})
         for name in ('a1',' A2  ','A3'):                                                                                    # mọi lối chặn tên trùng như nhau
             self.err('object-create',name=name,type='PERSON');self.err('category-object-add',category=cat,name=name);self.err('object-quick-create',kind='PERSON',name=name);self.err('object-quick-create',kind='PROPERTY',name=name);self.err('profile',kind='PERSON',name=name)
-        self.err('object-create',name='Z',type='LOAN');self.err('object-create',name='Z');self.err('legacy-import',category=cat,name='Z',type='LOAN',text=TXT)
-        self.assertEqual(self.store.legacy_preview(dict(category=cat,name='Mới',type='PROPERTY',text=TXT))['object']['kind'],'PROPERTY')
+        self.err('object-create',name='Z',type='LOAN');self.err('object-create',name='Z');self.err('legacy-import',account=self.account,category=cat,name='Z',type='LOAN',text=TXT)
+        self.assertEqual(self.store.legacy_preview(dict(account=self.account,category=cat,name='Mới',type='PROPERTY',text=TXT))['object']['kind'],'PROPERTY')
 
     def test_loan_money_shown_under_person_name_everywhere(self):
         self.act('object-quick-create',kind='LOAN',party_name='Anh',name='Khoản Anh');loan=self.pid('Khoản Anh');self.act('loan-setup',profile=loan,direction='RECEIVABLE',opening='0',confirm_zero=True,effective_date='2026-09-01',source='QA',reason='QA')

@@ -9,10 +9,10 @@ class P37Acceptance(base.P35Acceptance):
     def test_selected_profile_with_different_name_is_rejected_new_name_creates(self):
         self.act('category-create',name='Property',type='investment');cat=self.nodes()['Property']['id']
         xm=self.make('Xuân Mai','PROPERTY',category=cat)
-        self.err('legacy-import',category=cat,profile=xm,name='Đồng Cạn',text=TXT)                                         # chọn Xuân Mai nhưng gõ Đồng Cạn: chặn, không ghi nhầm
-        with self.assertRaises(Exception):self.store.legacy_preview(dict(category=cat,profile=xm,name='Đồng Cạn',text=TXT))
-        self.assertEqual(self.store.legacy_preview(dict(category=cat,profile=xm,name='xuân  mai',text=TXT))['object']['name'],'Xuân Mai')      # cùng tên: hợp lệ
-        self.act('legacy-import',category=cat,name='Đồng Cạn',text=TXT)                                                    # chỉ nhập tên: tạo đối tượng mới
+        self.err('legacy-import',account=self.account,category=cat,profile=xm,name='Đồng Cạn',text=TXT)                                         # chọn Xuân Mai nhưng gõ Đồng Cạn: chặn, không ghi nhầm
+        with self.assertRaises(Exception):self.store.legacy_preview(dict(account=self.account,category=cat,profile=xm,name='Đồng Cạn',text=TXT))
+        self.assertEqual(self.store.legacy_preview(dict(account=self.account,category=cat,profile=xm,name='xuân  mai',text=TXT))['object']['name'],'Xuân Mai')      # cùng tên: hợp lệ
+        self.act('legacy-import',account=self.account,category=cat,name='Đồng Cạn',text=TXT)                                                    # chỉ nhập tên: tạo đối tượng mới
         self.assertIn('Đồng Cạn',self.objs());self.assertEqual(self.objs()['Đồng Cạn']['totals']['transactions'],1);self.assertEqual(self.objs()['Xuân Mai']['totals']['transactions'],0)
         self.assertIn(cat,[c['category'] for c in self.objs()['Đồng Cạn']['categories']])
 if __name__=='__main__':unittest.main()

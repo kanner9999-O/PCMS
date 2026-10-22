@@ -374,3 +374,8 @@ Nạp file (44) đủ 163 dòng, tất cả chưa phân loại; nạp lặp khô
 ### A57 — Giai đoạn và trạng thái
 
 Sau nạp chưa có bảng phân loại; chưa xác nhận nhập liệu thì không approve. Xác nhận nguồn khớp mới sang phân loại, không nhập thay nguồn. Trang 20 dòng. Bulk 3 dòng và lưu riêng 1 dòng tạo đúng 4 Đã phân loại/159 Chưa phân loại, tự rời nhóm chờ. Lọc/trang không cắt báo cáo 163 dòng. Duyệt với phần chưa phân loại cần xác nhận; snapshot không đổi nhãn thành đã phân loại, các ô sửa bị khóa. Kiểm trên desktop/mobile.
+
+### A58 — Phân loại nhất quán
+Giao dịch của khoản Kết tại danh mục con không được cộng vào đối tượng Kết ở cha. Cảnh báo thiếu quan hệ; xem trước điều chỉnh và xác nhận có lý do; dòng đã duyệt cần phiên điều chỉnh; nguồn, tiền và snapshot không đổi. Có hai cách do người dùng chọn: thêm đối tượng vào danh mục phân bổ, hoặc điều chỉnh trong cùng loại gốc; tổng đối tượng ở màn Danh mục luôn bằng tổng lịch sử của đối tượng tại danh mục đó.
+### A59 — Định danh theo tài khoản
+Cùng mã cùng tài khoản cùng nội dung không tăng tiền khi nhập lại, kể cả khác đối tượng; khác tài khoản giữ riêng. Xung đột bị chặn. Lịch sử thiếu tài khoản hiển thị chưa xác định, chọn tài khoản/xem trước trước ghi. Không tự gộp vì trùng số tiền/ngày.

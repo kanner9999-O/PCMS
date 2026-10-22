@@ -12,14 +12,14 @@ class P38Acceptance(base.P37Acceptance):
         return self.store.category_history(dict(category=key or self.cat))['rows']
 
     def test_note_column_is_imported_and_previewed(self):
-        p=self.store.legacy_preview(dict(category=self.cat,name='Đồng Cạn',text=TXT,mapping=MAP));self.assertEqual([r['note'] for r in p['rows']],['Tiền môi giới',''])
-        self.act('legacy-import',category=self.cat,name='Đồng Cạn',text=TXT,mapping=MAP)
+        p=self.store.legacy_preview(dict(account=self.account,category=self.cat,name='Đồng Cạn',text=TXT,mapping=MAP));self.assertEqual([r['note'] for r in p['rows']],['Tiền môi giới',''])
+        self.act('legacy-import',account=self.account,category=self.cat,name='Đồng Cạn',text=TXT,mapping=MAP)
         rows={r['reference']:r for r in self.rows()};self.assertEqual((rows['FT1']['note'],rows['FT2']['note']),('Tiền môi giới',''));self.assertTrue(rows['FT1']['legacy'])
-        d=self.store.legacy_preview(dict(category=self.cat,name='X',text=TXT));self.assertTrue(all(r['note']=='' for r in d['rows']))        # mặc định cột G bỏ qua
-        self.err('legacy-import',category=self.cat,name='Y',text=TXT,mapping=['date','description','reference','out','in','balance','note','note'])   # hai cột note
+        d=self.store.legacy_preview(dict(account=self.account,category=self.cat,name='X',text=TXT));self.assertTrue(all(r['note']=='' for r in d['rows']))        # mặc định cột G bỏ qua
+        self.err('legacy-import',account=self.account,category=self.cat,name='Y',text=TXT,mapping=['date','description','reference','out','in','balance','note','note'])   # hai cột note
 
     def test_edit_note_on_legacy_row_keeps_source_and_money(self):
-        self.act('legacy-import',category=self.cat,name='Đồng Cạn',text=TXT,mapping=MAP)
+        self.act('legacy-import',account=self.account,category=self.cat,name='Đồng Cạn',text=TXT,mapping=MAP)
         e=next(x for x in self.store.state()['legacy_entries'] if x['reference']=='FT2');tot0=self.rows()
         self.act('transaction-note',transaction=e['id'],note='Hoàn môi giới',voucher='BL-9')
         r=next(x for x in self.rows() if x['reference']=='FT2');self.assertEqual((r['note'],r['voucher'],r['description']),('Hoàn môi giới','BL-9','B'))
@@ -33,6 +33,6 @@ class P38Acceptance(base.P37Acceptance):
         self.act('category-template',template='no-voucher');nv=self.nodes()['Chi khác không chứng từ']['id']
         self.act('classify',ids=[self.tx('X1')['id']],parts=[dict(category='expense',node=nv)],note='Chi giấy tờ')
         self.err('transaction-note',transaction=self.tx('X1')['id'],note='')                                              # danh mục yêu cầu ghi chú
-        self.act('legacy-import',category=nv,name='Cũ NV',text=TXT,mapping=MAP)
+        self.act('legacy-import',account=self.account,category=nv,name='Cũ NV',text=TXT,mapping=MAP)
         e=next(x for x in self.store.state()['legacy_entries'] if x['reference']=='FT2');self.err('transaction-note',transaction=e['id'],note='')   # dòng lịch sử cũ cũng bị ràng buộc
 if __name__=='__main__':unittest.main()

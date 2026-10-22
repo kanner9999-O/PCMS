@@ -91,7 +91,7 @@ class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, C
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management'], 'build':'P43-2026-10-21'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management'], 'build':'P44-2026-10-22'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -249,15 +249,26 @@ class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, C
         a=item(s['accounts'],b['account']); issues=list(b.get('parse_issues',[]));rows=b['rows']
         if b.get('source_account') != a['reference']:issues.append('Số tài khoản nguồn khác tài khoản đã chọn.')
         existing=sorted([t for t in s['transactions'] if t['account']==a['id']],key=lambda t:t['order'])
-        seen={t['reference']:t for t in existing}
-        new=[];duplicates=[];flags=[]
+        from .legacy_import import norm_ref
+        seen={norm_ref(t['reference']):t for t in existing}
         for r in rows:
-            old=seen.get(r['reference'])
+            for e in s.get('legacy_entries',[]):
+                active=any(b['id']==e['batch'] and b['status']=='ACTIVE' for b in s.get('legacy_batches',[]))
+                if active and self.legacy_account(s,e)==a['id'] and norm_ref(e['reference'])==norm_ref(r['reference']):
+                    signed=e['amount'] if e['direction']=='IN' else '-'+e['amount']
+                    if (e['date'],D(signed),e['description'])!=(r['date'],D(r['signed_amount']),r['description']):issues.append(f"Mã {r['reference']} xung đột lịch sử cũ trong tài khoản; cần đối chiếu trước khi nhập.")
+        new=[];duplicates=[];flags=[];file_refs=set()
+        for r in rows:
+            ref=norm_ref(r['reference'])
+            if ref in file_refs:
+                issues.append(f"Dòng {r['source_row']}: mã lặp trong cùng file; đối chiếu nguồn trước khi nhập.");flags.append('conflict');continue
+            file_refs.add(ref)
+            old=seen.get(norm_ref(r['reference']))
             if old:
                 if any(old[k]!=r[k] for k in ('date','signed_amount','description','reported_balance')):
                     issues.append(f"Dòng {r['source_row']}: tham chiếu {r['reference']} xung đột với dữ liệu đã có.");flags.append('conflict')
                 else:duplicates.append((r,old));flags.append('dup')
-            else:seen[r['reference']]=r;new.append(r);flags.append('new')
+            else:seen[norm_ref(r['reference'])]=r;new.append(r);flags.append('new')
         if not issues and rows:
             tail_balance=D(a['opening'])+sum((D(t['signed_amount']) for t in existing),Decimal(0));tail=existing[-1] if existing else None
             where=f"giao dịch cuối đã ghi {tail['reference']} ngày {display_day(tail['date'])}, số dư {S(tail_balance)}" if tail else f"số dư đầu tài khoản {S(tail_balance)}"
@@ -267,7 +278,7 @@ class P01Store(Objects, Business, LegacyImport, AccountHistory, AssetOverview, C
             if dup_index:
                 last=dup_index[-1]
                 if new and any(flags[i]!='dup' for i in range(last)):issues.append(f"File có giao dịch chưa ghi nằm trước hoặc xen giữa các giao dịch đã có; không nối liền mạch với {where}.")
-                elif new and rows[last]['reference']!=tail['reference']:issues.append(f"File chồng lên dữ liệu đã có nhưng phần chồng không kết thúc ở {where}; không nối liền mạch.")
+                elif new and norm_ref(rows[last]['reference'])!=norm_ref(tail['reference']):issues.append(f"File chồng lên dữ liệu đã có nhưng phần chồng không kết thúc ở {where}; không nối liền mạch.")
             elif D(b['source_opening'])!=tail_balance:
                 issues.append(f"File chưa nối tiếp: số dư đầu file {b['source_opening']}, cần bằng {where}. Bổ sung file nối tiếp hoặc kiểm tra file.")
             if not issues and new:
