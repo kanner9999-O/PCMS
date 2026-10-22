@@ -23,8 +23,8 @@ class P29Acceptance(base.P18Acceptance):
     """Dùng lại dữ liệu P18 (Long debt nằm trong Loans)."""
     def setUp(self):
         super().setUp();self.ld=self.nodes()['Long debt']['id']
-    def prev(self,text=MY,**k):return self.store.legacy_preview(dict(category=self.ld,name='Mỹ',text=text,**k))
-    def imp(self,text=MY,**k):self.act('legacy-import',category=self.ld,name='Mỹ',text=text,**k)
+    def prev(self,text=MY,**k):return self.store.legacy_preview(dict(account=self.account,category=self.ld,name='Mỹ',text=text,**k))
+    def imp(self,text=MY,**k):self.act('legacy-import',account=self.account,category=self.ld,name='Mỹ',text=text,**k)
     def objs(self,key):
         c=self.store.view()['categories'];return {o['name']:o for o in next(n for n in c['nodes'] if n['id']==key)['objects']}
     def err(self,a,**d):
@@ -54,33 +54,37 @@ class P29Acceptance(base.P18Acceptance):
         good="05/06/2023\tA\tFT1\t30,000,000.00\t\t1\n"
         bads={'ngày sai':"31/02/2023\tA\tFT1\t1000\t\t1\n",'cả ra và vào':"05/06/2023\tA\tFT1\t1000\t2000\t1\n",'không có tiền':"05/06/2023\tA\tFT1\t\t\t1\n",'số sai':"05/06/2023\tA\tFT1\tabc\t\t1\n",'số lẻ':"05/06/2023\tA\tFT1\t1000.5\t\t1\n",'thiếu ngày':"\tA\tFT1\t1000\t\t1\n",'số âm':"05/06/2023\tA\tFT1\t-1000\t\t1\n"}
         for k,text in bads.items():
-            p=self.prev(good+text);self.assertTrue(p['issues'] and not p['can_import'],k);self.err('legacy-import',category=self.ld,name='Mỹ',text=good+text)
+            p=self.prev(good+text);self.assertTrue(p['issues'] and not p['can_import'],k);self.err('legacy-import',account=self.account,category=self.ld,name='Mỹ',text=good+text)
         self.assertEqual(self.prev(good)['can_import'],True)
         for bad in (dict(text='   '),dict(text=good,name=''),dict(text=good,category='unknown'),dict(text=good,category='nope'),dict(text=good,mapping=['date']),dict(text=good,mapping=['date','date','out']),dict(text=good,mapping=['date','x','out'])):
-            args=dict(category=self.ld,name='Mỹ');args.update(bad);self.err('legacy-import',**args)
+            args=dict(category=self.ld,name='Mỹ');args.update(bad);self.err('legacy-import',account=self.account,**args)
 
     def test_total_mismatch_needs_confirmation(self):
         bad=MY.replace('176,000,000.00\t130,000,000.00\t46,000,000.00','175,000,000.00\t130,000,000.00\t45,000,000.00',1)
         p=self.prev(bad);self.assertEqual((p['totals_ok'],p['can_import'],p['needs_confirm'],p['issues']),(False,False,True,[]))
-        self.err('legacy-import',category=self.ld,name='Mỹ',text=bad);self.imp(bad,accept_total_mismatch=True)
+        self.err('legacy-import',account=self.account,category=self.ld,name='Mỹ',text=bad);self.imp(bad,accept_total_mismatch=True)
         self.assertTrue(self.store.state()['legacy_batches'][0]['accepted_mismatch']);self.assertEqual(len(self.store.state()['legacy_entries']),8)
         nototals="05/06/2023\tA\tFT1\t1000\t\t1\n";self.assertIsNone(self.prev(nototals)['totals_ok']);self.assertTrue(self.prev(nototals)['can_import'])
 
     def test_bank_duplicates_and_repeat_paste_and_late_statement(self):
-        txt="05/06/2023\tX\tK1\\BNK\t5,000,000\t\t1\n06/06/2023\tY\tZZ9\t7,000,000\t\t1\n"                                # K1 đã có trong sao kê QA
-        p=self.prev(txt);self.assertEqual(([r['status'] for r in p['rows']],p['matched_bank'],p['importable']),(['MATCHED_BANK','OK'],1,2))
-        self.imp(txt);o=self.objs(self.ld)['Mỹ'];self.assertEqual(o['totals'],{'in':'0','out':'7000000','transactions':1})                  # dòng trùng sao kê không tính hai lần
+        # R192/A59 (spec 042): định danh = tài khoản + mã đầy đủ; cùng định danh cùng nội dung thì không cộng hai lần; khác nội dung hoặc khác hậu tố là xung đột cần đối chiếu.
+        same="20/09/2026\tCho Ket vay 5tr\tK1\t5,000,000\t\t1\n06/06/2023\tY\tZZ9\t7,000,000\t\t1\n"                      # K1 trùng hệt giao dịch sao kê trong tài khoản QA
+        p=self.prev(same);self.assertEqual(([r['status'] for r in p['rows']],p['matched_bank'],p['importable']),(['MATCHED_BANK','OK'],1,2))
+        self.imp(same);o=self.objs(self.ld)['Mỹ'];self.assertEqual(o['totals'],{'in':'0','out':'7000000','transactions':1})                  # dòng trùng sao kê lưu làm chứng từ, không tính hai lần
         b=self.store.view()['categories']['legacy'][0];self.assertEqual((b['rows'],b['active'],b['matched_bank']),(2,1,1))
-        p2=self.prev(txt);self.assertEqual(([r['status'] for r in p2['rows']],p2['duplicates']),(['DUPLICATE','DUPLICATE'],2))                  # dán lại: dòng trùng lần trước bị bỏ qua
-        self.err('legacy-import',category=self.ld,name='Mỹ',text="06/06/2023\tY\tZZ9\t7,000,000\t\t1\n")                                        # không còn dòng mới
-        s=self.store.state();s['transactions'].append(dict(copy.deepcopy(s['transactions'][0]),id='late',reference='ZZ9'));        # sao kê nhập sau có cùng mã (mô phỏng)
+        p2=self.prev(same);self.assertEqual(([r['status'] for r in p2['rows']],p2['duplicates'],p2['matched_bank']),(['MATCHED_BANK','DUPLICATE'],1,1))   # dán lại
+        self.err('legacy-import',account=self.account,category=self.ld,name='Mỹ',text="06/06/2023\tY\tZZ9\t7,000,000\t\t1\n")                 # không còn dòng mới
+        self.assertTrue(self.prev("06/06/2023\tY\tZZ9\t8,000,000\t\t1\n")['issues'])                                                      # cùng mã khác nội dung: xung đột
+        self.assertTrue(self.prev("20/09/2026\tCho Ket vay 5tr\tK1\\BNK\t5,000,000\t\t1\n")['issues'])                                    # khác hậu tố: gần trùng, cần đối chiếu (không tự gộp, không cộng hai lần)
+        s=self.store.state();t0=s['transactions'][0];s['transactions'].append(dict(copy.deepcopy(t0),id='late',reference='ZZ9',date='2023-06-06',description='Y',signed_amount='-7000000'))   # sao kê nhập sau, cùng định danh cùng nội dung
         late=self.store.legacy_summary(s);self.assertEqual((late[0]['active'],late[0]['matched_bank']),(0,2))
+        s['transactions'][-1]['signed_amount']='-7500000';self.assertEqual(self.store.legacy_summary(s)[0]['conflicts'],1)                      # cùng định danh khác nội dung: xung đột, không tính
 
     def test_reuse_object_auto_membership_mapping_and_void(self):
         self.act('category-object-add',category=self.nodes()['Loans']['id'],name='Khiêm');kh=next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Khiêm')
         signed="08/07/2023\tA\tFTA\t30,000,000\t1\n09/07/2023\tB\tFTB\t-12,000,000\t2\n"
-        p=self.store.legacy_preview(dict(category=self.ld,profile=kh,text=signed,mapping=['date','description','reference','amount','balance']));self.assertEqual(([(r['direction'],r['amount']) for r in p['rows']],p['object']['exists']),([('IN','30000000'),('OUT','12000000')],True))
-        self.act('legacy-import',category=self.ld,profile=kh,text=signed,mapping=['date','description','reference','amount','balance'])
+        p=self.store.legacy_preview(dict(account=self.account,category=self.ld,profile=kh,text=signed,mapping=['date','description','reference','amount','balance']));self.assertEqual(([(r['direction'],r['amount']) for r in p['rows']],p['object']['exists']),([('IN','30000000'),('OUT','12000000')],True))
+        self.act('legacy-import',account=self.account,category=self.ld,profile=kh,text=signed,mapping=['date','description','reference','amount','balance'])
         self.assertIn('Khiêm',self.objs(self.ld));self.assertEqual(self.objs(self.ld)['Khiêm']['totals'],{'in':'30000000','out':'12000000','transactions':2})        # tự gán vào danh mục
         bid=self.store.state()['legacy_batches'][0]['id'];self.err('legacy-void',batch=bid,reason='');self.act('legacy-void',batch=bid,reason='Dán nhầm')
         self.assertEqual(self.objs(self.ld)['Khiêm']['totals']['transactions'],0);v=self.store.view()['categories']['legacy'][0];self.assertEqual((v['status'],v['void_reason'],bool(v['source_text'])),('VOID','Dán nhầm',True));self.err('legacy-void',batch=bid,reason='lần hai')

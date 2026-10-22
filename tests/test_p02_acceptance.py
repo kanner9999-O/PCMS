@@ -10,7 +10,7 @@ from p01_fixtures import fixtures, statement
 
 class P02Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.path=Path(self.tmp.name)/'store';self.store=P01Store(self.path)
+        self.tmp=tempfile.TemporaryDirectory();self.path=Path(self.tmp.name)/'store';self.store=P01Store(self.path);self.store.require_membership=False
         self.files=fixtures()
         self.a=self.account('QA A','000123','100000000')
         self.b=self.account('QA B','000456','20000000')
@@ -60,7 +60,7 @@ class P02Acceptance(unittest.TestCase):
         self.assertEqual(self.finance(),before);self.assertEqual(self.get(self.b),other)
         self.assertEqual(self.store.state()['snapshots'][0]['account_details']['name'],'QA A')
         self.assertEqual(self.balance(self.a),'115000000')
-        self.store=P01Store(self.path)
+        self.store=P01Store(self.path);self.store.require_membership=False
         self.assertEqual(self.get(self.a)['name'],'Renamed by QA');self.assertEqual(self.finance(),before)
         for patch in ({'opening':'99999999'},{'reference':'999888'},{'effective_date':'2026-09-30'},{'opening_source':'Different basis'}):
             self.reject('account-edit',account=self.a,name='Renamed by QA',**patch)
@@ -75,7 +75,7 @@ class P02Acceptance(unittest.TestCase):
         self.assertEqual(self.get(self.b).get('status','ACTIVE'),'ACTIVE')
         self.reject('account-edit',account=self.a,name='Should not edit deleted')
         self.reject('import',account=self.a,filename='01-first.xlsx',content=base64.b64encode(self.files['01-first.xlsx']).decode())
-        self.store=P01Store(self.path);self.assertEqual(self.get(self.a)['status'],'DELETED')
+        self.store=P01Store(self.path);self.store.require_membership=False;self.assertEqual(self.get(self.a)['status'],'DELETED')
         self.act('account-restore',account=self.a,reason='Restore mistakenly hidden account')
         self.assertEqual(self.get(self.a)['status'],'ACTIVE')
         for key in ('id','reference','opening','effective_date','opening_source','name'):self.assertEqual(self.get(self.a)[key],original[key])
@@ -103,7 +103,7 @@ class P02Acceptance(unittest.TestCase):
         self.reject('begin-adjustment',account=self.a,reason='Archived read only')
         self.reject('account-edit',account=self.a,name='Archived read only')
         self.reject('import',account=self.a,filename='02-overlap.xlsx',content=base64.b64encode(self.files['02-overlap.xlsx']).decode())
-        self.store=P01Store(self.path);self.assertEqual(self.finance(),before)
+        self.store=P01Store(self.path);self.store.require_membership=False;self.assertEqual(self.finance(),before)
         self.act('account-restore',account=self.a,reason='Resume account')
         self.assertEqual(self.finance(),before)
         self.publish('02-overlap.xlsx');self.assertEqual(self.balance(self.a),'112000000')

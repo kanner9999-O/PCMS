@@ -17,7 +17,7 @@ def month_lines(n=3,amount='100'):
 
 class P09Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.loans=seed(self.store)
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False;self.loans=seed(self.store)
         self.act('trx-customer',name='Khách A',note='QA');self.customer=self.trx()['customers'][0]['id']
     def tearDown(self):self.tmp.cleanup()
     def act(self,a,**d):return self.store.apply(a,d,str(uuid4()))

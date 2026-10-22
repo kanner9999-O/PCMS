@@ -27,6 +27,7 @@ class P18Acceptance(unittest.TestCase):
     def group(self,r,name):return next(g for g in r['groups'] if g['name']==name)
     def loans(self):return {l['id']:l for l in self.store.view()['loan_options']}
     def build(self):
+        self.store.require_membership=False      # dựng dữ liệu kiểu cũ (trước spec 042, giống dữ liệu thật); sau khi dựng, quy tắc thành viên bật lại
         self.act('account',name='QA vay',reference='000123',opening='1000000000',effective_date='2026-09-01',opening_source='QA');self.account=self.store.state()['accounts'][0]['id']
         self.act('import',account=self.account,filename='k.xlsx',content=base64.b64encode(statement(ROWS,1000000000,1008190000,start='01/09/2026',end='30/09/2026')).decode());self.act('publish',batch=self.store.state()['imports'][-1]['id'])
         self.act('object-quick-create',kind='LOAN',party_name='Kết',name='Kết 5tr');self.act('object-quick-create',kind='LOAN',party=next(p['id'] for p in self.store.state()['profiles'] if p['kind']=='PERSON'),name='Kết 10tr')
@@ -36,6 +37,7 @@ class P18Acceptance(unittest.TestCase):
         self.act('category-create',name='Long debt',description='',parent=self.nodes()['Loans']['id'])
         self.classify(['K1'],[dict(category='principal',profile=self.l5,node=self.nodes()['Kết']['id'])]);self.classify(['K2'],[dict(category='principal',profile=self.l10)])
         self.classify(['K3'],[dict(category='principal',profile=self.l10)]);self.classify(['K4'],[dict(category='interest',profile=self.l10)]);self.classify(['S1'],[dict(category='income')])
+        self.store.require_membership=True
 
     def test_loan_options_labels_and_person_filter(self):
         o=self.loans();a,b=o[self.l5],o[self.l10]
@@ -49,12 +51,15 @@ class P18Acceptance(unittest.TestCase):
         self.err('classify',ids=[self.tx('X1')['id']],parts=[dict(category='income',profile=self.l5)])
         self.err('classify',ids=[self.tx('X1')['id']],parts=[dict(category='expense',profile=self.person)])
         self.err('classify',ids=[self.tx('K4')['id']],parts=[dict(category='transfer_pending',profile=self.l5)])
-        self.classify(['X1'],[dict(category='expense',profile=self.l5)])                      # chi hộ khoản vay: hành vi cũ vẫn được
-        self.classify(['K1'],[dict(category='principal',profile=self.l5)])                    # danh mục con tùy chọn
+        self.err('classify',ids=[self.tx('X1')['id']],parts=[dict(category='expense',profile=self.l5)])                 # spec 042: Kết chưa là thành viên Chi tiêu → chặn ngay khi ghi
+        self.act('category-object-add',category='expense',profile=self.person);self.classify(['X1'],[dict(category='expense',profile=self.l5)])   # chi hộ khoản vay sau khi Kết thuộc Chi tiêu
+        self.err('classify',ids=[self.tx('K1')['id']],parts=[dict(category='principal',profile=self.l5)])
+        self.act('category-object-add',category='principal',profile=self.person);self.classify(['K1'],[dict(category='principal',profile=self.l5)])   # danh mục con tùy chọn
 
     def test_review_one_group_per_object_and_child_is_label(self):
         r=self.review();g=self.group(r,'Gốc vay · Kết');self.assertIn('Gốc vay › Kết',[x['label'] for x in g['rows']])                    # hiển thị tên người (spec 041)
         self.assertFalse(any(x['name']=='Gốc vay › Kết · Kết' for x in r['groups']))
+        self.act('category-object-add',category=self.nodes()['Kết']['id'],profile=self.person)                        # spec 042: phải là thành viên của danh mục con trước
         self.classify(['K2'],[dict(category='principal',profile=self.l5,node=self.nodes()['Kết']['id'])])
         r=self.review();g=self.group(r,'Gốc vay · Kết');self.assertEqual(g['transactions'],3);self.assertEqual(sorted(x['label'] for x in g['rows']),['Gốc vay','Gốc vay › Kết','Gốc vay › Kết'])   # hai khoản của Kết gộp theo tên người
         self.assertTrue(r['reconciled'])
@@ -90,7 +95,7 @@ class P18Acceptance(unittest.TestCase):
         self.err('category-delete',category=ld['id'],reason='không được')
         self.err('category-delete',category=self.nodes()['Loans']['id'],reason='còn con')
         self.err('category-delete',category=self.nodes()['Kết']['id'],reason='đã dùng')            # K1 từng phân loại vào Kết
-        self.classify(['K1'],[dict(category='principal',profile=self.l5)])
+        self.act('category-object-add',category='principal',profile=self.person);self.classify(['K1'],[dict(category='principal',profile=self.l5)])
         self.err('category-delete',category=self.nodes()['Kết']['id'],reason='đã dùng rồi bỏ')    # đã từng dùng, vẫn chỉ lưu trữ
         self.act('category-create',name='Thử',description='',parent='expense');n=self.nodes()['Thử'];self.assertTrue(n['deletable'])
         self.err('category-delete',category=n['id'],reason='')

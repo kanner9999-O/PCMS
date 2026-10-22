@@ -22,7 +22,7 @@ class P36Acceptance(base.P35Acceptance):
     def test_used_loan_group_and_legacy_categories_are_kept(self):
         c=self.cands();self.assertNotIn('Gốc vay › Kết',c);self.assertEqual({x for x in c if 'Loans' in x},{'Gốc vay › Loans','Gốc vay › Loans › Long debt'})   # đã có phân loại → giữ; chưa dùng → dọn (cha sau con)
         self.act('category-create',name='Lịch sử',description='',parent='investment');h=self.nodes()['Lịch sử']['id']
-        self.act('legacy-import',category=h,name='Xuân Mai X',text="05/06/2023\tA\tFT1\t30,000,000\t\t1\n");self.assertNotIn('Đầu tư BĐS › Lịch sử',self.cands())   # có nhập lịch sử cũ → giữ
+        self.act('legacy-import',account=self.account,category=h,name='Xuân Mai X',text="05/06/2023\tA\tFT1\t30,000,000\t\t1\n");self.assertNotIn('Đầu tư BĐS › Lịch sử',self.cands())   # có nhập lịch sử cũ → giữ
         self.act('object-create',name='Người vay',type='PERSON',category=self.nodes()['Long debt']['id']);self.assertFalse({x for x in self.cands() if 'Loans' in x})   # có đối tượng → giữ cả cha
 
 if __name__=='__main__':unittest.main()

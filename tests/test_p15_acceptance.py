@@ -14,7 +14,7 @@ def D_(x):return Decimal(str(x))
 
 class P15Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.build()
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False;self.build()
     def tearDown(self):self.tmp.cleanup()
     def act(self,a,**d):return self.store.apply(a,d,str(uuid4()))
     def err(self,a,**d):

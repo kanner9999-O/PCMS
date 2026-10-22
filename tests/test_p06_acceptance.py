@@ -26,7 +26,7 @@ def seed(store):
 
 class P06Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.account,self.loans,self.payments=seed(self.store)
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False;self.account,self.loans,self.payments=seed(self.store)
     def tearDown(self):self.tmp.cleanup()
     def act(self,action,**data):return self.store.apply(action,data,str(uuid4()))
     def data(self,**kw):return dict(profile=self.loans[0],start='2026-10-01',end='2026-10-31',payments=[dict(transaction=self.payments[0],amount='1200000')],waiver='0',convention_basis='Thỏa thuận giả lập riêng cho bảng kê')|kw

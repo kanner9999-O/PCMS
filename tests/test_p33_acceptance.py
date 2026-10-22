@@ -56,11 +56,15 @@ class P33Acceptance(base.P18Acceptance):
         self.assertEqual([x['name'] for x in self.biz()['unassigned']],['Mới']);self.assertEqual(D_(self.biz()['totals']['receivable']),12000000)
         self.assertEqual(self.store.view()['objects']['issues'],[])                                                         # Danh mục và Đối tượng đã đồng nhất
         node=next(r for r in self.store.view()['categories']['roots'] if r['key']=='principal');o=next(x for x in node['objects'] if x['profile']==self.person)
-        self.assertEqual((o['name'],sorted(k['name'] for k in o['loans']),o['totals']['transactions']),('Kết',['Kết 10tr','Kết 5tr'],4));self.assertNotIn(self.l5,[x['profile'] for x in node['objects']])
+        self.assertEqual((o['name'],sorted(k['name'] for k in o['loans'])),('Kết',['Kết 10tr','Kết 5tr']))
+        # R191 (spec 042): tổng đối tượng theo đúng danh mục phân bổ. K2, K3 phân bổ ở Gốc vay; K1 ở danh mục con Gốc vay › Kết và K4 ở Lãi vay, nơi Kết chưa là thành viên → không cộng vào Kết ở Gốc vay mà hiện là sai lệch quan hệ cần đối chiếu.
+        self.assertEqual(o['totals']['transactions'],2)
+        iss={(i['reference'],i['path']) for i in self.store.view()['categories']['classification_issues'] if i['object']=='Kết'};self.assertEqual(iss,{('K1','Gốc vay › Kết'),('K4','Lãi vay')})
+        seen={self.tx(r)['id'] for r in ('K2','K3')};self.assertEqual({r['transaction'] for r in self.store.category_history(dict(category='principal',object=self.person))['rows']},seen)   # lịch sử khớp tổng
         c1=self.store.view()['categories']
         for r0,r1 in zip(c0['roots'],c1['roots']):self.assertEqual(r0['totals'],r1['totals'])
         self.assertEqual(self.store.report(self.store.state(),self.account),rep0);self.assertEqual(self.store.debt_register(self.store.state()),debt0)
-        h=self.store.category_history(dict(category='principal',object=self.person));self.assertTrue({'K1','K2','K3'}<={r['reference'] for r in h['rows']})   # lịch sử của người gồm khoản vay của họ
+        h=self.store.category_history(dict(category='principal',object=self.person));self.assertEqual({r['reference'] for r in h['rows']},{'K2','K3'})   # lịch sử của người gồm khoản vay của họ, đúng danh mục phân bổ (R191)
         self.err('category-object-remove',category='principal',profile=self.person,reason='x')                                 # còn khoản vay thuộc danh mục
         self.act('classify',ids=[self.tx('X1')['id']],parts=[dict(category='principal',profile=self.l5)])               # vẫn phân loại được sau hợp nhất
 

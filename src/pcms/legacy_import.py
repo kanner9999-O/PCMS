@@ -16,6 +16,10 @@ DEFAULT_MAPPING=['date','description','reference','out','in','balance']
 ROLES={'date','description','reference','out','in','amount','balance','note','skip'}
 
 def norm_ref(value):
+    return str(value or '').strip().upper()
+
+def base_ref(value):
+    """Reference without the bank suffix after a backslash (FT…\\BNK → FT…); only used to flag near-duplicates and old unresolved rows."""
     return str(value or '').split('\\')[0].strip().upper()
 
 def parse_date(cell):
@@ -40,26 +44,63 @@ def parse_num(cell,signed=False):
     return int(value)
 
 class LegacyImport:
-    def legacy_bank_refs(self,s):
-        return {norm_ref(t['reference']) for t in s['transactions'] if norm_ref(t['reference'])}
+    def legacy_account(self,s,e):
+        return next((b.get('account') for b in s.get('legacy_batches',[]) if b['id']==e['batch']),None)
+
+    def legacy_identity_status(self,s):
+        """Status of every active legacy row under the identity rule (account + full normalized reference, R192/R193).
+        ACTIVE: counted; DUPLICATE / MATCHED_BANK: same identity and same content already recorded (not counted again);
+        CONFLICT: same identity, different content; NEAR_DUPLICATE: same account, reference differs only by suffix (both not counted, need review); UNRESOLVED(_MATCH): no account yet (old data, provisional)."""
+        active={b['id'] for b in s.get('legacy_batches',[]) if b['status']=='ACTIVE'}
+        seen={};result={};near={(t['account'],base_ref(t['reference'])):norm_ref(t['reference']) for t in s['transactions'] if norm_ref(t['reference'])}
+        for t in s['transactions']:
+            seen[(t['account'],norm_ref(t['reference']))]=((t['date'],str(abs(Decimal(t['signed_amount']))),'IN' if Decimal(t['signed_amount'])>0 else 'OUT',t['description']),'MATCHED_BANK')
+        for e in s.get('legacy_entries',[]):
+            if e['batch'] not in active:continue
+            account=self.legacy_account(s,e);ref=norm_ref(e['reference'])
+            if not account or not ref:
+                # Dữ liệu cũ chưa có tài khoản: giữ cách tính tạm như trước (ẩn nếu mã gốc trùng sao kê) cho tới khi người dùng xác định tài khoản.
+                result[e['id']]='UNRESOLVED_MATCH' if base_ref(e['reference']) and any(base_ref(t['reference'])==base_ref(e['reference']) for t in s['transactions']) else 'UNRESOLVED'
+                continue
+            key=(account,ref);payload=(e['date'],e['amount'],e['direction'],e['description'])
+            if key in seen:result[e['id']]=seen[key][1] if seen[key][0]==payload else 'CONFLICT'
+            elif (account,base_ref(e['reference'])) in near and near[(account,base_ref(e['reference']))]!=ref:result[e['id']]='NEAR_DUPLICATE'     # gần trùng khác hậu tố với nguồn khác cùng tài khoản: không tự gộp, không cộng, cần đối chiếu
+            else:seen[key]=(payload,'DUPLICATE');near.setdefault((account,base_ref(e['reference'])),ref);result[e['id']]='ACTIVE'
+        return result
 
     def legacy_items(self,s):
-        """Pseudo transactions (and their single part) for active, not-in-statement legacy rows."""
-        batches={b['id'] for b in s.get('legacy_batches',[]) if b['status']=='ACTIVE'}
-        if not batches:return
-        refs=self.legacy_bank_refs(s);nodes={n['id']:n for n in s.get('categories',[])}
+        """Only resolved unique rows count; unresolved history is explicitly reported separately."""
+        statuses=self.legacy_identity_status(s);nodes={n['id']:n for n in s.get('categories',[])}
         for e in s.get('legacy_entries',[]):
-            if e['batch'] not in batches:continue
-            ref=norm_ref(e['reference'])
-            if ref and ref in refs:continue
+            if statuses.get(e['id']) not in {'ACTIVE','UNRESOLVED'}:continue
             key=e['category'];part={'category':key,'amount':e['amount'],'profile':e['profile']}
             if key not in ROOTS:
                 node=nodes.get(key)
                 if node is None:continue
                 part['category']=node['root'];part['node']=key
-            t=dict(id=e['id'],account=None,date=e['date'],reference=e['reference'] or '—',description=e['description'],signed_amount=e['amount'] if e['direction']=='IN' else '-'+e['amount'],
+            t=dict(id=e['id'],account=self.legacy_account(s,e),date=e['date'],reference=e['reference'],description=e['description'],signed_amount=e['amount'] if e['direction']=='IN' else '-'+e['amount'],
                 allocations=[part],sources=[],legacy=True,order=0,classification_history=[],source_row=e['row'],bank_balance=e.get('bank_balance'),note=e.get('note',''),voucher=e.get('voucher',''))
             yield t,part
+
+    def legacy_account_preview(self,d,s=None):
+        """Exact simulation of assigning a source account to an old batch: before/after statuses come from the same rule used after the change."""
+        s=copy.deepcopy(s or self.state());cat_state(s);s.setdefault('legacy_batches',[]);s.setdefault('legacy_entries',[])
+        b=item(s['legacy_batches'],d.get('batch'));require(b['status']=='ACTIVE','Lần migrate không hoạt động.')
+        require(not b.get('account'),'Lần migrate này đã có tài khoản nguồn.')
+        account=d.get('account');require(account and any(a['id']==account for a in s['accounts']),'Chọn tài khoản nguồn.')
+        before=self.legacy_identity_status(s);after_s=copy.deepcopy(s);item(after_s['legacy_batches'],b['id'])['account']=account;after=self.legacy_identity_status(after_s)
+        mine=[e for e in s['legacy_entries'] if e['batch']==b['id']];counted={'ACTIVE','UNRESOLVED'}
+        def total(st,es):return sum(((Decimal(e['amount']) if e['direction']=='IN' else -Decimal(e['amount'])) for e in es if st.get(e['id']) in counted),Decimal(0))
+        issues=[]
+        for e in mine:
+            if after.get(e['id'])=='CONFLICT':issues.append(dict(row=e['row'],message=f"Dòng {e['row']}: mã {e['reference']} đã có trong tài khoản này với nội dung khác; cần đối chiếu."))
+        for e in mine:
+            if after.get(e['id'])=='NEAR_DUPLICATE':issues.append(dict(row=e['row'],message=f"Dòng {e['row']}: mã {e['reference']} gần trùng một mã đã có trong tài khoản này (khác hậu tố); cần đối chiếu, không tự gộp."))
+        others=[e for e in s['legacy_entries'] if e['batch']!=b['id'] and before.get(e['id'])!=after.get(e['id'])]
+        if others:issues.append(dict(row=None,message=f"Xác định tài khoản này làm đổi cách tính {len(others)} dòng của lần migrate khác; xử lý lần migrate trùng trước (hủy hoặc đối chiếu), không tự chuyển số giữa các đối tượng."))
+        rows=[dict(row=e['row'],reference=e['reference'],date=e['date'],amount=e['amount'],direction=e['direction'],before=before.get(e['id']),after=after.get(e['id'])) for e in mine]
+        return dict(batch=b['id'],account=account,rows=rows,issues=issues,before_total=str(total(before,mine)),after_total=str(total(after,mine)),
+            matched_bank=sum(after.get(e['id'])=='MATCHED_BANK' for e in mine),duplicates=sum(after.get(e['id'])=='DUPLICATE' for e in mine),conflicts=sum(after.get(e['id']) in {'CONFLICT','NEAR_DUPLICATE'} for e in mine),draft=True)
 
     def legacy_parse(self,text,mapping=None):
         lines=text.replace('\r\n','\n').replace('\r','\n').split('\n')
@@ -114,23 +155,53 @@ class LegacyImport:
                 require(1<=len(name)<=100,'Chọn đối tượng có sẵn hoặc nhập tên đối tượng mới (1–100 ký tự).')
                 prof=self.profile_clash(s,name)
             active={b['id'] for b in s['legacy_batches'] if b['status']=='ACTIVE'}
-            seen={(norm_ref(e['reference']),e['date'],e['amount'],e['direction']) for e in s['legacy_entries'] if e['batch'] in active and prof and e['profile']==prof['id'] and norm_ref(e['reference'])}
-            bank=self.legacy_bank_refs(s);tin=tout=0;matched=dups=0;rows=parsed['rows']
+            account=d.get('account') or None
+            require(account and any(a['id']==account for a in s['accounts']),'Chọn tài khoản nguồn; không suy đoán tài khoản từ mã giao dịch.')
+            seen={}
+            for t in s['transactions']:
+                if t['account']==account:seen[norm_ref(t['reference'])]=(t['date'],str(abs(Decimal(t['signed_amount']))),'IN' if Decimal(t['signed_amount'])>0 else 'OUT',t['description'],'MATCHED_BANK')
+            near={base_ref(t['reference']):t['reference'] for t in s['transactions'] if t['account']==account}
+            for e in s['legacy_entries']:
+                if e['batch'] in active and self.legacy_account(s,e)==account and norm_ref(e['reference']):near.setdefault(base_ref(e['reference']),e['reference'])
+            for e in s['legacy_entries']:
+                if e['batch'] in active and self.legacy_account(s,e)==account:
+                    seen.setdefault(norm_ref(e['reference']),(e['date'],e['amount'],e['direction'],e['description'],'DUPLICATE'))
+            tin=tout=0;matched=dups=0;rows=parsed['rows'];paste_refs={};paste_bases={}
             for r in rows:
                 if r['status']!='OK':continue
                 amt=int(r['amount']);tin+=amt if r['direction']=='IN' else 0;tout+=amt if r['direction']=='OUT' else 0
-                ref=norm_ref(r['reference']);k=(ref,r['date'],r['amount'],r['direction'])
-                if ref and k in seen:r['status']='DUPLICATE';dups+=1;continue
-                if ref:seen.add(k)
-                if ref and ref in bank:r['status']='MATCHED_BANK';matched+=1
+                ref=norm_ref(r['reference']);payload=(r['date'],r['amount'],r['direction'],r['description'])
+                if not ref:
+                    r.update(status='ERROR',message='Thiếu mã giao dịch nguồn; chưa thể định danh.');parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                if ref in paste_refs:
+                    r.update(status='ERROR',message=f"Mã lặp trong cùng lần dán (trùng dòng {paste_refs[ref]}); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                pb=base_ref(r['reference'])
+                if pb in paste_bases and paste_bases[pb][0]!=ref:                                   # gần trùng trong cùng lần dán: cùng quy tắc như giữa các nguồn
+                    r.update(status='ERROR',message=f"Mã gần trùng dòng {paste_bases[pb][1]} ({paste_bases[pb][2]}) trong cùng lần dán (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                paste_refs[ref]=r['row'];paste_bases.setdefault(pb,(ref,r['row'],r['reference']))
+                old=seen.get(ref)
+                if not old and base_ref(r['reference']) in near and norm_ref(near[base_ref(r['reference'])])!=ref:
+                    r.update(status='ERROR',message=f"Mã gần trùng {near[base_ref(r['reference'])]} đã có trong tài khoản này (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
+                if old:
+                    if old[:4]!=payload:
+                        r.update(status='ERROR',message='Cùng mã trong tài khoản nhưng nội dung khác; cần đối chiếu.');parsed['issues'].append(dict(row=r['row'],message=r['message']))
+                    else:
+                        r['status']=old[4]
+                        if r['status']=='MATCHED_BANK':matched+=1
+                        else:dups+=1
             declared=parsed['declared'];totals_ok=None if declared is None else (declared['in']==tin and declared['out']==tout)
-            importable=sum(1 for r in rows if r['status'] in {'OK','MATCHED_BANK'})
+            importable=sum(1 for r in rows if r['status'] in {'OK','MATCHED_BANK'})       # dòng trùng sao kê vẫn được lưu làm chứng từ truy nguyên, không cộng tiền lần hai
             return dict(columns=parsed['columns'],mapping=parsed['mapping'],rows=rows,issues=parsed['issues'],totals={'in':str(tin),'out':str(tout)},declared={k:str(v) for k,v in declared.items()} if declared else None,totals_ok=totals_ok,
                 importable=importable,matched_bank=matched,duplicates=dups,object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof),kind=prof['kind'] if prof else (d.get('type') or 'OBJECT')),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
 
     def change_legacy(self,s,action,d):
         from .p01 import now
         cat_state(s);s.setdefault('legacy_batches',[]);s.setdefault('legacy_entries',[])
+        if action=='legacy-resolve-account':
+            reason=str(d.get('reason') or '').strip();require(reason,'Cần lý do xác định tài khoản.')
+            p=self.legacy_account_preview(d,s);require(not p['issues'],'Có xung đột nguồn; chưa xác định tài khoản.')
+            b=item(s['legacy_batches'],d.get('batch'));b.setdefault('account_history',[]).append(dict(at=now(),before=b.get('account'),after=d['account'],reason=reason))
+            b['account']=d['account'];return 'Đã xác định tài khoản; bản dán gốc giữ nguyên'
         if action=='legacy-import':
             p=self.legacy_preview(d,s);require(not p['issues'],'Còn dòng lỗi: sửa dữ liệu dán rồi xem trước lại.');require(p['importable']>0,'Không có dòng mới để nhập.')
             require(p['totals_ok'] is not False or d.get('accept_total_mismatch') is True,'Tổng các dòng lệch dòng tổng; xác nhận rõ nếu vẫn muốn nhập.')
@@ -141,7 +212,7 @@ class LegacyImport:
             if not any(e['category']==key and e['profile']==prof['id'] and e['status']=='ACTIVE' for e in s['category_objects']):
                 s['category_objects'].append(dict(id=uid(),category=key,profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=key)]))
             text=str(d['text']);bid=uid()
-            s['legacy_batches'].append(dict(id=bid,at=now(),source_text=text,sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),category=key,profile=prof['id'],mapping=p['mapping'],rows=p['importable'],
+            s['legacy_batches'].append(dict(id=bid,at=now(),account=d['account'],source_text=text,sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),category=key,profile=prof['id'],mapping=p['mapping'],rows=p['importable'],
                 totals=p['totals'],declared=p['declared'],accepted_mismatch=p['totals_ok'] is False,status='ACTIVE'))
             n=0
             for r in p['rows']:

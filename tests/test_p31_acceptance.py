@@ -33,13 +33,13 @@ class P31Acceptance(base.P18Acceptance):
     def test_legacy_import_by_name_reuses_existing_profile_of_any_kind(self):
         self.act('object-quick-create',kind='PROPERTY',name='Xuân Mai');xm=self.pid('PROPERTY','Xuân Mai');n=len(self.store.state()['profiles'])
         txt="05/06/2023\tA\tFT1\t30,000,000\t\t1\n"
-        p=self.store.legacy_preview(dict(category=self.prop_cat,name='XUÂN MAI',text=txt));self.assertEqual((p['object']['exists'],p['object']['kind'],p['object']['profile']),(True,'PROPERTY',xm))
-        self.act('legacy-import',category=self.prop_cat,name='XUÂN MAI',text=txt);self.assertEqual(len(self.store.state()['profiles']),n)                 # không tạo hồ sơ mới
+        p=self.store.legacy_preview(dict(account=self.account,category=self.prop_cat,name='XUÂN MAI',text=txt));self.assertEqual((p['object']['exists'],p['object']['kind'],p['object']['profile']),(True,'PROPERTY',xm))
+        self.act('legacy-import',account=self.account,category=self.prop_cat,name='XUÂN MAI',text=txt);self.assertEqual(len(self.store.state()['profiles']),n)                 # không tạo hồ sơ mới
         self.assertIn(xm,self.members());self.assertEqual(self.members()[xm]['totals']['transactions'],1)
 
     def test_duplicate_warning_and_merge_object_into_property(self):
         self.make_dup();m=self.members();self.assertEqual((set(m),[d['kind'] for d in m[self.xo]['duplicate_of']],[d['kind'] for d in m[self.xm]['duplicate_of']]),({self.xm,self.xo},['PROPERTY'],['OBJECT']))
-        self.act('legacy-import',category=self.prop_cat,profile=self.xo,text="05/06/2023\tA\tFT1\t30,000,000\t\t1\n07/06/2023\tB\tFT2\t\t10,000,000\t1\n")
+        self.act('legacy-import',account=self.account,category=self.prop_cat,profile=self.xo,text="05/06/2023\tA\tFT1\t30,000,000\t\t1\n07/06/2023\tB\tFT2\t\t10,000,000\t1\n")
         self.classify(['K1'],[dict(category='investment',node=self.prop_cat,profile=self.xo)])                                                          # giao dịch ngân hàng gắn bản trùng
         before=self.members()[self.xo]['totals'];self.assertEqual(before,{'in':'10000000','out':'35000000','transactions':3})
         alloc_before=self.tx('K1')['allocations'];rep0=self.store.report(self.store.state(),self.store.state()['accounts'][0]['id'])

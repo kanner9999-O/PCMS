@@ -31,7 +31,7 @@ def seed(store):
 
 class P07Acceptance(unittest.TestCase):
     def setUp(self):
-        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.loans=seed(self.store)
+        self.tmp=tempfile.TemporaryDirectory();self.store=P01Store(self.tmp.name);self.store.require_membership=False;self.loans=seed(self.store)
     def tearDown(self):self.tmp.cleanup()
     def act(self,a,**d):return self.store.apply(a,d,str(uuid4()))
     def test_completion_reopen_stale_immutable_backup(self):
