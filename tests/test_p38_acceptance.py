@@ -33,6 +33,7 @@ class P38Acceptance(base.P37Acceptance):
         self.act('category-template',template='no-voucher');nv=self.nodes()['Chi khác không chứng từ']['id']
         self.act('classify',ids=[self.tx('X1')['id']],parts=[dict(category='expense',node=nv)],note='Chi giấy tờ')
         self.err('transaction-note',transaction=self.tx('X1')['id'],note='')                                              # danh mục yêu cầu ghi chú
-        self.act('legacy-import',account=self.account,category=nv,name='Cũ NV',text=TXT,mapping=MAP)
+        self.err('legacy-import',account=self.account,category=nv,name='Cũ NV',text=TXT,mapping=MAP)                     # FT2 thiếu ghi chú (spec 043, review vòng 2)
+        self.act('legacy-import',account=self.account,category=nv,name='Cũ NV',text=TXT.replace('\t1\t\n','\t1\tTrả lại tiền cọc\n'),mapping=MAP)
         e=next(x for x in self.store.state()['legacy_entries'] if x['reference']=='FT2');self.err('transaction-note',transaction=e['id'],note='')   # dòng lịch sử cũ cũng bị ràng buộc
 if __name__=='__main__':unittest.main()

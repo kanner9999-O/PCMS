@@ -547,7 +547,7 @@ document.querySelectorAll('[data-fix-classification]').forEach(btn=>btn.onclick=
 document.addEventListener('click',e=>{const b=e.target.closest('[data-reclass-tx]');if(b&&!b.disabled){e.preventDefault();reclassifyForm(b.dataset.reclassTx)}});
 function reclassSource(id){const t=state().transactions.find(x=>x.id===id);if(t)return{t,legacy:false,parts:t.allocations.length?t.allocations:[{category:'unknown',amount:String(Math.abs(Number(t.signed_amount))),profile:null}]};
 const e=(state().legacy_entries||[]).find(x=>x.id===id);if(!e)return null;const n=(view.categories.nodes||[]).find(x=>x.id===e.category);
-return{t:{id:e.id,date:e.date,reference:e.reference,description:e.description,signed_amount:e.direction==='IN'?e.amount:'-'+e.amount,account:null},legacy:true,parts:[{category:n?n.root:e.category,node:n?n.id:undefined,amount:e.amount,profile:e.profile}]}}
+return{t:{id:e.id,date:e.date,reference:e.reference,description:e.description,signed_amount:e.direction==='IN'?e.amount:'-'+e.amount,account:null,note:e.note||''},legacy:true,parts:[{category:n?n.root:e.category,node:n?n.id:undefined,amount:e.amount,profile:e.profile}]}}
 function reclassPartLabel(p){const c=view.categories,n=p.node&&c.nodes.find(x=>x.id===p.node),path=n?n.path:(categories[p.category]||p.category),pr=p.profile&&state().profiles.find(x=>x.id===p.profile),owner=pr&&pr.kind==='LOAN'&&pr.party?state().profiles.find(x=>x.id===pr.party):pr;
 return`${esc(path)}${owner?' · '+esc(owner.name):''}${pr&&pr.kind==='LOAN'?' <small>(khoản vay '+esc(pr.name)+')</small>':''}${pr&&pr.kind==='PROPERTY'?' <small>(BĐS)</small>':''} · <strong>${fmt(p.amount)}</strong>`}
 function reclassifyForm(id,preset={}){const src=reclassSource(id);if(!src)return toast('Không tìm thấy giao dịch.',true);const{t,parts,legacy}=src,c=view.categories;
@@ -560,18 +560,20 @@ modal('Sửa phân loại',`<p class="muted">Chỉ đổi danh mục và/hoặc 
 <label class="field">Đối tượng (thành viên của danh mục đích)<select id="rc-obj"></select></label><select id="rc-loan" hidden aria-label="Khoản vay"></select>
 <div id="rc-add" class="muted"></div>
 ${field('Lý do thay đổi','reason')}
+<label class="field">Ghi chú giao dịch <small id="rc-note-hint" class="muted"></small><textarea id="rc-note" rows="2">${esc(t.note||'')}</textarea></label>
 <button type="button" id="rc-preview">Xem trước</button>${legacy?'':` <button type="button" id="rc-split" class="muted">Chia lại số tiền giữa các phần…</button>`}
 <div id="rc-result"></div><label class="field" id="rc-ack-wrap" hidden><span><input type="checkbox" id="rc-ack"> Tôi đã xem tác động lên công nợ / lãi / tài sản ở trên và đồng ý thay đổi.</span></label>`,
 async f=>{if(!reviewed||reviewed.sig!==selSig())return toast('Lựa chọn đã thay đổi; bấm Xem trước lại.',true),false;const reason=f.get('reason');if(!String(reason||'').trim())return toast('Cần lý do thay đổi.',true),false;
 if(reviewed.p.level==='B'&&!$('#rc-ack').checked)return toast('Xác nhận đã xem tác động lên công nợ / lãi / tài sản.',true),false;
 if(reviewed.p.needs_adjustment&&!await act('begin-adjustment',{account:t.account,reason}))return false;
-const ok=await act('transaction-reclassify',{transaction:id,part:reviewed.part,category:reviewed.category,profile:reviewed.profile||null,reason,review_token:reviewed.p.review_token,confirm_business:reviewed.p.level==='B'?true:undefined});
+const ok=await act('transaction-reclassify',{transaction:id,part:reviewed.part,category:reviewed.category,profile:reviewed.profile||null,reason,note:reviewed.note,review_token:reviewed.p.review_token,confirm_business:reviewed.p.level==='B'?true:undefined});
 if(ok)toast('Đã sửa phân loại. Tổng các màn đã cập nhật.');return ok},'Xác nhận sửa');
 const ok=()=>$('#modal-form .actions .primary');ok().disabled=true;
 const target=()=>{const v=cascValue(c,path);return{category:v.node||v.category,root:v.category,node:v.node}};
 const objProfile=()=>{const ls=$('#rc-loan');return(!ls.hidden&&ls.value)?ls.value:($('#rc-obj').value||'')};
-const selSig=()=>JSON.stringify([part,target().category,objProfile()]);
-const invalidate=()=>{reviewed=null;ok().disabled=true;$('#rc-result').innerHTML='';$('#rc-ack-wrap').hidden=true;$('#rc-ack').checked=false};
+const noteVal=()=>{const v=$('#rc-note').value.trim();return v===(t.note||'').trim()?null:v};   // null = giữ ghi chú hiện có
+const selSig=()=>JSON.stringify([part,target().category,objProfile(),noteVal()]);
+const invalidate=()=>{const n=target().node&&c.nodes.find(x=>x.id===target().node);$('#rc-note-hint').textContent=n&&n.note_required?'(bắt buộc với danh mục này)':'';reviewed=null;ok().disabled=true;$('#rc-result').innerHTML='';$('#rc-ack-wrap').hidden=true;$('#rc-ack').checked=false};
 const syncLoan=()=>{const ls=$('#rc-loan'),person=$('#rc-obj').value,cat=target().root,loans=(['principal','interest'].includes(cat)&&person)?state().profiles.filter(l=>l.kind==='LOAN'&&l.party===person&&!l.merged_into):[];
 if(!loans.length){ls.hidden=true;ls.innerHTML='';return}const cur=parts[part].profile;ls.innerHTML=(loans.length>1?'<option value="">Chọn khoản vay…</option>':'')+loans.map(l=>{const o=(view.loan_options||[]).find(x=>x.id===l.id);return`<option value="${l.id}">${esc(o?loanLabel(o):l.name)}</option>`}).join('');ls.value=loans.some(l=>l.id===cur)?cur:(loans.length===1?loans[0].id:'');ls.hidden=loans.length===1}
 const renderObjects=()=>{const tg=target(),list=membersOf(tg.root,tg.node),cur=parts[part].profile,pr=cur&&state().profiles.find(x=>x.id===cur),owner=pr&&pr.kind==='LOAN'&&pr.party?pr.party:cur,sel=$('#rc-obj');
@@ -584,10 +586,10 @@ const cascLabelOf=tg=>{const n=tg.node&&c.nodes.find(x=>x.id===tg.node);return n
 const renderCascade=()=>{const box=$('#rc-cascade');box.innerHTML='';for(let i=0;i<4;i++){const opts=i===0?cascRootOptions(c):cascChildren(c,path[i-1]||'').map(n=>[n.id,n.name]);if(i>0&&(!path[i-1]||!opts.length))break;
 const s=document.createElement('select');s.innerHTML=(i?'<option value="">— không chọn danh mục con —</option>':'')+opts.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join('');s.value=path[i]||'';s.onchange=()=>{path=path.slice(0,i).concat(s.value?[s.value]:[]);addOpen=false;renderCascade();renderObjects();invalidate()};box.appendChild(s);if(!path[i])break}};
 const startFrom=i=>{part=i;const p=parts[i];path=cascPathFor(c,p.category==='transfer'?'transfer_pending':p.category,p.node||'');addOpen=false;renderCascade();renderObjects();invalidate()};
-document.querySelectorAll('[name=rc-part]').forEach(r=>r.onchange=()=>startFrom(Number(r.value)));$('#rc-obj').onchange=()=>{syncLoan();invalidate()};$('#rc-loan').onchange=invalidate;
+document.querySelectorAll('[name=rc-part]').forEach(r=>r.onchange=()=>startFrom(Number(r.value)));$('#rc-obj').onchange=()=>{syncLoan();invalidate()};$('#rc-loan').onchange=invalidate;$('#rc-note').oninput=invalidate;
 const sp=$('#rc-split');if(sp)sp.onclick=()=>classify([id]);
 $('#rc-preview').onclick=async()=>{const tg=target(),profile=objProfile();if(!$('#rc-loan').hidden&&!$('#rc-loan').value)return toast('Chọn khoản vay của người này.',true);
-try{const p=await call('/api/reclassify-preview',{transaction:id,part,category:tg.category,profile:profile||null});reviewed={p,part,category:tg.category,profile,sig:selSig()};renderPreview(p)}catch(e){reviewed=null;toast(e.message,true)}};
+try{const p=await call('/api/reclassify-preview',{transaction:id,part,category:tg.category,profile:profile||null,note:noteVal()});reviewed={p,part,category:tg.category,profile,note:noteVal(),sig:selSig()};renderPreview(p)}catch(e){reviewed=null;toast(e.message,true)}};
 const tot=x=>x?`vào ${fmt(x.in)} · ra ${fmt(x.out)} · ${x.transactions} giao dịch${x.parts!==undefined?' / '+x.parts+' phần':''}`:'—';
 const renderPreview=p=>{const blocks=p.blocks||[];ok().disabled=!!blocks.length;$('#rc-ack-wrap').hidden=!(p.level==='B'&&!blocks.length);
 $('#rc-result').innerHTML=`<div class="report-note"><strong>Trước → sau</strong> (phần ${p.part+1}, ${fmt(p.moved)} VND)<br>${esc(p.parts_before[p.part].path)}${p.parts_before[p.part].object?' · '+esc(p.parts_before[p.part].object):''}${p.parts_before[p.part].link?' <small>('+esc(p.parts_before[p.part].link)+')</small>':''} → <strong>${esc(p.parts_after[p.part].path)}${p.parts_after[p.part].object?' · '+esc(p.parts_after[p.part].object):''}</strong>${p.parts_after[p.part].link?' <small>('+esc(p.parts_after[p.part].link)+')</small>':''}

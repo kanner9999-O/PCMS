@@ -1,4 +1,6 @@
 import copy
+import json
+from uuid import uuid4
 import unittest
 from decimal import Decimal
 import test_p18_acceptance as base
@@ -127,6 +129,51 @@ class ReclassifyTests(base.P18Acceptance):
         e2=next(x for x in self.store.state()['legacy_entries'] if x['id']==e['id']);self.assertEqual((e2['profile'],e2['classification_history'][-1]['before']['profile']),(pb,pa))
         self.assertEqual(self.store.state()['legacy_batches'][-1]['source_text'],src)
         self.assertIn('LEGACY_ROOT',[x['code'] for x in self.store.reclassify_preview(dict(transaction=e['id'],part=0,category='expense',profile=None))['blocks']])
+
+    # ---- review PO vòng 2 (23/10/2026) -------------------------------------------------------------
+    def test_old_classify_api_cannot_make_business_change_with_any_flag(self):
+        """P1: đổi thu gốc → thu lãi qua API phân loại cũ bị từ chối dù gửi cờ gì (business_ack, _reclass, confirm_business); công nợ không đổi."""
+        self.act('category-object-add',category='interest',profile=self.person);debt0=self.store.debt_register(self.store.state());k3=copy.deepcopy(self.tx('K3'))
+        for extra in (dict(business_ack=True),dict(_reclass=True),dict(_reclass='RECLASS_GRANT'),dict(confirm_business=True,reason='x'),dict(business_ack=True,reason='Thu lãi')):
+            data=json.loads(json.dumps(dict(ids=[k3['id']],parts=[dict(category='interest',profile=self.l10)],**extra)))   # đúng như qua HTTP/JSON
+            with self.assertRaises(ValidationError) as c:self.store.apply('classify',data,str(uuid4()))
+            self.assertIn('Sửa phân loại',str(c.exception))
+        self.assertEqual(self.tx('K3')['allocations'],k3['allocations']);self.assertEqual(self.store.debt_register(self.store.state()),debt0)
+        self.act('classify',ids=[k3['id']],parts=k3['allocations'],reason='Không đổi nghiệp vụ')   # mức A vẫn qua đường cũ
+
+    def note_setup(self):
+        self.act('category-template',template='no-voucher');nv=self.nodes()['Chi khác không chứng từ']['id'];an,=self.nodes_make('Ăn uống')
+        pid=self.mk_person('Mỹ',an,nv);return nv,an,pid
+
+    def test_legacy_row_into_note_required_category_needs_note(self):
+        """P2: dòng lịch sử cũ chuyển vào danh mục bắt buộc ghi chú: thiếu ghi chú thì chặn ở xem trước và khi ghi; có ghi chú thì ghi và giữ dấu vết."""
+        nv,an,pid=self.note_setup()
+        self.act('legacy-import',category=an,profile=pid,account=self.account,text="05/06/2023\tTiền mặt\tFT9\t\t200,000\t1\n");e=self.store.state()['legacy_entries'][-1]
+        p=self.store.reclassify_preview(dict(transaction=e['id'],part=0,category=nv,profile=pid));self.assertEqual([b['code'] for b in p['blocks']],['NOTE_REQUIRED']);self.assertFalse(p['can_commit'])
+        self.err('transaction-reclassify',transaction=e['id'],part=0,category=nv,profile=pid,review_token=p['review_token'],reason='Không chứng từ')
+        self.err('transaction-reclassify',transaction=e['id'],part=0,category=nv,profile=pid,review_token=p['review_token'],reason='Không chứng từ',note='   ')
+        p=self.store.reclassify_preview(dict(transaction=e['id'],part=0,category=nv,profile=pid,note='Trả công phụ việc'));self.assertEqual(p['blocks'],[])
+        self.err('transaction-reclassify',transaction=e['id'],part=0,category=nv,profile=pid,review_token=p['review_token'],reason='Không chứng từ')      # đổi (bỏ) ghi chú sau xem trước
+        self.act('transaction-reclassify',transaction=e['id'],part=0,category=nv,profile=pid,review_token=p['review_token'],reason='Không chứng từ',note='Trả công phụ việc')
+        e2=next(x for x in self.store.state()['legacy_entries'] if x['id']==e['id']);self.assertEqual((e2['category'],e2['note'],e2['classification_history'][-1]['after']['note']),(nv,'Trả công phụ việc','Trả công phụ việc'))
+
+    def test_legacy_import_into_note_required_category_needs_note_per_row(self):
+        nv,an,pid=self.note_setup();m=['date','description','reference','out','in','balance','note']
+        txt="05/06/2023\tTiền mặt\tFT7\t100,000\t\t1\tCông thợ\n06/06/2023\tTiền mặt\tFT8\t50,000\t\t1\t\n"
+        p=self.store.legacy_preview(dict(account=self.account,category=nv,profile=pid,text=txt,mapping=m));self.assertEqual([r['status'] for r in p['rows']],['OK','ERROR']);self.assertFalse(p['can_import'])
+        self.err('legacy-import',account=self.account,category=nv,profile=pid,text=txt,mapping=m)
+        self.act('legacy-import',account=self.account,category=nv,profile=pid,text=txt.replace('1\t\n','1\tGửi xe\n'),mapping=m)
+        self.assertEqual([e.get('note') for e in self.store.state()['legacy_entries'][-2:]],['Công thợ','Gửi xe'])
+        self.act('legacy-import',account=self.account,category=an,profile=pid,text="07/06/2023\tĂn trưa\tFT6\t30,000\t\t1\n")   # danh mục thường không cần ghi chú
+
+    def test_bank_transaction_into_note_required_category_needs_note(self):
+        nv,an,pid=self.note_setup();k=next(t for t in self.store.state()['transactions'] if D_(t['signed_amount'])<0 and not t.get('note') and not t['allocations'])
+        self.act('classify',ids=[k['id']],parts=[dict(category='expense',node=an,profile=pid)])
+        p=self.store.reclassify_preview(dict(transaction=k['id'],part=0,category=nv,profile=pid));self.assertEqual([b['code'] for b in p['blocks']],['NOTE_REQUIRED'])
+        p=self.store.reclassify_preview(dict(transaction=k['id'],part=0,category=nv,profile=pid,note='Mua vật tư lẻ'));self.assertEqual(p['blocks'],[])
+        self.act('transaction-reclassify',transaction=k['id'],part=0,category=nv,profile=pid,review_token=p['review_token'],reason='Không chứng từ',note='Mua vật tư lẻ')
+        self.assertEqual((self.tx_by_id(k['id'])['allocations'][0]['node'],self.tx_by_id(k['id'])['note']),(nv,'Mua vật tư lẻ'))
+    def tx_by_id(self,i):return next(t for t in self.store.state()['transactions'] if t['id']==i)
 
     def test_review_token_survives_server_envelope(self):
         """server.py chèn mã phiên `token` vào mọi phản hồi; mã xem trước phải mang tên khác và vẫn dùng được (lỗi phát hiện khi dùng thử UI)."""

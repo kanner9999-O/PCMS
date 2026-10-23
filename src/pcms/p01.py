@@ -41,7 +41,7 @@ from .trx_energy import TrxEnergy
 from .categories import Categories, root_key, ROOTS as ROOT_NAMES
 from .business import Business
 from .objects import Objects
-from .reclassify import Reclassify
+from .reclassify import Reclassify, RECLASS_GRANT
 from .realty import Realty
 from .crypto_ledger import CryptoLedger
 from .assets import AssetOverview
@@ -92,7 +92,7 @@ class P01Store(Reclassify, Objects, Business, LegacyImport, AccountHistory, Asse
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management','reclassify'], 'build':'P45-2026-10-22'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management','reclassify'], 'build':'P46-2026-10-23'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -512,7 +512,8 @@ class P01Store(Reclassify, Objects, Business, LegacyImport, AccountHistory, Asse
                 # spec 043 (R197): thay đổi mức B (công nợ, lãi, tài sản) phải đi qua "Sửa phân loại" có xem trước tác động và xác nhận; nghiệp vụ đã tham chiếu thì chặn
                 level=self.reclass_level(s,t['allocations'],allocated);refs=self.reclass_reference_blocks(s,t,t['allocations'],allocated,level)
                 require(not refs,refs[0]['message'] if refs else '')
-                require(level=='A' or d.get('business_ack') is True,'Thay đổi này làm đổi công nợ, lãi hoặc tài sản. Dùng "Sửa phân loại" để xem tác động trước → sau và xác nhận.')
+                # chỉ "Sửa phân loại" cấp được quyền này (đối tượng trong tiến trình, JSON/API không tạo ra được); cờ do client gửi bị bỏ qua
+                require(level=='A' or d.get('_reclass') is RECLASS_GRANT,'Thay đổi này làm đổi công nợ, lãi hoặc tài sản. Dùng "Sửa phân loại" để xem trước tác động, nhập lý do và xác nhận.')
                 t['classification_history'].append({'at':now(),'before':copy.deepcopy(t['allocations']),'after':copy.deepcopy(allocated),'reason':reason})
                 t['allocations']=[] if len(allocated)==1 and allocated[0]['category']=='unknown' else allocated
                 need=any(self.cat_flag(s,x.get('node'),'note_required') for x in allocated);final=str(d['note']).strip() if d.get('note') is not None else t.get('note','')

@@ -444,3 +444,6 @@ Bản nháp của coder Codex được hoàn thiện trong worktree riêng (bả
 
 ## P45 (22/10/2026) – Sửa phân loại giao dịch (spec 043, R195–R200, A60–A61)
 Chức năng chung "Sửa phân loại" từ mọi dòng giao dịch; ghi qua `classify`; xem trước bằng mô phỏng đúng thao tác ghi (tổng danh mục/đối tượng/nguồn, tác động dư nợ/lãi/giá gốc); mức A/B ở backend (B cần xác nhận riêng, Thạch chọn cho phép kể cả đã duyệt); chặn khi đã bị nghiệp vụ tham chiếu; `review_token` chống ghi theo xem trước cũ; nhiều phần; lịch sử cũ. Kiểm thử 417 test + 9 node; dùng thử UI trên dữ liệu giả (phát hiện và sửa lỗi mã xem trước bị server ghi đè); đối chiếu bản sao chỉ đọc dữ liệu thật: mọi tổng giống P44. Bằng chứng: `specs/043-reclassify/review.md`.
+
+## P46 (23/10/2026) – Spec 043 review vòng 2
+P1: đổi mức B chỉ qua "Sửa phân loại" (quyền nội bộ, API `classify` không lách được bằng cờ). P2: danh mục bắt buộc ghi chú áp dụng cho sửa và nhập dòng lịch sử cũ; hộp Sửa phân loại có ô ghi chú. 421 tests OK. Bằng chứng: `specs/043-reclassify/review.md` mục 7.
