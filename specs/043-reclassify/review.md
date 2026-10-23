@@ -43,3 +43,16 @@ Chưa sửa hàng loạt; chưa đổi số tiền giữa các phần ngay trong
 
 Test cũ dựng dữ liệu bằng `classify` mức B nay dùng `RECLASS_GRANT` trong tiến trình (tương đương đi qua "Sửa phân loại"). Kết quả: **421 tests OK**, node 9/9. Dữ liệu thật (đọc bản sao): chưa có danh mục bắt buộc ghi chú → 0 dòng bị ảnh hưởng. Build `P46-2026-10-23`.
 Giới hạn thêm: hộp Phân loại cũ ("Chia lại số tiền giữa các phần…") không đổi được mức B; đổi nghiệp vụ dùng "Sửa phân loại" từng phần.
+
+## 8. Phát hành và bằng chứng (cập nhật 23/10/2026, theo biên bản PO `docs/po-review-043-2026-10-23.md`)
+| Bản | PR / commit `main` | Kiểm `main` sạch | App `:8792` | Dữ liệu thật |
+|---|---|---|---|---|
+| P45-2026-10-22 | #41 → `35eea66` | 417 OK (một lần chạy lúc máy tải nặng có 1 lỗi; 3 lần chạy lại đều OK, chưa xác định được test) · node 9/9 | build P45, `p01.js` = `main` (`cb9f84e3…`) | hash `outputs/p01-user-trial` (153 file) và `private-data` (30 file) trước = sau |
+| P46-2026-10-23 | #42 → `904e9f6` | 421 OK · node 9/9 | build P46, `p01.js` = `main` (`bebea48c…`) | hash trước = sau; không gửi API ghi nào vào app thật |
+| (tài liệu + test) | PR này | 423 OK | không đổi mã chạy | — |
+
+Lần phát hành P45 ghi review/tasks trước khi phát hành nên T09 để mở; nay đã tick. Thêm test theo yêu cầu PO: cờ ghi chú kế thừa từ danh mục cha + bản dán gốc giữ nguyên; `business_ack` không thay được mã xem trước, lý do, xác nhận ở `transaction-reclassify`, đường hợp lệ vẫn ghi và giữ snapshot.
+
+**Quy trình (ghi trung thực):** cả lần đầu và vòng sửa 2 đều làm **thủ công** theo mẫu Spec Kit (không gọi slash command `/speckit-*`).
+
+**QA riêng cho PO:** `http://localhost:8807`, dữ liệu giả `/tmp/pcms-043-qa-r2` (dựng bằng `qa_seed.py` + mẫu "Chi khác không chứng từ", Mỹ là thành viên, một dòng lịch sử cũ `QA-L1` 150.000 ở Ăn uống không ghi chú). Ca gợi ý: (1) qua API gọi `classify` K3 → Lãi vay kèm `business_ack:true` → bị từ chối; (2) Sửa phân loại `QA-L1` → Chi khác không chứng từ: thiếu ghi chú bị chặn, nhập ghi chú → xem trước lại → ghi; (3) ca Kết, ca B K3 như mục 3.

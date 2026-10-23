@@ -157,6 +157,27 @@ class ReclassifyTests(base.P18Acceptance):
         self.act('transaction-reclassify',transaction=e['id'],part=0,category=nv,profile=pid,review_token=p['review_token'],reason='Không chứng từ',note='Trả công phụ việc')
         e2=next(x for x in self.store.state()['legacy_entries'] if x['id']==e['id']);self.assertEqual((e2['category'],e2['note'],e2['classification_history'][-1]['after']['note']),(nv,'Trả công phụ việc','Trả công phụ việc'))
 
+    def test_legacy_note_rule_inherited_from_parent_and_paste_kept(self):
+        """P2 (PO): cờ ghi chú kế thừa từ danh mục cha; bản dán gốc không đổi khi sửa dòng."""
+        nv,an,pid=self.note_setup();self.act('category-create',name='Phụ việc',description='',parent=nv);child=self.nodes()['Phụ việc']['id'];self.act('category-object-add',category=child,profile=pid)
+        self.act('legacy-import',category=an,profile=pid,account=self.account,text="08/06/2023\tTiền mặt\tFT5\t70,000\t\t1\n");b=copy.deepcopy(self.store.state()['legacy_batches'][-1]);e=self.store.state()['legacy_entries'][-1]
+        p=self.store.reclassify_preview(dict(transaction=e['id'],part=0,category=child,profile=pid));self.assertEqual(([x['code'] for x in p['blocks']],p['note']['required']),(['NOTE_REQUIRED'],True))
+        p=self.store.reclassify_preview(dict(transaction=e['id'],part=0,category=child,profile=pid,note='Công phụ hồ'))
+        self.act('transaction-reclassify',transaction=e['id'],part=0,category=child,profile=pid,review_token=p['review_token'],reason='Không chứng từ',note='Công phụ hồ')
+        b2=next(x for x in self.store.state()['legacy_batches'] if x['id']==b['id']);self.assertEqual((b2['source_text'],b2['sha256'],b2['rows']),(b['source_text'],b['sha256'],b['rows']))
+
+    def test_reclassify_business_change_rejects_bad_token_missing_reason_even_with_business_ack(self):
+        """P1 (PO): ở đường hợp lệ, cờ business_ack không thay được mã xem trước, lý do hay xác nhận."""
+        self.act('category-object-add',category='interest',profile=self.person);self.act('approve',account=self.account,reason='QA',confirm_unknown=True);snap=copy.deepcopy(self.store.state()['snapshots'][-1])
+        self.act('begin-adjustment',account=self.account,reason='Sửa');p=self.prev('K3',category='interest',profile=self.l10);base=dict(transaction=p['transaction'],part=0,category='interest',profile=self.l10,business_ack=True)
+        self.err('transaction-reclassify',**base,review_token='sai',reason='x',confirm_business=True)                     # mã sai
+        self.err('transaction-reclassify',**base,reason='x',confirm_business=True)                                         # thiếu mã
+        self.err('transaction-reclassify',**base,review_token=p['review_token'],confirm_business=True)                    # thiếu lý do
+        self.err('transaction-reclassify',**base,review_token=p['review_token'],reason='x')                                # thiếu xác nhận
+        self.assertEqual(self.tx('K3')['allocations'][0]['category'],'principal')
+        self.act('transaction-reclassify',**base,review_token=p['review_token'],reason='Thu lãi',confirm_business=True)   # đường hợp lệ vẫn ghi
+        self.assertEqual((self.tx('K3')['allocations'][0]['category'],self.store.state()['snapshots'][-1]),('interest',snap))
+
     def test_legacy_import_into_note_required_category_needs_note_per_row(self):
         nv,an,pid=self.note_setup();m=['date','description','reference','out','in','balance','note']
         txt="05/06/2023\tTiền mặt\tFT7\t100,000\t\t1\tCông thợ\n06/06/2023\tTiền mặt\tFT8\t50,000\t\t1\t\n"
