@@ -10,4 +10,6 @@
 - [x] T08b Nghiệm thu người dùng đại diện (PO theo CLAUDE.md) trên dữ liệu giả — `review.md` mục 3
 - [x] T09 Phát hành (P45, PR #41): PR, merge, kiểm `main` sạch, cập nhật thư mục vận hành, khởi động lại `:8792`, xác minh
 - [x] T10 Review vòng 2: P1 quyền mức B không gửi được qua API; P2 ghi chú bắt buộc khi sửa/nhập dòng lịch sử cũ — `review.md` mục 7
-- [ ] T11 Phát hành P46
+- [x] T11 Phát hành P46 (PR #42)
+- [x] T12 Test bổ sung theo biên bản PO (cờ kế thừa, bản dán gốc, token/lý do), bằng chứng phát hành, QA riêng `:8807` — `review.md` mục 8
+- [ ] T13 PO kiểm lại độc lập trên QA
