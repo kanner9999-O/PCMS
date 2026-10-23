@@ -144,6 +144,7 @@ class LegacyImport:
             ctx.prec=60
             s=copy.deepcopy(s or self.state());cat_state(s);s.setdefault('legacy_batches',[]);s.setdefault('legacy_entries',[])
             key=d.get('category');self.cat_target_root(s,key)
+            need_note=bool(self.cat_flag(s,key,'note_required'))
             text=str(d.get('text') or '');require(text.strip(),'Dán dữ liệu copy từ Google Sheets.');require(len(text)<=2_000_000,'Dữ liệu dán quá lớn.')
             parsed=self.legacy_parse(text,d.get('mapping'))
             pid=d.get('profile') or None;name=str(d.get('name') or '').strip()
@@ -179,6 +180,8 @@ class LegacyImport:
                 if pb in paste_bases and paste_bases[pb][0]!=ref:                                   # gần trùng trong cùng lần dán: cùng quy tắc như giữa các nguồn
                     r.update(status='ERROR',message=f"Mã gần trùng dòng {paste_bases[pb][1]} ({paste_bases[pb][2]}) trong cùng lần dán (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
                 paste_refs[ref]=r['row'];paste_bases.setdefault(pb,(ref,r['row'],r['reference']))
+                if need_note and not r.get('note'):                                                # cùng quy tắc với phân loại và "Sửa phân loại" (spec 043, review vòng 2)
+                    r.update(status='ERROR',message='Danh mục này yêu cầu ghi chú: chọn cột Ghi chú khi ánh xạ và điền mục đích cho dòng này.');parsed['issues'].append(dict(row=r['row'],message=r['message']));continue
                 old=seen.get(ref)
                 if not old and base_ref(r['reference']) in near and norm_ref(near[base_ref(r['reference'])])!=ref:
                     r.update(status='ERROR',message=f"Mã gần trùng {near[base_ref(r['reference'])]} đã có trong tài khoản này (khác hậu tố); cần đối chiếu, không tự gộp.");parsed['issues'].append(dict(row=r['row'],message=r['message']));continue

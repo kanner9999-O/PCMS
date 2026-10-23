@@ -14,6 +14,11 @@ BIZ_ROOTS={'principal','interest','investment'}
 ROOT_NAMES={'income','expense','principal','interest','investment','transfer','transfer_pending','unknown'}
 ROOT_OF={'transfer_pending':'transfer'}
 
+class _Grant:
+    """Quyền đổi mức B chỉ cấp bên trong "Sửa phân loại" (sau xem trước, mã xem trước, lý do, xác nhận). Không thể gửi qua API/JSON."""
+    __slots__=()
+RECLASS_GRANT=_Grant()
+
 def _root(category):
     return ROOT_OF.get(category,category)
 
@@ -93,6 +98,10 @@ class Reclassify:
             after=copy.deepcopy(before);after[idx]=new
             blocks=[];needs_membership=None
             same=lambda a,b:(a['category'],a.get('node') or None,a.get('profile') or None)==(b['category'],b.get('node') or None,b.get('profile') or None)
+            note_in=None if d.get('note') is None else str(d['note']).strip()[:1000]
+            current=(entry if entry is not None else t).get('note','') or ''
+            note=dict(required=bool(node and self.cat_flag(base,node['id'],'note_required')),current=current,final=current if note_in is None else note_in)
+            if note['required'] and not note['final']:blocks.append(dict(code='NOTE_REQUIRED',message='Danh mục đích yêu cầu ghi chú (khoản chi không chứng từ cần ghi rõ mục đích); nhập ghi chú rồi xem trước lại.'))
             if same(before[idx],new):blocks.append(dict(code='NO_CHANGE',message='Phần này đã ở đúng danh mục và đối tượng đã chọn.'))
             if node and node['status']!='ACTIVE':blocks.append(dict(code='ARCHIVED',message='Danh mục đích đang lưu trữ; khôi phục trước hoặc chọn danh mục khác.'))
             prof=None
@@ -113,10 +122,10 @@ class Reclassify:
             acc=next((a for a in base['accounts'] if a['id']==t['account']),None)
             result=dict(transaction=t['id'],legacy=entry is not None,source=dict(date=t['date'],account=acc['name'] if acc else None,reference=t['reference'],description=t['description'],amount=S(abs(D(t['signed_amount']))),direction='IN' if D(t['signed_amount'])>0 else 'OUT'),
                 part=idx,moved=S(D(before[idx]['amount'])),parts_before=[self.reclass_label(base,p) for p in before],parts_after=[self.reclass_label(base,p) for p in after],
-                level=level,approved=approved,needs_adjustment=bool(approved and not (acc or {}).get('adjustment_open')),needs_membership=needs_membership,blocks=blocks,effects=None,business=None,invariants=None,draft=True)
+                level=level,approved=approved,needs_adjustment=bool(approved and not (acc or {}).get('adjustment_open')),needs_membership=needs_membership,note=note,blocks=blocks,effects=None,business=None,invariants=None,draft=True)
             if not blocks:
                 sim=copy.deepcopy(base)
-                try:self.reclass_apply(sim,t['id'],idx,after,'Xem trước',simulate=True)
+                try:self.reclass_apply(sim,t['id'],idx,after,'Xem trước',simulate=True,note=note_in)
                 except ValidationError as exc:blocks.append(dict(code='RULE',message=str(exc)))
             if not blocks:
                 b_cat,b_loan,b_prop,b_src=self.reclass_snapshot(base);a_cat,a_loan,a_prop,a_src=self.reclass_snapshot(sim)
@@ -128,7 +137,7 @@ class Reclassify:
                 if not (b_src==a_src):blocks.append(dict(code='INTERNAL',message='Mô phỏng làm đổi số dư nguồn; không ghi.'))
                 if level=='B' and not (loans or props):result['business']['note']='Không có số dư khoản vay hoặc giá gốc BĐS nào thay đổi.'
             result['blocks']=blocks;result['can_commit']=not blocks
-            result['review_token']=digest({k:result[k] for k in ('transaction','part','parts_before','parts_after','level','approved','effects','business','invariants','blocks')})
+            result['review_token']=digest({k:result[k] for k in ('transaction','part','parts_before','parts_after','level','approved','note','effects','business','invariants','blocks')})
             result['parts_raw']=after
             return result
 
@@ -141,7 +150,7 @@ class Reclassify:
         return dict(category=p['category'],node=node,path=path,profile=p.get('profile'),object=self.disp_name(s,p['profile']) if p.get('profile') else None,link=link,amount=S(D(p['amount'])))
 
     # ---- ghi -------------------------------------------------------------------------
-    def reclass_apply(self,s,tid,idx,after,reason,simulate=False,business_ack=False):
+    def reclass_apply(self,s,tid,idx,after,reason,simulate=False,note=None):
         """The one write path: classify for bank transactions, the row itself for legacy rows."""
         from .p01 import now
         t=next((x for x in s['transactions'] if x['id']==tid),None)
@@ -150,13 +159,17 @@ class Reclassify:
                 acc=next((a for a in s['accounts'] if a['id']==t['account']),None)
                 if acc is not None:acc['adjustment_open']=True                     # mô phỏng phiên điều chỉnh mà bước ghi sẽ yêu cầu
             payload=[{k:v for k,v in p.items() if k in {'category','amount','profile','node'}} for p in after]
-            return self.change(s,'classify',dict(ids=[tid],parts=payload,reason=reason,business_ack=True if simulate else business_ack))
+            return self.change(s,'classify',dict(ids=[tid],parts=payload,reason=reason,note=note,_reclass=RECLASS_GRANT))
         e=item(s['legacy_entries'],tid);p=after[0];key=p.get('node') or p['category']
         b=next((x for x in s.get('legacy_batches',[]) if x['id']==e['batch']),None);require(b and b['status']=='ACTIVE','Dòng thuộc lần migrate đã hủy; không sửa.')
         require(p.get('profile'),'Dòng lịch sử cũ cần một đối tượng.')
         prof=item(s['profiles'],p['profile']);require(self.is_member(s,self.cat_target(self.cat_eff(s,p)),self.part_owner(s,prof)),'Đối tượng chưa là thành viên danh mục đích.')
-        before=dict(category=e['category'],profile=e.get('profile'));e['category']=key;e['profile']=p['profile']
-        e.setdefault('classification_history',[]).append(dict(at=now(),before=before,after=dict(category=key,profile=p['profile']),reason=reason))
+        final=e.get('note','') if note is None else str(note).strip()[:1000]
+        require(final or not (p.get('node') and self.cat_flag(s,p['node'],'note_required')),'Danh mục này yêu cầu ghi chú (khoản chi không chứng từ cần ghi rõ mục đích).')
+        before=dict(category=e['category'],profile=e.get('profile'),note=e.get('note',''));e['category']=key;e['profile']=p['profile']
+        if final:e['note']=final
+        else:e.pop('note',None)
+        e.setdefault('classification_history',[]).append(dict(at=now(),before=before,after=dict(category=key,profile=p['profile'],note=final),reason=reason))
         return 'Sửa phân loại dòng lịch sử cũ'
 
     def change_reclassify(self,s,d):
@@ -165,7 +178,7 @@ class Reclassify:
         require(not p['blocks'],p['blocks'][0]['message'] if p['blocks'] else '')
         require(d.get('review_token')==p['review_token'],'Dữ liệu hoặc lựa chọn đã thay đổi sau khi xem trước; hãy xem trước lại.')
         if p['level']=='B':require(d.get('confirm_business') is True,'Thay đổi này ảnh hưởng công nợ, lãi hoặc tài sản: xác nhận đã xem tác động trước khi ghi.')
-        self.reclass_apply(s,p['transaction'],p['part'],p['parts_raw'],reason,business_ack=p['level']=='B')
+        self.reclass_apply(s,p['transaction'],p['part'],p['parts_raw'],reason,note=None if d.get('note') is None else d['note'])
         t=next((x for x in s['transactions'] if x['id']==p['transaction']),None)
         if t is not None and t.get('classification_history'):t['classification_history'][-1]['reclassify']=dict(part=p['part'],level=p['level'],review_token=p['review_token'])
         return f"Sửa phân loại {p['source']['reference']}: {p['parts_before'][p['part']]['path']} → {p['parts_after'][p['part']]['path']}"

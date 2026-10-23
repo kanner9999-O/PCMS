@@ -1,3 +1,4 @@
+from pcms.reclassify import RECLASS_GRANT   # quyền nội bộ của "Sửa phân loại" (spec 043); API không gửi được — kiểm ở test_p45
 """Explicit statement allocation, amendment and source-change regression cases."""
 import base64
 import copy
@@ -60,12 +61,12 @@ class P06Acceptance(unittest.TestCase):
         for kw in [dict(confirm_convention=False),dict(confirm_coverage=False)]:
             with self.assertRaises(ValidationError):self.approve(st,**kw)
         r=self.store.settlement_preview(dict(st['draft'],statement=st['id']))
-        self.act('classify',ids=[self.payments[0]],parts=[dict(category='interest',amount='1100000',profile=self.loans[0]),dict(category='income',amount='100000')],reason='Source classification correction',business_ack=True)
+        self.act('classify',ids=[self.payments[0]],parts=[dict(category='interest',amount='1100000',profile=self.loans[0]),dict(category='income',amount='100000')],reason='Source classification correction',_reclass=RECLASS_GRANT)
         with self.assertRaises(ValidationError):self.approve(st,review_token=r['review_token'])
     def test_shared_source_shrink_can_be_corrected_without_deadlock(self):
         st=self.draft(payments=[dict(transaction=self.payments[0],amount='600000')]);self.approve(st)
         second=self.draft(start='2026-10-31',end='2026-11-30',payments=[dict(transaction=self.payments[0],amount='600000')]);self.approve(second)
-        fix=dict(ids=[self.payments[0]],parts=[dict(category='interest',amount='300000',profile=self.loans[0]),dict(category='income',amount='900000')],reason='Correct source',business_ack=True)
+        fix=dict(ids=[self.payments[0]],parts=[dict(category='interest',amount='300000',profile=self.loans[0]),dict(category='income',amount='900000')],reason='Correct source',_reclass=RECLASS_GRANT)
         with self.assertRaises(ValidationError):self.act('classify',**fix)                                  # spec 043: giao dịch đang dùng trong bảng kê lãi đã duyệt → mở lại bảng kê trước
         self.act('interest-reopen',statement=st['id'],reason='Remove allocation');self.act('interest-draft',**self.data(statement=st['id'],payments=[]));self.approve(self.store.state()['interest_statements'][0])
         with self.assertRaises(ValidationError):self.act('classify',**fix)                                  # bảng kê thứ hai vẫn dùng giao dịch
@@ -97,7 +98,7 @@ class P06Acceptance(unittest.TestCase):
 
     def test_reclassification_other_loan_cannot_reuse_reserved_cash(self):
         st=self.draft();self.approve(st)
-        relink=dict(ids=[self.payments[0]],parts=[dict(category='interest',profile=self.loans[1])],reason='Correct linked loan',business_ack=True)
+        relink=dict(ids=[self.payments[0]],parts=[dict(category='interest',profile=self.loans[1])],reason='Correct linked loan',_reclass=RECLASS_GRANT)
         with self.assertRaises(ValidationError):self.act('classify',**relink)                               # spec 043: tiền đang dành cho bảng kê đã duyệt → không đổi khoản vay
         self.act('interest-reopen',statement=st['id'],reason='Release incorrect link');self.act('interest-draft',**self.data(statement=st['id'],payments=[]));self.approve(self.store.state()['interest_statements'][0])
         self.act('classify',**relink);other=self.draft(profile=self.loans[1]);self.approve(other)           # sau khi giải phóng mới gắn khoản vay khác

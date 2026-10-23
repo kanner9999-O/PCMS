@@ -1,3 +1,4 @@
+from pcms.reclassify import RECLASS_GRANT   # quyền nội bộ của "Sửa phân loại" (spec 043); API không gửi được — kiểm ở test_p45
 import base64
 import copy
 import tempfile
@@ -73,9 +74,9 @@ class P07Acceptance(unittest.TestCase):
         self.assertEqual(self.store.completion_status(self.store.state(),loan),'COMPLETED')
         s=self.store.state();p=next(x for x in s['profiles'] if x['id']==loan);snapshot=copy.deepcopy(p['completion_history'][0])
         t=s['transactions'][2]
-        with self.assertRaises(ValidationError):self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification',business_ack=True)   # spec 043: khoản vay đã hoàn tất → mở lại trước
+        with self.assertRaises(ValidationError):self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification',_reclass=RECLASS_GRANT)   # spec 043: khoản vay đã hoàn tất → mở lại trước
         self.assertEqual(self.store.completion_status(self.store.state(),loan),'COMPLETED')
-        self.act('loan-reopen',profile=loan,reason='Sửa phân loại nguồn');self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification',business_ack=True)
+        self.act('loan-reopen',profile=loan,reason='Sửa phân loại nguồn');self.act('classify',ids=[t['id']],parts=[dict(category='income')],reason='Correct classification',_reclass=RECLASS_GRANT)
         self.assertEqual(self.store.completion_status(self.store.state(),loan),'ACTIVE')
         self.assertEqual(next(x for x in self.store.state()['profiles'] if x['id']==loan)['completion_history'][0],snapshot)
 

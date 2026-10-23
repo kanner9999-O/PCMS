@@ -1,3 +1,4 @@
+from pcms.reclassify import RECLASS_GRANT   # quyền nội bộ của "Sửa phân loại" (spec 043); API không gửi được — kiểm ở test_p45
 import copy
 import tempfile
 import unittest
@@ -50,7 +51,7 @@ class P23Acceptance(base.P13Acceptance):
         self.assertEqual((self.inst('Đợt 1')['status'],len(self.inst('Đợt 1')['links'])),('UNPAID',0))
         self.act('realty-pay-link',installment=i1['id'],transaction=d1)
         other=self.act('object-quick-create',kind='PROPERTY',name='Đất B');b=self.pid('Đất B')
-        self.err('classify',ids=[d1],parts=[dict(category='investment',profile=b)],business_ack=True)                                # spec 043: đã gắn đợt thanh toán BĐS → bỏ gắn trước
+        self.err('classify',ids=[d1],parts=[dict(category='investment',profile=b)],_reclass=RECLASS_GRANT)                                # spec 043: đã gắn đợt thanh toán BĐS → bỏ gắn trước
         l=self.inst('Đợt 1')['links'][0];self.assertFalse(l['broken']);self.act('realty-pay-unlink',link=l['id'],reason='Không còn là Đất A')
         self.classify(['D-1'],[dict(category='investment',profile=b)]);self.assertEqual((D_(self.inst('Đợt 1')['paid']),self.inst('Đợt 1')['status']),(0,'UNPAID'))   # phân loại lại khỏi Đất A sau khi bỏ gắn
         self.act('realty-installment-void',installment=i2['id'],reason='Gộp đợt');self.assertEqual(len(self.prog()['installments']),2)

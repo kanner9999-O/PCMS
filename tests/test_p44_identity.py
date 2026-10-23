@@ -1,3 +1,4 @@
+from pcms.reclassify import RECLASS_GRANT   # quyền nội bộ của "Sửa phân loại" (spec 043); API không gửi được — kiểm ở test_p45
 import base64
 import copy
 import unittest
@@ -170,7 +171,7 @@ class IdentityTests(base.P18Acceptance):
         self.act('classify',ids=[x1],parts=[dict(category='principal',profile=self.l5)])                                                # đúng quan hệ: được
         self.act('object-quick-create',kind='PROPERTY',name='Đất QA');prop=next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Đất QA')
         self.err('classify',ids=[self.tx('S1')['id']],parts=[dict(category='investment',profile=prop)])                                # BĐS chưa thuộc Đầu tư BĐS
-        self.act('category-object-add',category='investment',profile=prop);self.act('classify',ids=[self.tx('S1')['id']],parts=[dict(category='investment',profile=prop)],business_ack=True)   # đổi thu nhập → BĐS là mức B (spec 043)
+        self.act('category-object-add',category='investment',profile=prop);self.act('classify',ids=[self.tx('S1')['id']],parts=[dict(category='investment',profile=prop)],_reclass=RECLASS_GRANT)   # đổi thu nhập → BĐS là mức B (spec 043)
         self.assertEqual(self.issues('X1')+self.issues('S1'),[])
 
     def test_loan_group_and_object_move_use_effective_category(self):

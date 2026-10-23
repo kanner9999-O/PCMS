@@ -33,3 +33,13 @@ specify (bản đồ tác động) → clarify (1 câu, Thạch chọn A) → pl
 
 ## 6. Giới hạn
 Chưa sửa hàng loạt; chưa đổi số tiền giữa các phần ngay trong hộp này; dòng lịch sử cũ chỉ đổi trong cùng loại gốc; người có nhiều khoản vay phải chọn khoản; importer sàn vẫn chưa có (042 B1).
+
+## 7. Review vòng 2 (23/10/2026) — hai lỗi được báo, đã sửa
+| Mức | Lỗi | Nguyên nhân | Sửa | Bằng chứng |
+|---|---|---|---|---|
+| P1 | API `classify` cũ đổi thu gốc → thu lãi chỉ bằng `business_ack=true` (không xem trước, mã xem trước, lý do) | Quyền đổi mức B là một cờ trong dữ liệu client gửi | Quyền mức B là đối tượng nội bộ `RECLASS_GRANT`, chỉ "Sửa phân loại" cấp sau khi kiểm lý do, mã xem trước, xác nhận; JSON/API không tạo ra được; mọi cờ client gửi bị bỏ qua | `test_old_classify_api_cannot_make_business_change_with_any_flag` (5 tổ hợp cờ qua JSON); thử HTTP thật trên bộ giả: 3/3 bị từ chối, K3 không đổi |
+| P2 | Dòng lịch sử cũ chuyển vào danh mục bắt buộc ghi chú thành công khi không có ghi chú | Đường sửa dòng lịch sử cũ không kiểm cờ `note_required` | Xem trước chặn `NOTE_REQUIRED`; bước ghi kiểm lại; hộp có ô **Ghi chú giao dịch** (gợi ý "bắt buộc với danh mục này"), ghi chú nằm trong mã xem trước; dấu vết ghi chú trước/sau | `test_legacy_row_into_note_required_category_needs_note`, `test_bank_transaction_into_note_required_category_needs_note`; thử UI: thiếu ghi chú → chặn, nhập ghi chú → xem trước lại → ghi đúng |
+| Rà soát tác động (nguyên tắc IX) | Cùng lỗ hổng ở **nhập lịch sử cũ** vào danh mục bắt buộc ghi chú | `legacy_preview` không kiểm ghi chú từng dòng | Dòng thiếu ghi chú là dòng lỗi, không nhập được | `test_legacy_import_into_note_required_category_needs_note_per_row`; P38 đổi theo quy tắc (trước đây nhập được dòng thiếu ghi chú — đúng trạng thái sai) |
+
+Test cũ dựng dữ liệu bằng `classify` mức B nay dùng `RECLASS_GRANT` trong tiến trình (tương đương đi qua "Sửa phân loại"). Kết quả: **421 tests OK**, node 9/9. Dữ liệu thật (đọc bản sao): chưa có danh mục bắt buộc ghi chú → 0 dòng bị ảnh hưởng. Build `P46-2026-10-23`.
+Giới hạn thêm: hộp Phân loại cũ ("Chia lại số tiền giữa các phần…") không đổi được mức B; đổi nghiệp vụ dùng "Sửa phân loại" từng phần.

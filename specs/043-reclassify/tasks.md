@@ -8,4 +8,6 @@
 - [x] T07 QA trình duyệt dữ liệu giả (quickstart 10), đối chiếu bản sao dữ liệu thật — SC-002, SC-004
 - [x] T08a Tài liệu R195–R200, A60–A61, IMPLEMENTATION-STATUS
 - [x] T08b Nghiệm thu người dùng đại diện (PO theo CLAUDE.md) trên dữ liệu giả — `review.md` mục 3
-- [ ] T09 Phát hành: PR, merge, kiểm `main` sạch, cập nhật thư mục vận hành, khởi động lại `:8792`, xác minh
+- [x] T09 Phát hành (P45, PR #41): PR, merge, kiểm `main` sạch, cập nhật thư mục vận hành, khởi động lại `:8792`, xác minh
+- [x] T10 Review vòng 2: P1 quyền mức B không gửi được qua API; P2 ghi chú bắt buộc khi sửa/nhập dòng lịch sử cũ — `review.md` mục 7
+- [ ] T11 Phát hành P46
