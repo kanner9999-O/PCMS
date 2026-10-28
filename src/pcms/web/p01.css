@@ -22,3 +22,4 @@ dialog{position:relative}.modal-x{position:absolute;top:10px;right:12px;width:36
 @container (min-width:620px){.stmt-row{grid-template-columns:100px minmax(0,1fr) 150px minmax(220px,1.3fr)}}
 @container (min-width:1060px){.stmt-row{grid-template-columns:96px 190px minmax(0,1.2fr) 120px 130px minmax(260px,1.3fr)}}
 .rc-part{display:block;padding:6px 0;font-size:13px}.rc-part input{width:auto;display:inline;margin-right:6px}.stmt-reclass{font-size:11px;padding:2px 8px;border-radius:999px;color:#12675b;margin-top:0}#rc-result .source{font-size:13px}#rc-result .warn{background:#fff7e6}
+.cat-tabs{display:flex;gap:6px;margin:4px 0 12px}.cat-tabs button{width:auto}.cat-arch-note{background:#fff7e6;padding:6px 8px;border-radius:6px;font-size:13px}.cat-arch-note button{width:auto;margin-left:6px}.cat-context{opacity:.75;border-left:3px dashed #c9c9c9}#cat-arch-q{max-width:360px}

@@ -23,3 +23,6 @@ PR #44 → `main` `5819a2e`. Kiểm `main` sạch: 435 OK, node 9/9. App `:8792`
 ## 5. Giới hạn / còn lệch
 - Không tự xóa/lưu trữ danh mục thật nào; Bianance, Long Debt vẫn xóa được khi Thạch muốn.
 - README trong thư mục vận hành có thay đổi dở của người dùng nên không sửa; HANDOFF.md còn ghi bản P07 (cũ từ trước, ngoài phạm vi).
+
+## 6. Sau phát hành (liên kết, không sửa nội dung trên)
+PO review `docs/po-review-044-2026-10-28.md` phát hiện: (P2) xóa hẳn đối tượng làm mất dấu vết thành viên → danh mục từng dùng trở nên xóa được; (UX) thông báo gợi ý gỡ/chuyển đối tượng. Cả hai sửa ở [spec 045](../045-category-archive-tabs/spec.md) (FR-006, FR-007), phát hành cùng R202.

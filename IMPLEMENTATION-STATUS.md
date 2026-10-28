@@ -450,3 +450,6 @@ P1: đổi mức B chỉ qua "Sửa phân loại" (quyền nội bộ, API `clas
 
 ## P47 (28/10/2026) – Chặn xóa hẳn danh mục còn dữ liệu (spec 044, R201, A62)
 "Đã từng dùng" nay gồm dòng lịch sử cũ (kể cả lần migrate đã hủy, dòng đã sửa phân loại đi), lần migrate, đối tượng thành viên (hoạt động/đã gỡ/chuyển); lý do có số lượng; nút và lệnh cùng quy tắc. Dữ liệu thật (bản sao): Property, Hot Debt chỉ lưu trữ; Bianance, Long Debt vẫn xóa được; mọi tổng giống P46. 435 tests OK. Quy trình Spec Kit chạy bằng lệnh. Bằng chứng: `specs/044-category-delete-guard/review.md`.
+
+## P48 (28/10/2026) – Tách danh mục lưu trữ; vá dấu vết xóa (spec 045, R202, A63; sửa R201 theo review 044)
+Tab "Đang sử dụng"/"Đã lưu trữ (N)", ghi chú phần tổng thuộc danh mục lưu trữ, tìm/khôi phục/xóa có lý do; xóa hẳn đối tượng giữ dấu vết thành viên (danh mục từng dùng không thành xóa được); thông báo chặn xóa hướng dẫn Lưu trữ. 447 tests OK, node 9/9; bản sao dữ liệu thật: mọi tổng giống P47. Spec Kit chạy bằng lệnh, analyze lưu ở `analysis.md`. Bằng chứng: `specs/045-category-archive-tabs/review.md`.

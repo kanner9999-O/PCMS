@@ -2,13 +2,16 @@
 const fs=require('fs'),assert=require('assert');
 const src=fs.readFileSync(require('path').join(__dirname,'../../src/pcms/web/p01.js'),'utf8').split('\n');
 const grab=n=>{const l=src.find(x=>x.startsWith('function '+n+'('));assert(l,'không thấy '+n);return l};
-eval(['cascChildren','cascValue','cascPathFor'].map(grab).join(';')+';global.F={cascChildren,cascValue,cascPathFor}');
+eval(['cascChildren','catPassable','cascValue','cascPathFor'].map(grab).join(';')+';global.F={cascChildren,cascValue,cascPathFor}');
 const nodes=[{id:'r1',name:'Property',parent:null,root:'expense',status:'ACTIVE'},{id:'c1',name:'Chung cư',parent:'r1',root:'expense',status:'ACTIVE'},{id:'g1',name:'Chung cư A',parent:'c1',root:'expense',status:'ACTIVE'},
   {id:'e1',name:'Ăn uống',parent:'expense',root:'expense',status:'ACTIVE'},{id:'a1',name:'Cũ',parent:'r1',root:'expense',status:'ARCHIVED'},{id:'p1',name:'Cho vay A',parent:'principal',root:'principal',status:'ACTIVE'}];
 const c={nodes};
 assert.deepStrictEqual(F.cascChildren(c,'N:r1').map(n=>n.id),['c1']);                               // lưu trữ không hiện
 assert.deepStrictEqual(F.cascChildren(c,'S:expense').map(n=>n.id),['e1']);assert.deepStrictEqual(F.cascChildren(c,'S:principal').map(n=>n.id),['p1']);
 assert.deepStrictEqual(F.cascChildren(c,'c1').map(n=>n.id),['g1']);assert.deepStrictEqual(F.cascChildren(c,'S:unknown'),[]);
+// spec 045: cha đã lưu trữ còn con hoạt động vẫn đi qua được (nhãn "đã lưu trữ"); cha lưu trữ không còn con hoạt động thì ẩn
+const c2={nodes:[...nodes,{id:'x1',name:'Cha cũ',parent:'expense',root:'expense',status:'ARCHIVED'},{id:'x2',name:'Con mới',parent:'x1',root:'expense',status:'ACTIVE'}]};
+assert.deepStrictEqual(F.cascChildren(c2,'S:expense').map(n=>[n.id,n.name]),[['e1','Ăn uống'],['x1','Cha cũ (đã lưu trữ)']]);assert.deepStrictEqual(F.cascChildren(c2,'x1').map(n=>n.id),['x2']);
 assert.deepStrictEqual(F.cascValue(c,['S:expense']),{category:'expense',node:''});assert.deepStrictEqual(F.cascValue(c,['S:unknown']),{category:'unknown',node:''});
 assert.deepStrictEqual(F.cascValue(c,['N:r1','c1','g1']),{category:'expense',node:'g1'});assert.deepStrictEqual(F.cascValue(c,['S:principal','p1']),{category:'principal',node:'p1'});
 assert.deepStrictEqual(F.cascValue(c,['N:r1']),{category:'expense',node:'r1'});assert.deepStrictEqual(F.cascValue(c,[]),{category:'expense',node:''});
