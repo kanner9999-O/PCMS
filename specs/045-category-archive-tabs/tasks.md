@@ -41,7 +41,7 @@
 - [x] T016 Build `P48-2026-10-28` (`src/pcms/p01.py`); toàn bộ test + node
 - [x] T017 Bản sao chỉ đọc dữ liệu thật: tổng/Công nợ/báo cáo/Đối tượng/BĐS giống P47; `archived_share` Gốc vay; 3 danh mục lưu trữ; thời gian `view()` — `review.md`
 - [x] T018 PO nghiệm thu UI dữ liệu giả (QA bền ở `PCMS-QA`) theo A63 — `review.md`
-- [ ] T019 IMPLEMENTATION-STATUS (P48), phát hành (PR → merge khi xanh → kiểm `main` sạch → cập nhật thư mục vận hành → khởi động lại :8792 → hash dữ liệu), cập nhật QA :8807, hướng dẫn sử dụng ngắn
+- [x] T019 IMPLEMENTATION-STATUS (P48), phát hành (PR → merge khi xanh → kiểm `main` sạch → cập nhật thư mục vận hành → khởi động lại :8792 → hash dữ liệu), cập nhật QA :8807, hướng dẫn sử dụng ngắn
 
 ## Dependencies
 
