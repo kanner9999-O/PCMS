@@ -387,3 +387,6 @@ Ca Kết: giao dịch 5 triệu ở Gốc vay › Kết, khoản vay của Kết
 
 ### A62 — Xóa hẳn danh mục không làm mồ côi dữ liệu (R201)
 Danh mục có dòng lịch sử cũ (kể cả lần migrate đã hủy, kể cả dòng đã sửa phân loại đi), được ghi trong lần migrate, có đối tượng thành viên (hoạt động hoặc đã gỡ) hay lịch sử chuyển đối tượng: không hiện "Xóa hẳn", lệnh xóa bị từ chối với lý do có số lượng, Lưu trữ vẫn được. Danh mục chưa từng dùng vẫn xóa hẳn được. Dữ liệu thật: Property, Hot Debt chỉ lưu trữ; Bianance, Long Debt vẫn xóa được.
+
+### A63 — Tab danh mục lưu trữ và dấu vết xóa (R202, bổ sung R201)
+Mở Danh mục: tab Đang sử dụng mặc định, không có danh mục lưu trữ như mục làm việc; tab Đã lưu trữ có số lượng đúng, tìm được theo tên (phân biệt bằng đường dẫn), xem lịch sử, khôi phục được (hoặc báo cần khôi phục cha). Tổng mọi gốc/cha không đổi khi tách tab, lưu trữ, khôi phục; tổng = mục hiển thị + phần "thuộc danh mục lưu trữ". Xóa hẳn đối tượng (kể cả gỡ trước rồi xóa) không làm danh mục từng có đối tượng trở nên xóa được; nút, lệnh xóa và dọn danh mục đồng nhất; danh mục chưa từng dùng vẫn xóa được. Thông báo chặn xóa không gợi ý gỡ/chuyển đối tượng.

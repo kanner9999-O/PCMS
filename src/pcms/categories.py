@@ -175,8 +175,9 @@ class Categories:
         if action=='category-object-delete':
             prof=item(s['profiles'],d.get('profile'));require(prof['kind']=='OBJECT','Chỉ xóa hẳn được đối tượng tạo trong danh mục; hồ sơ người/khoản vay/BĐS chỉ gỡ khỏi danh mục.')
             reason=str(d.get('reason','')).strip();require(reason,'Cần lý do xóa.');require(prof['id'] not in self.cat_usage_blob(s),'Đối tượng đã từng được dùng để phân loại; chỉ có thể gỡ khỏi danh mục.')
+            trace=self.obj_delete_trace(s,prof)
             s['category_objects']=[e for e in s['category_objects'] if e['profile']!=prof['id']];s['profiles']=[x for x in s['profiles'] if x['id']!=prof['id']]
-            s.setdefault('object_deleted',[]).append(dict(id=prof['id'],name=prof['name'],reason=reason[:500],at=now()));return 'Xóa hẳn đối tượng '+prof['name']
+            s.setdefault('object_deleted',[]).append(dict(id=prof['id'],name=prof['name'],reason=reason[:500],at=now(),memberships=trace));return 'Xóa hẳn đối tượng '+prof['name']
         if action=='category-cleanup':
             require(d.get('confirm') is True,'Xác nhận sau khi xem danh sách.');ids=d.get('ids');require(isinstance(ids,list) and ids,'Không có danh mục nào để dọn.')
             cands=self.cat_cleanup_candidates(s);require(set(ids)=={n['id'] for n in cands},'Danh sách đã thay đổi; xem trước lại rồi xác nhận.')
@@ -306,20 +307,33 @@ class Categories:
         return self.cat_in_use_fast(s,node,self.cat_usage_blob(s))
 
     def cat_in_use_fast(self,s,node,blob):
-        nid=node['id']
-        if any(n['parent']==nid for n in s['categories']):return 'Còn danh mục con; xóa hoặc chuyển các danh mục con trước.'
-        if any(p['kind']=='LOAN' and (p.get('group')==nid or any(nid in (h.get('from'),h.get('to')) for h in p.get('group_history',[]))) for p in s['profiles']):return 'Đã có khoản vay gắn danh mục này; chỉ có thể lưu trữ.'
-        if nid in blob:return 'Danh mục đã từng được dùng để phân loại; chỉ có thể lưu trữ.'
+        """Why the category cannot be deleted for good (cause + what the user can do), or None when it was never used anywhere (R93, R201, spec 045)."""
+        nid=node['id'];hint='Giữ lưu trữ hoặc khôi phục.' if node['status']=='ARCHIVED' else 'Lưu trữ để ẩn khỏi danh sách đang sử dụng.'
+        kids=sum(1 for n in s['categories'] if n['parent']==nid)
+        if kids:return f'Còn {kids} danh mục con; chỉ xóa hẳn được khi mọi danh mục con đã được xóa hẳn hoặc chuyển sang danh mục khác. {hint}'
+        loans=[p for p in s['profiles'] if p['kind']=='LOAN' and p.get('group')==nid]
+        if loans:return f'Đang có {len(loans)} khoản vay gắn danh mục này; không thể xóa hẳn. Muốn ẩn: chuyển khoản vay sang danh mục khác (Công nợ) rồi lưu trữ.'
+        if any(p['kind']=='LOAN' and any(nid in (h.get('from'),h.get('to')) for h in p.get('group_history',[])) for p in s['profiles']):return f'Danh mục từng có khoản vay gắn vào; không thể xóa hẳn. {hint}'
+        if nid in blob:return f'Danh mục đã từng được dùng để phân loại giao dịch; không thể xóa hẳn. {hint}'
         # spec 044 (R201): mọi nơi khác lưu danh mục — xóa sẽ làm dòng lịch sử cũ, lần migrate, quan hệ đối tượng trỏ vào danh mục không tồn tại
         rows=sum(1 for e in s.get('legacy_entries',[]) if e['category']==nid or any(nid in ((h.get('before') or {}).get('category'),(h.get('after') or {}).get('category')) for h in e.get('classification_history',[])))
-        if rows:return f'Còn {rows} dòng lịch sử cũ (kể cả lần migrate đã hủy) thuộc hoặc từng thuộc danh mục này; chỉ có thể lưu trữ.'
+        if rows:return f'Có {rows} dòng lịch sử cũ (kể cả lần migrate đã hủy) thuộc hoặc từng thuộc danh mục này; không thể xóa hẳn. {hint}'
         batches=sum(1 for b in s.get('legacy_batches',[]) if b.get('category')==nid)
-        if batches:return f'Danh mục được ghi trong {batches} lần migrate lịch sử cũ; chỉ có thể lưu trữ.'
-        members=[e for e in s.get('category_objects',[]) if e['category']==nid or any(nid in (h.get('from'),h.get('from_'),h.get('to')) for h in e.get('history',[]))]
-        active=sum(1 for e in members if e['category']==nid and e['status']=='ACTIVE')
-        if active:return f'Còn {active} đối tượng thành viên; gỡ hoặc chuyển đối tượng, hoặc lưu trữ danh mục.'
-        if members or any(nid in (m.get('from'),m.get('to')) for m in s.get('object_moves',[])):return 'Danh mục từng có đối tượng thành viên (đã gỡ/chuyển); chỉ có thể lưu trữ.'
+        if batches:return f'Danh mục được ghi trong {batches} lần migrate lịch sử cũ; không thể xóa hẳn. {hint}'
+        touched=lambda e:e['category']==nid or any(nid in (h.get('from'),h.get('from_'),h.get('to')) for h in e.get('history',[]))
+        active=sum(1 for e in s.get('category_objects',[]) if e['category']==nid and e['status']=='ACTIVE')
+        if active:return f'Đang có {active} đối tượng thành viên nên danh mục đã được dùng; không thể xóa hẳn. {hint}'
+        if (any(touched(e) for e in s.get('category_objects',[])) or any(nid in (m.get('from'),m.get('to')) for m in s.get('object_moves',[]))
+            or any(touched(m) for d in s.get('object_deleted',[]) for m in d.get('memberships',[]))):   # spec 045: cả đối tượng đã xóa hẳn
+            return f'Danh mục từng có đối tượng thành viên (đã gỡ, chuyển hoặc xóa đối tượng); không thể xóa hẳn. {hint}'
         return None
+
+    def cat_archive_meta(self,s,n,blob):
+        """Dữ liệu cho tab "Đã lưu trữ" (spec 045): lý do không xóa/không khôi phục được, thời điểm và lý do lưu trữ ghi trong lịch sử (không suy diễn khi thiếu)."""
+        last=next((h for h in reversed(n.get('history',[])) if h.get('action')=='ARCHIVE'),None) if n['status']=='ARCHIVED' else None
+        par=next((x for x in s['categories'] if x['id']==n['parent']),None)
+        restore=f"Danh mục cha «{self.cat_path(s,par['id'])}» đang lưu trữ; khôi phục cha trước." if n['status']=='ARCHIVED' and par and par['status']=='ARCHIVED' else None
+        return dict(delete_block=self.cat_in_use_fast(s,n,blob),restore_block=restore,archived_at=(last or {}).get('at'),archive_reason=(last or {}).get('reason') or None)
 
     def cat_usage_blob(self,s):
         return json.dumps([[t['allocations'],t.get('classification_history') or []] for t in s['transactions']],ensure_ascii=False)+json.dumps([[t['allocations'] for t in sn['report']['transactions']] for sn in s['snapshots']],ensure_ascii=False)
@@ -397,7 +411,7 @@ class Categories:
     def category_view(self,s,start=None,end=None):
         with localcontext() as ctx:
             ctx.prec=60
-            s=cat_state(copy.deepcopy(s));acc={};oacc={};prof_by={x['id']:x for x in s['profiles']}
+            s=cat_state(copy.deepcopy(s));acc={};oacc={};arch={};prof_by={x['id']:x for x in s['profiles']};arch_ids={n['id']:n['status']=='ARCHIVED' for n in s['categories']}
             for t,p in self.cat_parts(s,start,end):
                 incoming=D(t['signed_amount'])>0;amount=D(p['amount'])
                 if p.get('profile'):
@@ -405,11 +419,22 @@ class Categories:
                     if own and own['kind']=='LOAN' and own.get('party'):keys.append((self.cat_target(p),own['party']))                 # khoản vay cộng vào người sở hữu ở danh mục nơi khoản vay thuộc về (spec 040)
                     for k in keys:
                         o=oacc.setdefault(k,dict(in_=Decimal(0),out=Decimal(0),tx=set()));o['in_' if incoming else 'out']+=amount;o['tx'].add(t['id'])
-                for key in self.cat_keys(s,p):
+                keys=self.cat_keys(s,p)
+                for key in keys:
                     a=acc.setdefault(key,dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set()))
                     a['in_' if incoming else 'out']+=amount;a['parts']+=1;a['tx'].add(t['id'])
-            def totals(key,spend=False):
-                a=acc.get(key);a=a or dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set())
+                # spec 045 (R202): phần thuộc danh mục lưu trữ nằm dưới mỗi gốc/cha, để tab "Đang sử dụng" công bố phần đang ẩn (giao dịch đếm một lần)
+                chain=self.cat_chain(s,p['node']) if p.get('node') else []
+                hidden=[i for i,c in enumerate(chain) if arch_ids.get(c)]
+                if hidden:
+                    above=set(chain[min(hidden)+1:])|({keys[0]} if keys[0] not in chain else set())
+                    for key in above:
+                        a=arch.setdefault(key,dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set()))
+                        a['in_' if incoming else 'out']+=amount;a['parts']+=1;a['tx'].add(t['id'])
+            def totals(key,spend=False,src=None):
+                a=(acc if src is None else src).get(key)
+                if src is not None and not a:return None
+                a=a or dict(in_=Decimal(0),out=Decimal(0),parts=0,tx=set())
                 out=dict(**{'in':S(a['in_']),'out':S(a['out']),'net':S(a['in_']-a['out']),'parts':a['parts'],'transactions':len(a['tx'])})
                 if spend:out['net_spend']=S(a['out']-a['in_'])
                 return out
@@ -423,8 +448,8 @@ class Categories:
                 objs.setdefault(e['category'],[]).append(dict(loans=kids if self.business_enabled else [],party_name=(by_profile.get(pr.get('party')) or {}).get('name') if pr['kind']=='LOAN' else None,business=e.get('business') if self.business_enabled else None,entry=e['id'],profile=pr['id'],name=self.disp_name(s,pr['id']),kind='PERSON' if (pr['kind']=='LOAN' and pr.get('party')) else pr['kind'],totals={'in':S(o['in_']),'out':S(o['out']),'transactions':len(o['tx'])},deletable=pr['kind']=='OBJECT' and pr['id'] not in blob,history=e['history'],duplicate_of=dup))
             for pr in s['profiles']:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
-            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense')) for k,v in ROOTS.items()]
-            nodes=[dict(group=n.get('group','default'),group_name=GROUPS[n.get('group','default')],role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense')) for n in s['categories']]
+            roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense'),archived_share=totals(k,k=='expense',arch)) for k,v in ROOTS.items()]
+            nodes=[dict(group=n.get('group','default'),group_name=GROUPS[n.get('group','default')],role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense'),archived_share=totals(n['id'],n['root']=='expense',arch),**self.cat_archive_meta(s,n,blob)) for n in s['categories']]
             return dict(classification_issues=self.classification_issues(s),roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),cleanup=[dict(id=n['id'],path=self.cat_path(s,n['id']),root=n['root'],status=n['status']) for n in self.cat_cleanup_candidates(s)],legacy=self.legacy_summary(s),groups=GROUPS,group_note=GROUP_NOTE,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def part_owner(self,s,prof):

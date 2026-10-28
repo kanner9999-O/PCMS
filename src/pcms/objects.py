@@ -31,6 +31,10 @@ class Objects:
             if prof['id'] in blob or any(a.get('profile')==prof['id'] and a['category']=='investment' for t in s['transactions'] for a in t['allocations']):return 'Bất động sản đã có hợp đồng, thanh toán hoặc phân loại đầu tư; không đổi loại.'
         return None
 
+    def obj_delete_trace(self,s,prof):
+        """Dấu vết quan hệ đối tượng–danh mục giữ lại khi xóa hẳn đối tượng (spec 045, sửa R201): danh mục từng có thành viên vẫn là "đã dùng"."""
+        return [dict(category=e['category'],status=e['status'],history=copy.deepcopy(e.get('history',[]))) for e in s.get('category_objects',[]) if e['profile']==prof['id']]
+
     def obj_in_use(self,s,prof):
         """Why the object cannot be deleted for good (it is referenced somewhere), or None."""
         if prof['kind']=='LOAN':return 'Khoản vay quản lý ở Công nợ.'
@@ -95,8 +99,9 @@ class Objects:
             require(prof.get('status')=='ARCHIVED','Đối tượng đang hoạt động.');prof['status']='ACTIVE';prof.setdefault('archive_history',[]).append(dict(at=now(),action='RESTORE',reason=reason));return f"Khôi phục đối tượng {prof['name']}"
         if action=='object-delete':
             require(reason,'Cần lý do xóa.');why=self.obj_in_use(s,prof);require(why is None,why or '')
+            trace=self.obj_delete_trace(s,prof)
             s['category_objects']=[e for e in s['category_objects'] if e['profile']!=prof['id']];s['profiles']=[x for x in s['profiles'] if x['id']!=prof['id']]
-            s.setdefault('object_deleted',[]).append(dict(id=prof['id'],name=prof['name'],kind=prof['kind'],reason=reason,at=now()));return f"Xóa hẳn đối tượng {prof['name']}"
+            s.setdefault('object_deleted',[]).append(dict(id=prof['id'],name=prof['name'],kind=prof['kind'],reason=reason,at=now(),memberships=trace));return f"Xóa hẳn đối tượng {prof['name']}"
         require(False,'Hành động không hợp lệ.')
 
     def object_view(self,s):

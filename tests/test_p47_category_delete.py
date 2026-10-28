@@ -23,9 +23,9 @@ class CategoryDeleteGuard(base.P18Acceptance):
     def test_legacy_rows_block_delete_but_archive_still_works(self):
         c=self.node('Cũ');pid=self.mkp('Mỹ',c);self.legacy(c,pid);self.act('category-object-remove',category=c,profile=pid,reason='gỡ để thử riêng lịch sử cũ')
         totals=copy.deepcopy(self.nodes()['Cũ']['totals'])
-        self.blocked('Cũ',c,'Còn 1 dòng lịch sử cũ')
+        self.blocked('Cũ',c,'1 dòng lịch sử cũ')
         self.act('category-archive',category=c,reason='Không dùng nữa');self.assertEqual((self.nodes()['Cũ']['status'],self.nodes()['Cũ']['totals']),('ARCHIVED',totals))
-        self.blocked('Cũ',c,'Còn 1 dòng lịch sử cũ')                                                      # đã lưu trữ: cùng quy tắc
+        self.blocked('Cũ',c,'1 dòng lịch sử cũ')                                                      # đã lưu trữ: cùng quy tắc
 
     def test_void_batch_and_rows_moved_away_still_block(self):
         c=self.node('Đợt hủy');pid=self.mkp('Tươi',c);b,_=self.legacy(c,pid);self.act('legacy-void',batch=b['id'],reason='Dán nhầm')
@@ -37,7 +37,7 @@ class CategoryDeleteGuard(base.P18Acceptance):
     # ---- US2: đối tượng thành viên ---------------------------------------------------------------
     def test_active_members_then_member_history_block_delete(self):
         c=self.node('Hot');a=self.mkp('An',c);self.mkp('Bình',c)
-        self.blocked('Hot',c,'Còn 2 đối tượng thành viên')
+        self.blocked('Hot',c,'2 đối tượng thành viên')
         for pid in (a,next(p['id'] for p in self.store.state()['profiles'] if p['name']=='Bình')):self.act('category-object-remove',category=c,profile=pid,reason='x')
         self.blocked('Hot',c,'từng có đối tượng thành viên')
         s1=self.node('Từ');s2=self.node('Tới');m=self.mkp('Minh',s1);self.act('category-object-move',profile=m,**{'from':s1,'to':s2},reason='chuyển')
