@@ -447,3 +447,6 @@ Chức năng chung "Sửa phân loại" từ mọi dòng giao dịch; ghi qua `c
 
 ## P46 (23/10/2026) – Spec 043 review vòng 2
 P1: đổi mức B chỉ qua "Sửa phân loại" (quyền nội bộ, API `classify` không lách được bằng cờ). P2: danh mục bắt buộc ghi chú áp dụng cho sửa và nhập dòng lịch sử cũ; hộp Sửa phân loại có ô ghi chú. 421 tests OK. Bằng chứng: `specs/043-reclassify/review.md` mục 7.
+
+## P47 (28/10/2026) – Chặn xóa hẳn danh mục còn dữ liệu (spec 044, R201, A62)
+"Đã từng dùng" nay gồm dòng lịch sử cũ (kể cả lần migrate đã hủy, dòng đã sửa phân loại đi), lần migrate, đối tượng thành viên (hoạt động/đã gỡ/chuyển); lý do có số lượng; nút và lệnh cùng quy tắc. Dữ liệu thật (bản sao): Property, Hot Debt chỉ lưu trữ; Bianance, Long Debt vẫn xóa được; mọi tổng giống P46. 435 tests OK. Quy trình Spec Kit chạy bằng lệnh. Bằng chứng: `specs/044-category-delete-guard/review.md`.
