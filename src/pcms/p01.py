@@ -47,8 +47,9 @@ from .crypto_ledger import CryptoLedger
 from .assets import AssetOverview
 from .account_history import AccountHistory
 from .legacy_import import LegacyImport
+from .loan_business import LoanBusiness
 
-class P01Store(Reclassify, Objects, Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
+class P01Store(LoanBusiness, Reclassify, Objects, Business, LegacyImport, AccountHistory, AssetOverview, CryptoLedger, Realty, Categories, TrxEnergy, LoanCompletion, InterestSettlement, ProductStore):
     def __init__(self, directory):
         self.root = Path(directory)
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -92,7 +93,7 @@ class P01Store(Reclassify, Objects, Business, LegacyImport, AccountHistory, Asse
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management','reclassify'], 'build':'P48-2026-10-28'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s),'loan_book':self.loan_book(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management','reclassify','loan-business'], 'build':'P49-2026-10-28'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -341,6 +342,14 @@ class P01Store(Reclassify, Objects, Business, LegacyImport, AccountHistory, Asse
         return f"Tạo tài khoản {account['name']} từ file nguồn; {message}"
 
     def change(self,s,action,d):
+        # spec 046 (R205, FR-005): mọi hành động ngoài nghiệp vụ vay không được làm lệch chi tiết đã ghi, nháp, khoản vay hay quan hệ thành viên của chúng
+        if action.startswith('lb-'):return self.change_loan_business(s,action,d)
+        before=self.lb_fingerprint(s)
+        message=self._change(s,action,d)
+        self.lb_guard(s,before)
+        return message
+
+    def _change(self,s,action,d):
         if action.startswith('legacy-'):return self.change_legacy(s,action,d)
         if action.startswith('assets-'):return self.change_assets(s,action,d)
         if action.startswith('crypto-'):return self.change_crypto(s,action,d)
@@ -507,6 +516,7 @@ class P01Store(Reclassify, Objects, Business, LegacyImport, AccountHistory, Asse
                         owner=self.part_owner(s,target);eff=self.cat_target(self.cat_eff(s,part))
                         unchanged=any(x.get('profile')==profile and x['category']==category and (x.get('node') or None)==(part.get('node') or None) for x in t['allocations'])
                         require(unchanged or not self.require_membership or self.is_member(s,eff,owner),f"{self.disp_name(s,owner)} chưa là thành viên danh mục {self.cat_path(s,eff) if eff not in ROOT_NAMES else ROOT_NAMES[eff]}. Thêm đối tượng vào danh mục ở màn Danh mục (hoặc mục Cần đối chiếu) trước.")
+                        require(unchanged or self.lb_part_ok(s,eff,target),f"Danh mục {self.cat_path(s,eff) if eff not in ROOT_NAMES else ROOT_NAMES[eff]} mang nghiệp vụ vay: chỉ gắn đối tượng loại Người (khoản vay chọn ở bước Chi tiết nghiệp vụ).")
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 # spec 043 (R197): thay đổi mức B (công nợ, lãi, tài sản) phải đi qua "Sửa phân loại" có xem trước tác động và xác nhận; nghiệp vụ đã tham chiếu thì chặn

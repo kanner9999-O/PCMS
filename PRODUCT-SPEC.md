@@ -765,18 +765,18 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R143 | **Giá gốc ghi sổ của BĐS = vốn đã thanh toán ròng + chi phí mua vốn hóa ròng**; chênh lệch chưa thực hiện so với giá trị hiện tại tính trên giá gốc này; Tổng tài sản dùng giá gốc này khi BĐS chưa định giá. |
 | R144 | **Danh mục mẫu "Chi khác không chứng từ"**: hiển thị riêng, **không vốn hóa**, **ghi chú bắt buộc** khi phân loại; ghi trung thực dòng tiền ra, không gộp vào phí có chứng từ. Thuế/pháp lý của khoản chi này do Thạch hỏi kế toán viên/luật sư; hệ thống không khẳng định. |
 | R145 | Tạo hai danh mục mẫu bằng một thao tác trên màn Danh mục; dữ liệu đã phân loại không bị đổi. |
-| R146 | **[Pending 21/10/2026 — xem R186]** **Vai trò danh mục** suy từ gốc hệ thống: Thu nhập/Chi tiêu = dòng tiền thường (không cần đối tượng hay nghiệp vụ); Gốc vay, Lãi vay = vai trò cho vay/đi vay; Đầu tư BĐS = vai trò BĐS; hiển thị ở màn Danh mục. |
-| R147 | **[Pending 21/10/2026 — xem R186]** **Nghiệp vụ gắn vào cặp (đối tượng, danh mục)**, không gắn toàn cục: Cho vay (Phải thu), Đi vay (Phải trả), Bất động sản; kèm tham số ghi nhận (lãi suất thỏa thuận, đáo hạn, ghi chú). Một người vừa cho vay vừa đi vay = hai cặp, hai sổ, không bù trừ. |
-| R148 | **[Pending 21/10/2026 — xem R186]** **Chặn hẳn** gắn sai vai trò: danh mục thu/chi thường không mang nghiệp vụ; loại phải hợp gốc danh mục; khoản vay thiết lập Phải thu không gắn Đi vay (và ngược lại); BĐS không gắn nghiệp vụ vay. |
-| R149 | **[Pending 21/10/2026 — xem R186]** Đổi tham số có ngày hiệu lực + lý do + lịch sử; cặp đã có giao dịch **không đổi loại, không gỡ nghiệp vụ** (giữ nguyên sổ cũ). |
-| R150 | **[Pending 21/10/2026 — xem R186]** **Sổ cho vay theo cặp** (chỉ đọc): giải ngân/nhận vay, thu/trả gốc, dư nợ gốc, lãi thu/trả, cảnh báo (thu quá gốc, lệch sổ Công nợ, lãi chưa chỉ định được cặp, chưa thiết lập chiều); nhãn tiền thực thu/chi, chưa dồn tích lãi/dự phòng/xóa nợ (cần kế toán viên xác nhận). |
+| R146 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** **Vai trò danh mục** suy từ gốc hệ thống: Thu nhập/Chi tiêu = dòng tiền thường (không cần đối tượng hay nghiệp vụ); Gốc vay, Lãi vay = vai trò cho vay/đi vay; Đầu tư BĐS = vai trò BĐS; hiển thị ở màn Danh mục. |
+| R147 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** **Nghiệp vụ gắn vào cặp (đối tượng, danh mục)**, không gắn toàn cục: Cho vay (Phải thu), Đi vay (Phải trả), Bất động sản; kèm tham số ghi nhận (lãi suất thỏa thuận, đáo hạn, ghi chú). Một người vừa cho vay vừa đi vay = hai cặp, hai sổ, không bù trừ. |
+| R148 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** **Chặn hẳn** gắn sai vai trò: danh mục thu/chi thường không mang nghiệp vụ; loại phải hợp gốc danh mục; khoản vay thiết lập Phải thu không gắn Đi vay (và ngược lại); BĐS không gắn nghiệp vụ vay. |
+| R149 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** Đổi tham số có ngày hiệu lực + lý do + lịch sử; cặp đã có giao dịch **không đổi loại, không gỡ nghiệp vụ** (giữ nguyên sổ cũ). |
+| R150 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** **Sổ cho vay theo cặp** (chỉ đọc): giải ngân/nhận vay, thu/trả gốc, dư nợ gốc, lãi thu/trả, cảnh báo (thu quá gốc, lệch sổ Công nợ, lãi chưa chỉ định được cặp, chưa thiết lập chiều); nhãn tiền thực thu/chi, chưa dồn tích lãi/dự phòng/xóa nợ (cần kế toán viên xác nhận). |
 | R151 | **[Pending 21/10/2026 — xem R186]** **Hợp nhất hồ sơ nghiệp vụ** (xem trước + xác nhận, idempotent, có bản ghi): khoản vay và BĐS thành đối tượng trong Gốc vay / Đầu tư BĐS mang loại theo chiều đã thiết lập; khoản chưa thiết lập chiều chỉ được thêm vào danh mục, không đoán chiều; không đổi phân loại, báo cáo, Công nợ. |
-| R152 | **[Pending 21/10/2026 — xem R186]** **Chặn hẳn** gỡ đối tượng, lưu trữ danh mục, gộp đối tượng khác loại khi cặp đang mang nghiệp vụ (gỡ nghiệp vụ trước, có lý do). |
+| R152 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** **Chặn hẳn** gỡ đối tượng, lưu trữ danh mục, gộp đối tượng khác loại khi cặp đang mang nghiệp vụ (gỡ nghiệp vụ trước, có lý do). |
 | R153 | **[Pending 21/10/2026 — xem R186]** Khoản vay luôn phân loại được vào Gốc vay/Lãi vay và BĐS vào Đầu tư BĐS dù chưa là thành viên danh mục (không bị chặn bởi hợp nhất). Thứ tự làm nghiệp vụ: Cho vay → BĐS → crypto → bán hàng. |
 | R154 | **Nhóm mặc định** cho danh mục (Thạch chốt 15/10/2026, phương án A): chỉ tổng hợp tiền vào/ra và đưa vào báo cáo, chưa gắn nghiệp vụ cụ thể; mọi danh mục hiện có và mới thuộc nhóm này (thiếu trường = mặc định). |
 | R155 | Nhóm mặc định là **nhãn tổ chức**: không đổi phân loại gốc của giao dịch, tổng danh mục, báo cáo, snapshot đã duyệt (lịch sử bất biến). Tách khỏi báo cáo Chi tiêu/Thu nhập (phương án B) là bước riêng, có xem trước và cần kế toán viên xác nhận. |
-| R156 | **[Pending 21/10/2026 — xem R186]** Nghiệp vụ gắn cho đối tượng ở **mọi** danh mục, bỏ chặn theo loại gốc (sửa R148); giữ chặn chiều khoản vay, loại hồ sơ, đổi loại/gỡ khi đã có giao dịch. |
-| R157 | **[Pending 21/10/2026 — xem R186]** Cặp nghiệp vụ nằm trong danh mục có loại ghi nhận Chi tiêu/Thu nhập hiển thị **cảnh báo** "đang tính vào báo cáo Chi tiêu/Thu nhập" (cho vay không phải chi tiêu, mua BĐS không phải chi phí); không chặn. |
+| R156 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** Nghiệp vụ gắn cho đối tượng ở **mọi** danh mục, bỏ chặn theo loại gốc (sửa R148); giữ chặn chiều khoản vay, loại hồ sơ, đổi loại/gỡ khi đã có giao dịch. |
+| R157 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** Cặp nghiệp vụ nằm trong danh mục có loại ghi nhận Chi tiêu/Thu nhập hiển thị **cảnh báo** "đang tính vào báo cáo Chi tiêu/Thu nhập" (cho vay không phải chi tiêu, mua BĐS không phải chi phí); không chặn. |
 | R158 | **Màn Đối tượng** (Thạch chốt 15/10/2026): liệt kê mọi đối tượng (Người, Bất động sản, Khác), tìm theo tên, lọc theo loại, hiện danh mục đang thuộc, nghiệp vụ, tổng vào/ra, trạng thái; **khoản vay thuộc về một Người và hiện bên trong đối tượng Người**, không là loại riêng. |
 | R159 | Tạo đối tượng = tên riêng (1–100, duy nhất toàn hệ thống kể cả đã lưu trữ) + loại Người/Bất động sản/Khác, tùy chọn gắn danh mục; vẫn tạo nhanh trong danh mục. |
 | R160 | Sửa tên (có lịch sử); **đổi loại cần lý do** và bị chặn khi đối tượng là bên của khoản vay, mang nghiệp vụ, hoặc BĐS đã có dữ liệu BĐS/đầu tư. |
@@ -798,14 +798,14 @@ Triển khai: [specs/029-object-unique](specs/029-object-unique/spec.md).
 | R176 | Mọi dòng lịch sử có mã giao dịch có nút **"+ Ghi chú / Sửa ghi chú"** sửa ngay tại dòng (kèm số chứng từ tùy chọn), cập nhật tại chỗ không đóng lịch sử. |
 | R177 | Ghi chú, số chứng từ và nút sửa ghi chú nằm trong **cột nhãn** của dòng lịch sử, cùng dòng với nhãn trạng thái (ví dụ "Lịch sử cũ"); cột nhãn rộng hơn để ghi chú không bị cắt. |
 | R178 | Lịch sử **của một đối tượng** không lặp tên đối tượng và danh mục đã có ở tiêu đề (chỉ hiện đường dẫn khi đối tượng nằm ở nhiều danh mục, và các nhãn Hoàn chi tiêu / Lãi vay); lịch sử **của một danh mục** bỏ đường dẫn trùng tiêu đề, giữ tên đối tượng và đường dẫn danh mục con khác. |
-| R179 | **[Pending 21/10/2026 — xem R186]** **Người là đối tượng của danh mục, khoản vay là mục con** (Thạch chốt phương án B, 21/10/2026): "Hợp nhất hồ sơ nghiệp vụ" đưa người sở hữu khoản vay thành thành viên danh mục chứa khoản vay (nhóm của khoản vay hoặc Gốc vay), mang nghiệp vụ theo chiều đã thiết lập; khoản vay thôi là thành viên (giữ bản ghi, đánh dấu chuyển sang người). Khoản chưa thiết lập chiều: chỉ thêm người, không đoán chiều. Phải thu và Phải trả cùng danh mục của một người: báo xung đột, phải tách danh mục. Xem trước + xác nhận, idempotent. |
-| R180 | **[Pending 21/10/2026 — xem R186]** Nghiệp vụ vay gắn cho **người** (không gắn cho hồ sơ khoản vay), chặn khi khoản vay của người trong danh mục thiết lập chiều khác; sổ của người gồm từng khoản (số dư, lãi, đối chiếu sổ Công nợ). |
-| R181 | **[Pending 21/10/2026 — xem R186]** Không gỡ người khỏi danh mục khi còn khoản vay thuộc danh mục đó. |
-| R182 | **[Pending 21/10/2026 — xem R186]** Màn Danh mục hiện người kèm khoản vay con và tổng; màn Đối tượng hiện danh mục của người gồm danh mục của khoản vay ("qua khoản vay") và cảnh báo `LOAN_AS_MEMBER` / `PERSON_NOT_MEMBER` kèm nút hợp nhất khi hai màn chưa đồng nhất. |
+| R179 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** **Người là đối tượng của danh mục, khoản vay là mục con** (Thạch chốt phương án B, 21/10/2026): "Hợp nhất hồ sơ nghiệp vụ" đưa người sở hữu khoản vay thành thành viên danh mục chứa khoản vay (nhóm của khoản vay hoặc Gốc vay), mang nghiệp vụ theo chiều đã thiết lập; khoản vay thôi là thành viên (giữ bản ghi, đánh dấu chuyển sang người). Khoản chưa thiết lập chiều: chỉ thêm người, không đoán chiều. Phải thu và Phải trả cùng danh mục của một người: báo xung đột, phải tách danh mục. Xem trước + xác nhận, idempotent. |
+| R180 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** Nghiệp vụ vay gắn cho **người** (không gắn cho hồ sơ khoản vay), chặn khi khoản vay của người trong danh mục thiết lập chiều khác; sổ của người gồm từng khoản (số dư, lãi, đối chiếu sổ Công nợ). |
+| R181 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** Không gỡ người khỏi danh mục khi còn khoản vay thuộc danh mục đó. |
+| R182 | **[Phần vay bị thay thế 28/10/2026 bởi R203–R212 (spec 046); phần BĐS vẫn Pending — xem R186]** Màn Danh mục hiện người kèm khoản vay con và tổng; màn Đối tượng hiện danh mục của người gồm danh mục của khoản vay ("qua khoản vay") và cảnh báo `LOAN_AS_MEMBER` / `PERSON_NOT_MEMBER` kèm nút hợp nhất khi hai màn chưa đồng nhất. |
 | R183 | Lịch sử của người luôn gồm các khoản vay của họ. |
 | R184 | Hộp phân loại: Gốc vay/Lãi vay liệt kê người; chọn người có khoản vay thì chọn thêm khoản vay (bắt buộc); lưu vẫn gắn khoản vay cụ thể nên sổ Công nợ, báo cáo, snapshot không đổi. Thay thế cách R151 đưa hồ sơ khoản vay làm thành viên. |
 | R185 | **Danh mục và đối tượng tách bạch** (Thạch chốt 21/10/2026): danh mục là cây tổng hợp thu/chi (nhóm mặc định), **tên danh mục không liên quan nghiệp vụ**; đối tượng = tên riêng + loại (Người, Bất động sản, Khác), thuộc 0..n danh mục. |
-| R186 | **Nghiệp vụ tạm dừng (Pending)** chờ Thạch quyết định: giao dịch cho vay/mua BĐS chỉ lưu dưới dạng thu và chi; mã và dữ liệu nghiệp vụ giữ nguyên nhưng ẩn khỏi giao diện, gắn/gỡ nghiệp vụ bị từ chối. Sau này sẽ có tính năng gán nghiệp vụ cho **nhóm danh mục** (ví dụ Property → bất động sản, Long Debt → vay/nợ); chưa quyết định có "nhóm nghiệp vụ chung cho danh mục" hay không. **R146–R153, R156–R157, R179–R182 chuyển trạng thái Pending.** |
+| R186 | **[Thay một phần 28/10/2026 — xem R203–R212: Cho vay/Đi vay mở lại theo nghiệp vụ gắn danh mục; BĐS vẫn Pending]** **Nghiệp vụ tạm dừng (Pending)** chờ Thạch quyết định: giao dịch cho vay/mua BĐS chỉ lưu dưới dạng thu và chi; mã và dữ liệu nghiệp vụ giữ nguyên nhưng ẩn khỏi giao diện, gắn/gỡ nghiệp vụ bị từ chối. Sau này sẽ có tính năng gán nghiệp vụ cho **nhóm danh mục** (ví dụ Property → bất động sản, Long Debt → vay/nợ); chưa quyết định có "nhóm nghiệp vụ chung cho danh mục" hay không. **R146–R153, R156–R157, R179–R182 chuyển trạng thái Pending.** |
 | R187 | **Bỏ hộp "Hồ sơ liên kết"**; mọi đối tượng tạo qua **một hàm duy nhất** (tên 1–100, duy nhất toàn hệ thống kể cả đã lưu trữ, loại Người/BĐS/Khác) cho mọi lối: màn Đối tượng, hộp Thêm đối tượng, tạo nhanh khi phân loại, nút Thêm BĐS, migrate lịch sử cũ (hỏi loại, gợi ý theo danh mục). |
 | R188 | **Chỉ hiển thị tên người**: tiền của khoản vay hiện theo tên người ở Kiểm tra phân loại, mọi lịch sử, hộp phân loại, Danh mục, Đối tượng; người một khoản vay: hộp phân loại tự xác định khoản, không hỏi; người nhiều khoản vay là nghiệp vụ khác, chưa làm tới. |
 | R189 | **"Đồng bộ danh mục và đối tượng"** (xem trước + xác nhận, idempotent): người sở hữu khoản vay thành thành viên danh mục chứa khoản vay, hồ sơ khoản vay thôi là thành viên (giữ bản ghi); không gắn nghiệp vụ; không đổi tiền, báo cáo, snapshot, sổ Công nợ. Màn Danh mục và Đối tượng liệt kê cùng người, cùng danh mục. |
@@ -857,3 +857,53 @@ Triển khai: [specs/043-reclassify](specs/043-reclassify/spec.md).
 
 ## R202 — Tách danh mục lưu trữ khỏi màn làm việc (spec 045, Thạch yêu cầu 28/10/2026)
 - R202: Màn Danh mục có tab "Đang sử dụng" (mặc định, chỉ danh mục hoạt động, giữ cây) và "Đã lưu trữ (N)" (tìm theo tên, đường dẫn đầy đủ, số liệu, thời điểm/lý do lưu trữ nếu có, Lịch sử, Khôi phục hoặc lý do không khôi phục được, Xóa hẳn chỉ khi chưa từng dùng hoặc lý do). Tổng không đổi cách tính (gồm danh mục lưu trữ) và ghi rõ phần thuộc danh mục lưu trữ kèm lối xem. Không dây chuyền lưu trữ/khôi phục; danh mục hoạt động không mất đường truy cập vì cha bị lưu trữ; danh mục lưu trữ không chọn được cho phân loại mới. Sửa kèm (từ review spec 044): xóa hẳn đối tượng giữ dấu vết thành viên và dấu vết này tính là "đã từng dùng" (bổ sung R201); thông báo chặn xóa nêu nguyên nhân và hướng dẫn Lưu trữ. Triển khai: [specs/045-category-archive-tabs](specs/045-category-archive-tabs/spec.md).
+
+## R203–R212 — Nghiệp vụ Cho vay / Đi vay gắn vào danh mục (spec 046, Thạch chốt 28/10/2026)
+Thay một phần R186 cho Cho vay/Đi vay. Thay cho phần vay của các quy tắc nghiệp vụ theo cặp đối tượng–danh mục: R146–R150, R152, R156, R157, R179–R182. BĐS (R151, R153) và mô hình cặp vẫn Pending. Triển khai: [specs/046-loan-business](specs/046-loan-business/spec.md).
+- R203: Nghiệp vụ gắn vào danh mục.
+  - Cho vay (Phải thu) hoặc Đi vay (Phải trả) chỉ gắn vào danh mục người dùng tạo. Không gắn vào đối tượng, không gắn vào gốc hệ thống, không suy từ tên.
+  - Cả nhánh con, cháu và đối tượng trong nhánh kế thừa nghiệp vụ; con không được khác cha.
+  - Khi gắn cho cha mà nhánh con có nghiệp vụ khác: chặn và nêu các nhánh xung đột.
+  - Gắn có xem trước (hợp lệ / thiếu / xung đột), lý do và lịch sử.
+  - Gỡ, đổi nghiệp vụ, đổi cha hoặc chuyển nhánh làm đổi nghiệp vụ hiệu lực bị chặn khi nhánh có chi tiết nghiệp vụ hoặc có khoản vay.
+  - Danh mục có nghiệp vụ hoặc có chi tiết không xóa hẳn được (bổ sung R201).
+  - Một người được thuộc cả nhánh Cho vay lẫn nhánh Đi vay. Nghiệp vụ của người xác định theo danh mục, không là thuộc tính toàn cục.
+- R204: Khoản vay.
+  - Mỗi khoản thuộc đúng một Người. Một người có nhiều khoản.
+  - Thông tin khoản: mã duy nhất, tên, ngày theo dõi, hạn (không bắt buộc; không có hạn thì không báo quá hạn), mức lãi đồng/triệu/ngày (mức 0 là không lãi), môi giới tùy chọn (chỉ khoản Cho vay; tên và mức đồng/triệu/ngày).
+  - Chiều của khoản cố định theo danh mục nơi tạo.
+  - Khoản phải được tạo trước khi liên kết giao dịch.
+  - Giải ngân thêm vào khoản có sẵn hay tạo khoản mới do người dùng chọn.
+  - Không có hạn mức, lãi phạt, nhập lãi vào gốc hay nhập số dư đầu kỳ thủ công.
+- R205: Chi tiết nghiệp vụ.
+  - Áp dụng cho từng giao dịch ngân hàng và từng dòng lịch sử cũ có tiền trong danh mục nghiệp vụ.
+  - Mỗi dòng chi tiết gồm khoản vay, thành phần (gốc / lãi / phí môi giới) và số tiền. Một giao dịch tách được cho nhiều khoản; mỗi dòng chỉ thuộc một khoản.
+  - Được lưu nháp. Chỉ ghi vào sổ khi đã phân bổ đủ và tổng khớp phần tiền.
+  - Khi sửa, bản hiện hành giữ nguyên cho tới khi bản thay thế được ghi. Hủy phải có lý do. Mọi phiên bản đều được giữ.
+  - Trạng thái: "Chờ chi tiết nghiệp vụ" (kèm lý do) hoặc "Đã ghi nghiệp vụ".
+  - Chưa xác định người hoặc khoản vay thì để chờ; không tạo người hay khoản giả.
+  - Mọi đường sửa làm lệch chi tiết đã ghi đều bị chặn: phân loại, sửa phân loại, chuyển, gộp hoặc gỡ đối tượng, đổi cha, hủy migrate.
+  - Liên kết cũ hợp lệ được giữ, không ghi đôi.
+  - Không tự suy luận tiền vào là trả gốc hay tiền ra là giải ngân.
+- R206: Lãi theo ngày, tính bằng Decimal.
+  - Lãi ngày D = cơ sở(D) / 1.000.000 × mức.
+  - Cơ sở(D) = dư gốc cuối ngày D−1 + gốc giải ngân trong ngày D. Ngày giải ngân và ngày trả gốc đều tính lãi; gốc trả trong ngày D giảm cơ sở từ D+1.
+  - Không làm tròn từng ngày. Chỉ làm tròn tổng lãi lũy kế tới ngày xem về đồng, nửa lên.
+  - Hiển thị: lãi theo điều khoản, lãi thực thu/trả, miễn giảm, lãi còn thiếu.
+- R207: Tất toán, miễn giảm, hoàn tất.
+  - Khi ghi trả gốc, xem trước tác động tất toán một phần hoặc toàn bộ. Có thể bắt đầu từ khoản vay; cùng một cơ chế ghi.
+  - Miễn giảm lãi có số tiền, ngày, lý do và lịch sử; miễn giảm không phải tiền thu.
+  - Hoàn tất khoản do người dùng xác nhận, chỉ khi dư gốc 0, lãi còn thiếu 0 và không còn nguồn chờ cùng người, cùng chiều. Mở lại phải có lý do.
+- R208: Trả vượt nghĩa vụ bị chặn: gốc vượt dư gốc; lãi đã trả cộng miễn giảm vượt lãi tính tới ngày đó. Không tạo dư âm, doanh thu hay tiền trả trước.
+- R209: Môi giới.
+  - Phần môi giới và phần chênh lệch đều tính và gắn nhãn "theo điều khoản".
+  - Không chia lãi thực thu theo tỷ lệ môi giới.
+  - Trả môi giới là thành phần tiền ra riêng; không trừ gốc, không giảm lãi đã thu. Trả vượt phần theo điều khoản thì cảnh báo.
+  - Chưa có: thu hộ, nhiều môi giới, phân bổ miễn giảm sang môi giới (giới hạn công khai).
+- R210: Một sổ khoản vay duy nhất cho Công nợ, Danh mục, Đối tượng, Tổng tài sản và báo cáo. Khoản kiểu cũ tính trong cùng sổ theo quy tắc cũ. Phải thu và Phải trả không bù trừ.
+- R211: Báo cáo và trạng thái chưa đầy đủ.
+  - Báo cáo theo danh mục, nghiệp vụ, người và khoản. Đếm riêng số người, số khoản, số giao dịch.
+  - Phân biệt tiền vào/ra với thu nhập/chi phí, và lãi theo điều khoản với lãi thực thu.
+  - Còn nguồn chờ thì báo cáo ghi "Chưa đầy đủ" (số giao dịch, tổng vào/ra, lối mở danh sách), và lãi dự tính có cảnh báo.
+  - Duyệt sao kê không bị chặn bởi nguồn chờ.
+- R212: Không đổi tiền nguồn, sao kê, snapshot đã chốt, báo cáo tài khoản, khoản kiểu cũ hay bảng kê cũ. Phân loại nghiệp vụ không tạo thêm tiền ngân hàng.

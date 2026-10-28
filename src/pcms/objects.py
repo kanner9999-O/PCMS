@@ -39,6 +39,7 @@ class Objects:
         """Why the object cannot be deleted for good (it is referenced somewhere), or None."""
         if prof['kind']=='LOAN':return 'Khoản vay quản lý ở Công nợ.'
         if self.obj_party_loans(s,prof):return 'Người này đang là bên của khoản vay.'
+        if any(l['person']==prof['id'] for l in s.get('loans',[])):return 'Người này có khoản vay (nghiệp vụ Cho vay/Đi vay); chỉ có thể lưu trữ.'
         rest={k:v for k,v in s.items() if k not in {'profiles','category_objects','snapshots','object_deleted'}}
         rest['snapshots']=[dict(report=sn['report'],imports=sn.get('imports')) for sn in s['snapshots']]
         rest['profiles']=[{k:v for k,v in x.items() if k not in {'rename_history','archive_history','type_history'}} for x in s['profiles'] if x['id']!=prof['id']]
@@ -52,6 +53,8 @@ class Objects:
         if prof['kind']=='LOAN':return 'Khoản vay quản lý ở Công nợ.'
         for loan in self.debt_register(s)['loans']:
             if loan['party']==prof['id'] and loan['current_principal'] is not None and D(loan['current_principal'])!=0:return 'Còn khoản vay có dư nợ gốc; hoàn tất khoản vay trước.'
+        for row in (self.loan_book(s)['loans'] if s.get('loans') else []):
+            if row['person']==prof['id'] and (D(row['principal'])!=0 or D(row['interest_outstanding'])!=0):return f"Còn khoản {row['code']} chưa hết gốc/lãi; hoàn tất khoản vay trước."
         for row in self.business_view(s).get('loans',[]):
             if row['profile']==prof['id'] and D(row['balance'])!=0:return 'Còn dư nợ gốc theo nghiệp vụ; hoàn tất trước khi lưu trữ.'
         return None
@@ -113,6 +116,7 @@ class Objects:
                 if not p.get('profile'):continue
                 a=acc.setdefault(p['profile'],dict(in_=Decimal(0),out=Decimal(0),tx=set()));a['in_' if D(t['signed_amount'])>0 else 'out']+=D(p['amount']);a['tx'].add(t['id'])
             loans={l['id']:l for l in self.debt_register(s)['loans']};rows=[]
+            book=self.loan_book(s) if s.get('loans') else None;biz=self.lb_biz_map(s)        # spec 046: khoản vay theo hai chiều, cùng sổ với Công nợ
             for p in s['profiles']:
                 if p['kind']=='LOAN' or p.get('merged_into'):continue
                 fam=self.obj_family(s,p);tin=sum((acc.get(i,{}).get('in_',Decimal(0)) for i in fam),Decimal(0));tout=sum((acc.get(i,{}).get('out',Decimal(0)) for i in fam),Decimal(0));tx=set().union(*[acc.get(i,{}).get('tx',set()) for i in fam])
@@ -123,7 +127,9 @@ class Objects:
                     if home not in have:have.add(home);cats.append(dict(category=home,path=self.cat_path(s,home) if home not in self.ROLES_ else self.ROLES_[home],business=None,via_loan=True))
                 mine=[] if not self.business_enabled else [dict(id=x['id'],name=x['name'],direction=(x.get('debt_setup') or {}).get('direction'),current=loans[x['id']]['current_principal'],status=loans[x['id']]['completion_status'],setup=bool(x.get('debt_setup')),
                     category=(self.cat_path(s,x['group']) if x.get('group') else self.ROLES_['principal'])) for x in self.obj_party_loans(s,p)]
-                rows.append(dict(id=p['id'],name=p['name'],kind=p['kind'],type_name=TYPES[p['kind']],status=p.get('status','ACTIVE'),categories=cats,loans=mine,totals={'in':S(tin),'out':S(tout),'transactions':len(tx)},
+                for c in cats:c['loan_business']=(biz.get(c['category']) or (None,))[0]
+                biz_loans=[dict(id=r['id'],code=r['code'],name=r['name'],direction=r['direction'],direction_name=r['direction_name'],principal=r['principal'],interest_outstanding=r['interest_outstanding'],status=r['status'],category_path=r['category_path']) for r in (book or {}).get('loans',[]) if r['person']==p['id']]
+                rows.append(dict(id=p['id'],name=p['name'],kind=p['kind'],type_name=TYPES[p['kind']],status=p.get('status','ACTIVE'),categories=cats,loans=mine,biz_loans=biz_loans,totals={'in':S(tin),'out':S(tout),'transactions':len(tx)},
                     type_reason=self.obj_type_reason(s,p),delete_reason=self.obj_in_use(s,p),renames=len(p.get('rename_history',[])),archive_history=p.get('archive_history',[]),type_history=p.get('type_history',[])))
             issues=[]
             for e in s['category_objects']:

@@ -158,6 +158,9 @@ def serve(directory='private-data/product-demo', port=8787, p01=False):
                 elif p01 and self.path=='/api/realty-history':result=store.realty_history(data)
                 elif p01 and self.path=='/api/interest-settlement':result=store.settlement_preview(data)
                 elif p01 and self.path=='/api/interest-preview':result=store.interest_preview(data)
+                elif p01 and self.path=='/api/lb-category-preview':result=store.lb_category_preview(data)
+                elif p01 and self.path=='/api/lb-detail-preview':result=store.lb_detail_preview(data)
+                elif p01 and self.path=='/api/loan-book':result=store.loan_book(store.state(),data.get('as_of') or None,data.get('category') or None)
                 elif p01 and self.path=='/api/select-dataset':
                     key=data.get('dataset')
                     if key not in datasets:raise ValidationError('Bộ dữ liệu không tồn tại trong phiên này.')

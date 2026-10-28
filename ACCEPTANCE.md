@@ -390,3 +390,22 @@ Danh mục có dòng lịch sử cũ (kể cả lần migrate đã hủy, kể c
 
 ### A63 — Tab danh mục lưu trữ và dấu vết xóa (R202, bổ sung R201)
 Mở Danh mục: tab Đang sử dụng mặc định, không có danh mục lưu trữ như mục làm việc; tab Đã lưu trữ có số lượng đúng, tìm được theo tên (phân biệt bằng đường dẫn), xem lịch sử, khôi phục được (hoặc báo cần khôi phục cha). Tổng mọi gốc/cha không đổi khi tách tab, lưu trữ, khôi phục; tổng = mục hiển thị + phần "thuộc danh mục lưu trữ". Xóa hẳn đối tượng (kể cả gỡ trước rồi xóa) không làm danh mục từng có đối tượng trở nên xóa được; nút, lệnh xóa và dọn danh mục đồng nhất; danh mục chưa từng dùng vẫn xóa được. Thông báo chặn xóa không gợi ý gỡ/chuyển đối tượng.
+
+### A64 — Nghiệp vụ Cho vay / Đi vay gắn danh mục (R203–R212, spec 046)
+Trên dữ liệu giả, đi theo bảng ví dụ của spec 046.
+- **Kế thừa nghiệp vụ**: cây danh mục kế thừa nghiệp vụ; gắn xung đột bị chặn và nêu nhánh; xem trước khi gắn.
+- **Khoản vay**: một người có 2 khoản Cho vay và 1 khoản Đi vay, hiển thị riêng từng khoản, không bù trừ.
+- **Chi tiết nghiệp vụ**: một giao dịch tách được cho 2 khoản, mỗi khoản có cả gốc lẫn lãi. Nháp chưa đủ không làm đổi sổ. Bản đang sửa giữ số cũ cho tới khi ghi bản mới.
+- **Lãi**:
+  - giải ngân 100 triệu ở mức 500, trả trong 6 ngày → 300.000;
+  - trả 40 triệu → từ hôm sau 30.000/ngày;
+  - khoản mức 0 → không lãi;
+  - làm tròn theo spec.
+- **Chặn trả vượt**: thu gốc vượt dư gốc bị chặn.
+- **Hoàn tất**: hết gốc nhưng còn lãi thì chưa hoàn tất; miễn giảm đủ thì hoàn tất được.
+- **Môi giới**: hiện 120.000/180.000 theo điều khoản dù mới thu 150.000.
+- **Chặn đường song song**: mọi đường sửa làm lệch chi tiết đã ghi bị chặn.
+- **Báo cáo và số liệu**:
+  - còn nguồn chờ thì báo "Chưa đầy đủ";
+  - số liệu giống nhau giữa Công nợ, Danh mục, Đối tượng và Tổng tài sản;
+  - snapshot và báo cáo tài khoản trên bản sao dữ liệu thật không đổi.
