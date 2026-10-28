@@ -851,3 +851,6 @@ Triển khai: [specs/041-unified-object-model](specs/041-unified-object-model/sp
 - R200: Giao dịch đã duyệt: tự mở phiên điều chỉnh có lý do, snapshot cũ giữ nguyên, bản duyệt mới do người dùng duyệt. Dòng lịch sử cũ: đổi danh mục/đối tượng trong cùng loại gốc, dấu vết trên dòng, bản dán gốc giữ nguyên.
 
 Triển khai: [specs/043-reclassify](specs/043-reclassify/spec.md).
+
+## R201 — Xóa hẳn danh mục: "đã từng dùng" gồm mọi nơi lưu danh mục (spec 044, Thạch chốt 28/10/2026)
+- R201: Bổ sung R93. Danh mục chỉ xóa hẳn được khi chưa từng được dùng ở **bất kỳ** đâu: ngoài danh mục con, khoản vay, giao dịch ngân hàng, lịch sử phân loại, bản đã duyệt, còn xét **dòng lịch sử cũ** (danh mục hiện tại hoặc trong lịch sử sửa phân loại; thuộc lần migrate đang hiệu lực hay đã hủy), **lần migrate** ghi danh mục này, **đối tượng thành viên** (đang hoạt động hoặc đã gỡ/chuyển) và lịch sử chuyển đối tượng. Bị chặn thì báo lý do có số lượng, chỉ cho Lưu trữ. Màn Danh mục (nút "Xóa hẳn") và lệnh xóa dùng cùng một quy tắc. Triển khai: [specs/044-category-delete-guard](specs/044-category-delete-guard/spec.md).

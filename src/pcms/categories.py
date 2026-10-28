@@ -310,6 +310,15 @@ class Categories:
         if any(n['parent']==nid for n in s['categories']):return 'Còn danh mục con; xóa hoặc chuyển các danh mục con trước.'
         if any(p['kind']=='LOAN' and (p.get('group')==nid or any(nid in (h.get('from'),h.get('to')) for h in p.get('group_history',[]))) for p in s['profiles']):return 'Đã có khoản vay gắn danh mục này; chỉ có thể lưu trữ.'
         if nid in blob:return 'Danh mục đã từng được dùng để phân loại; chỉ có thể lưu trữ.'
+        # spec 044 (R201): mọi nơi khác lưu danh mục — xóa sẽ làm dòng lịch sử cũ, lần migrate, quan hệ đối tượng trỏ vào danh mục không tồn tại
+        rows=sum(1 for e in s.get('legacy_entries',[]) if e['category']==nid or any(nid in ((h.get('before') or {}).get('category'),(h.get('after') or {}).get('category')) for h in e.get('classification_history',[])))
+        if rows:return f'Còn {rows} dòng lịch sử cũ (kể cả lần migrate đã hủy) thuộc hoặc từng thuộc danh mục này; chỉ có thể lưu trữ.'
+        batches=sum(1 for b in s.get('legacy_batches',[]) if b.get('category')==nid)
+        if batches:return f'Danh mục được ghi trong {batches} lần migrate lịch sử cũ; chỉ có thể lưu trữ.'
+        members=[e for e in s.get('category_objects',[]) if e['category']==nid or any(nid in (h.get('from'),h.get('from_'),h.get('to')) for h in e.get('history',[]))]
+        active=sum(1 for e in members if e['category']==nid and e['status']=='ACTIVE')
+        if active:return f'Còn {active} đối tượng thành viên; gỡ hoặc chuyển đối tượng, hoặc lưu trữ danh mục.'
+        if members or any(nid in (m.get('from'),m.get('to')) for m in s.get('object_moves',[])):return 'Danh mục từng có đối tượng thành viên (đã gỡ/chuyển); chỉ có thể lưu trữ.'
         return None
 
     def cat_usage_blob(self,s):
