@@ -30,7 +30,9 @@ Trạng thái: **đã triển khai · đã nghiệm thu (PO/người dùng đạ
 Chưa kiểm được bằng UI: trạng thái cha lưu trữ – con hoạt động (hệ thống chặn mọi đường tạo ra; dữ liệu thật 0 trường hợp) — kiểm bằng test JS bộ chọn và test backend các đường chặn.
 
 ## 5. Phát hành
-Điền khi phát hành.
+PR #46 → `main` `9fda79a`. Kiểm `main` sạch: 447 OK, node 9/9. App `:8792`: build `P48-2026-10-28`, `p01.js` = `main` (`0c0a3e0d…`); tab lưu trữ có Kết, Bianance, Anh Tự; Xóa hẳn: Bianance, Long Debt. Hash dữ liệu thật trước = sau (`outputs/p01-user-trial` 161 file `a1ec41f0`, `private-data` 30 file `4421df5d`); không gửi lệnh ghi nào vào app thật.
+
+**QA cho PO**: `http://localhost:8807`, dữ liệu giả `/Users/nerkan/Documents/Working/PCMS-QA/p48-po`, dựng lại được bằng `PCMS-QA/seed_p48.py` (chạy từ thư mục PCMS: `PYTHONPATH=src:tests python3 ../PCMS-QA/seed_p48.py ../PCMS-QA/p48-po`). Có sẵn: 5 danh mục lưu trữ (Chi tiêu › Cũ QA có 600.000; Nhà › Cũ QA trùng tên; Cha QA › Con QA; Trống QA), "Có đối tượng QA" + "Đối tượng tạm QA" để PO tự tái hiện P2 (xóa hẳn đối tượng rồi thử xóa danh mục), Hot QA/Property QA (044), QA-L1 (043).
 
 ## 6. Hướng dẫn sử dụng ngắn
 - Danh mục → tab **Đang sử dụng** (mặc định) để làm việc; tab **Đã lưu trữ (N)** để tìm, xem lịch sử, khôi phục hoặc xóa hẳn danh mục chưa từng dùng.
