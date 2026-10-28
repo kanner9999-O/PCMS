@@ -18,7 +18,7 @@ Trạng thái: **đã triển khai · đã nghiệm thu (PO/người dùng đạ
 | Lưu trữ Property QA → ARCHIVED, tổng danh mục và tổng Đầu tư BĐS không đổi, vẫn không xóa được | Đạt |
 
 ## 4. Phát hành
-Điền khi phát hành (PR, commit `main`, build, hash dữ liệu).
+PR #44 → `main` `5819a2e`. Kiểm `main` sạch: 435 OK, node 9/9. App `:8792`: build `P47-2026-10-28`, `p01.js` = `main` (`bebea48c…`); "Xóa hẳn" trên app thật: Bianance, Long Debt = có; Property, Hot Debt, các danh mục khác = không. Hash dữ liệu thật trước = sau (`outputs/p01-user-trial` 158 file `664c9a16`, `private-data` 30 file `4421df5d`); không gửi lệnh ghi nào vào app thật.
 
 ## 5. Giới hạn / còn lệch
 - Không tự xóa/lưu trữ danh mục thật nào; Bianance, Long Debt vẫn xóa được khi Thạch muốn.

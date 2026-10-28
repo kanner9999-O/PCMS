@@ -56,3 +56,7 @@ Lần phát hành P45 ghi review/tasks trước khi phát hành nên T09 để m
 **Quy trình (ghi trung thực):** cả lần đầu và vòng sửa 2 đều làm **thủ công** theo mẫu Spec Kit (không gọi slash command `/speckit-*`).
 
 **QA riêng cho PO:** `http://localhost:8807`, dữ liệu giả `/tmp/pcms-043-qa-r2` (dựng bằng `qa_seed.py` + mẫu "Chi khác không chứng từ", Mỹ là thành viên, một dòng lịch sử cũ `QA-L1` 150.000 ở Ăn uống không ghi chú). Ca gợi ý: (1) qua API gọi `classify` K3 → Lãi vay kèm `business_ack:true` → bị từ chối; (2) Sửa phân loại `QA-L1` → Chi khác không chứng từ: thiếu ghi chú bị chặn, nhập ghi chú → xem trước lại → ghi; (3) ca Kết, ca B K3 như mục 3.
+
+## 9. Khôi phục QA cho PO (28/10/2026, theo `docs/po-review-043-2026-10-28.md`)
+Nguyên nhân QA `:8807` lỗi tải API: thư mục dữ liệu giả `/tmp/pcms-043-qa-r2` bị macOS tự dọn sau vài ngày, tiến trình còn LISTEN nhưng không đọc được dữ liệu. Đã dựng lại ở chỗ bền `/Users/nerkan/Documents/Working/PCMS-QA/p47-qa` (ngoài repo, chỉ dữ liệu giả; log `PCMS-QA/8807.log`), chạy mã `main` hiện hành (P47 — gồm sửa 043 vòng 2 và spec 044). Ca cho PO: `QA-L1` (Ăn uống, không ghi chú) → Sửa phân loại sang "Chi khác không chứng từ" (cần ghi chú); K3 → Lãi vay qua API `classify` kèm `business_ack` (bị từ chối); ca Kết; spec 044: Property QA/Hot QA chỉ lưu trữ, Trống QA xóa được. Không restart hay sửa app thật.
+Ghi chú quy trình: 043 làm thủ công theo mẫu (đã khai); spec 044 đã chạy bằng lệnh `/speckit-*`.

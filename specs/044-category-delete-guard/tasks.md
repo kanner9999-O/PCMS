@@ -35,7 +35,7 @@
 - [x] T009 Cập nhật build `P47-2026-10-28` trong `src/pcms/p01.py`; chạy toàn bộ test + `node --test tests/js/`
 - [x] T010 Đối chiếu bản sao chỉ đọc dữ liệu thật: `deletable` Property/Hot Debt=false, Bianance/Long Debt=true; tổng danh mục/đối tượng/công nợ/báo cáo giống P46; thời gian `category_view` — ghi vào `specs/044-category-delete-guard/review.md`
 - [x] T011 PO nghiệm thu UI trên dữ liệu giả (quickstart 4) — `specs/044-category-delete-guard/review.md`
-- [ ] T012 IMPLEMENTATION-STATUS.md (P47); README trong thư mục vận hành đang có thay đổi dở của người dùng nên không sửa, HANDOFF.md cũ (P07) ghi là còn lệch; phát hành: PR → merge khi xanh → kiểm `main` sạch → cập nhật thư mục vận hành → khởi động lại `:8792` → hash dữ liệu trước/sau
+- [x] T012 IMPLEMENTATION-STATUS.md (P47); README trong thư mục vận hành đang có thay đổi dở của người dùng nên không sửa, HANDOFF.md cũ (P07) ghi là còn lệch; phát hành: PR → merge khi xanh → kiểm `main` sạch → cập nhật thư mục vận hành → khởi động lại `:8792` → hash dữ liệu trước/sau
 
 ## Dependencies
 
