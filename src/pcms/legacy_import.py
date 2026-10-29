@@ -73,7 +73,7 @@ class LegacyImport:
         statuses=self.legacy_identity_status(s);nodes={n['id']:n for n in s.get('categories',[])}
         for e in s.get('legacy_entries',[]):
             if statuses.get(e['id']) not in {'ACTIVE','UNRESOLVED'}:continue
-            key=e['category'];part={'category':key,'amount':e['amount'],'profile':e['profile']}
+            key=e['category'];part={'category':key,'amount':e['amount'],'profile':e['profile'],**({'loan':e['loan']} if e.get('loan') else {})}
             if key not in ROOTS:
                 node=nodes.get(key)
                 if node is None:continue
@@ -155,6 +155,10 @@ class LegacyImport:
             else:
                 require(1<=len(name)<=100,'Chọn đối tượng có sẵn hoặc nhập tên đối tượng mới (1–100 ký tự).')
                 prof=self.profile_clash(s,name)
+            # spec 046 vòng sửa (PO review P2): migrate vào danh mục nghiệp vụ vay cần Người có sẵn + khoản vay của người đó, cùng quy tắc với phân loại
+            node=next((n for n in s.get('categories',[]) if n['id']==key),None)
+            lpart={'category':node['root'] if node else key,'amount':'0','profile':prof['id'] if prof else None,**({'node':key} if node else {}),**({'loan':str(d['loan'])} if d.get('loan') else {})}
+            issue=self.lb_part_check(s,lpart) if hasattr(self,'lb_part_check') else None;require(not issue,issue[1] if issue else '')
             active={b['id'] for b in s['legacy_batches'] if b['status']=='ACTIVE'}
             account=d.get('account') or None
             require(account and any(a['id']==account for a in s['accounts']),'Chọn tài khoản nguồn; không suy đoán tài khoản từ mã giao dịch.')
@@ -195,7 +199,7 @@ class LegacyImport:
             declared=parsed['declared'];totals_ok=None if declared is None else (declared['in']==tin and declared['out']==tout)
             importable=sum(1 for r in rows if r['status'] in {'OK','MATCHED_BANK'})       # dòng trùng sao kê vẫn được lưu làm chứng từ truy nguyên, không cộng tiền lần hai
             return dict(columns=parsed['columns'],mapping=parsed['mapping'],rows=rows,issues=parsed['issues'],totals={'in':str(tin),'out':str(tout)},declared={k:str(v) for k,v in declared.items()} if declared else None,totals_ok=totals_ok,
-                importable=importable,matched_bank=matched,duplicates=dups,object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof),kind=prof['kind'] if prof else (d.get('type') or 'OBJECT')),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
+                importable=importable,matched_bank=matched,duplicates=dups,loan=lpart.get('loan'),object=dict(profile=prof['id'] if prof else None,name=prof['name'] if prof else name,exists=bool(prof),kind=prof['kind'] if prof else (d.get('type') or 'OBJECT')),can_import=not parsed['issues'] and importable>0 and totals_ok is not False,needs_confirm=totals_ok is False and not parsed['issues'],draft=True)
 
     def change_legacy(self,s,action,d):
         from .p01 import now
@@ -215,12 +219,12 @@ class LegacyImport:
             if not any(e['category']==key and e['profile']==prof['id'] and e['status']=='ACTIVE' for e in s['category_objects']):
                 s['category_objects'].append(dict(id=uid(),category=key,profile=prof['id'],status='ACTIVE',created_at=now(),history=[dict(at=now(),action='ADD',to=key)]))
             text=str(d['text']);bid=uid()
-            s['legacy_batches'].append(dict(id=bid,at=now(),account=d['account'],source_text=text,sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),category=key,profile=prof['id'],mapping=p['mapping'],rows=p['importable'],
+            s['legacy_batches'].append(dict(id=bid,at=now(),account=d['account'],source_text=text,sha256=hashlib.sha256(text.encode('utf-8')).hexdigest(),category=key,profile=prof['id'],**({'loan':p['loan']} if p.get('loan') else {}),mapping=p['mapping'],rows=p['importable'],
                 totals=p['totals'],declared=p['declared'],accepted_mismatch=p['totals_ok'] is False,status='ACTIVE'))
             n=0
             for r in p['rows']:
                 if r['status'] not in {'OK','MATCHED_BANK'}:continue
-                s['legacy_entries'].append(dict(id=uid(),batch=bid,row=r['row'],date=r['date'],description=r['description'],reference=r['reference'],amount=r['amount'],direction=r['direction'],bank_balance=r['bank_balance'],category=key,profile=prof['id'],**({'note':r['note']} if r.get('note') else {})));n+=1
+                s['legacy_entries'].append(dict(id=uid(),batch=bid,row=r['row'],date=r['date'],description=r['description'],reference=r['reference'],amount=r['amount'],direction=r['direction'],bank_balance=r['bank_balance'],category=key,profile=prof['id'],**({'loan':p['loan']} if p.get('loan') else {}),**({'note':r['note']} if r.get('note') else {})));n+=1
             return f"Migrate {n} dòng lịch sử cũ cho {prof['name']}"+(f"; bỏ qua {p['duplicates']} dòng trùng lần trước" if p['duplicates'] else '')
         if action=='legacy-void':
             b=item(s['legacy_batches'],d.get('batch'));require(b['status']=='ACTIVE','Lần migrate đã hủy.');reason=str(d.get('reason','')).strip();require(reason,'Cần lý do hủy.')

@@ -38,6 +38,10 @@ class AssetOverview:
             loans=[l for l in debts['loans']];setup_loans=[l for l in loans if l['setup']]
             receivable=sum((D(p['receivable']) for p in people),Decimal(0));payable=sum((D(p['payable']) for p in people),Decimal(0))
             loan_issues=sum(p['excluded_count'] for p in people)
+            # spec 046 (R210): khoản vay kiểu mới lấy từ cùng sổ khoản vay với Công nợ; khoản cũ giữ nguyên số của sổ Công nợ cũ
+            book=self.loan_book(s) if (s.get('loans') or any(n.get('business') for n in s.get('categories',[]))) else None
+            if book:receivable+=D(book['summary']['receivable']);payable+=D(book['summary']['payable'])
+            new_loans=bool(book and book['loans']);pending=book['pending']['count'] if book else 0
             realty=self.realty_view(s);realty_rows=[];by_basis={'VALUE':Decimal(0),'COST':Decimal(0)};none=[];realty_total=Decimal(0)
             for p in realty['properties']:
                 cur=p['valuation']['current'];net=D(p['capital']['basis'])
@@ -48,10 +52,10 @@ class AssetOverview:
                 else:by_basis[basis]+=value;realty_total+=value
                 realty_rows.append(dict(id=p['id'],name=p['name'],basis=basis,value=N(value) if value is not None else None,date=cur['date'] if cur else None,capital_net=p['capital']['basis']))
             vnd_assets=[self.asset_group('bank','Tiền ngân hàng','account',bank_total,bool(active),'Theo dữ liệu nguồn đã ghi'+(f' đến ngày {as_of}' if as_of else ''),as_of,bank_rows),
-                self.asset_group('receivable','Phải thu (gốc cho vay)','debts',receivable,bool(setup_loans),'Gốc theo dữ liệu Công nợ, không gồm lãi'),
+                self.asset_group('receivable','Phải thu (gốc cho vay)','debts',receivable,bool(setup_loans) or new_loans,'Gốc theo dữ liệu Công nợ, không gồm lãi'),
                 self.asset_group('realty','Bất động sản','realty',realty_total if realty['properties'] else None,bool(realty['properties']),'Giá trị hiện tại nếu đã nhập; chưa có thì giá gốc (vốn đã thanh toán ròng + chi phí mua vốn hóa ròng), chưa định giá',None,realty_rows)]
             vnd_assets[2]['by_basis']={k:N(v) for k,v in by_basis.items()}
-            vnd_liab=[self.asset_group('payable','Phải trả (gốc đi vay)','debts',payable,bool(setup_loans),'Gốc theo dữ liệu Công nợ, gồm khoản vay thế chấp')]
+            vnd_liab=[self.asset_group('payable','Phải trả (gốc đi vay)','debts',payable,bool(setup_loans) or new_loans,'Gốc theo dữ liệu Công nợ, gồm khoản vay thế chấp')]
             # ---- USDT ---------------------------------------------------
             crypto=self.crypto_view(s);trx=self.trx_view(s)
             places=[p for p in crypto['places'] if p['status']=='ACTIVE' and p['components']]
@@ -69,7 +73,7 @@ class AssetOverview:
             def warn(code,label,count,target):
                 if count:warnings.append(dict(code=code,label=label,count=count,target=target))
             warn('UNCLASSIFIED','Giao dịch ngân hàng chưa phân loại (có thể ảnh hưởng vốn BĐS và công nợ)',unclassified,'account');warn('COVERAGE_GAPS','Khoảng chưa có nguồn ngân hàng',gaps,'account')
-            warn('LOAN_ISSUES','Khoản vay lỗi hoặc chưa thiết lập (không vào phải thu/phải trả)',loan_issues,'debts');warn('UNPRICED_COIN','Coin chưa có giá (không vào giá trị crypto)',unpriced,'crypto')
+            warn('LOAN_ISSUES','Khoản vay lỗi hoặc chưa thiết lập (không vào phải thu/phải trả)',loan_issues,'debts');warn('LOAN_PENDING','Giao dịch chờ chi tiết nghiệp vụ vay (công nợ chưa đầy đủ)',pending,'debts');warn('UNPRICED_COIN','Coin chưa có giá (không vào giá trị crypto)',unpriced,'crypto')
             warn('REALTY_COST_BASIS','Bất động sản tính theo giá gốc, chưa định giá',sum(1 for r in realty_rows if r['basis']=='COST'),'realty');warn('REALTY_NO_VALUE','Bất động sản chưa có giá trị (ngoài tổng)',len(none),'realty')
             return dict(currencies=dict(VND=block(vnd_assets,vnd_liab),USDT=block(usdt_assets,usdt_liab)),warnings=warnings,realty_basis=dict(rows=realty_rows,none=none),notes=NOTES,as_of=as_of)
 

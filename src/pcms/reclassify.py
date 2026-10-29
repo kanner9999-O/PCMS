@@ -90,14 +90,15 @@ class Reclassify:
             except (TypeError,ValueError):idx=-1
             before=copy.deepcopy(t['allocations']) or [{'category':'unknown','amount':S(abs(D(t['signed_amount']))),'profile':None}]
             require(0<=idx<len(before),'Chọn phần phân loại cần sửa.')
-            key=d.get('category');require(key,'Chọn danh mục đích.');profile=d.get('profile') or None
+            key=d.get('category');require(key,'Chọn danh mục đích.');profile=d.get('profile') or None;loan=str(d['loan']) if d.get('loan') else None
             node=next((n for n in base.get('categories',[]) if n['id']==key),None)
             require(node is not None or key in {'income','expense','principal','interest','investment','transfer_pending','unknown'},'Danh mục đích không tồn tại.')
             new={'category':node['root'] if node else key,'amount':before[idx]['amount'],'profile':profile}
             if node:new['node']=node['id']
+            if loan:new['loan']=loan
             after=copy.deepcopy(before);after[idx]=new
             blocks=[];needs_membership=None
-            same=lambda a,b:(a['category'],a.get('node') or None,a.get('profile') or None)==(b['category'],b.get('node') or None,b.get('profile') or None)
+            same=lambda a,b:(a['category'],a.get('node') or None,a.get('profile') or None,a.get('loan') or None)==(b['category'],b.get('node') or None,b.get('profile') or None,b.get('loan') or None)
             note_in=None if d.get('note') is None else str(d['note']).strip()[:1000]
             current=(entry if entry is not None else t).get('note','') or ''
             note=dict(required=bool(node and self.cat_flag(base,node['id'],'note_required')),current=current,final=current if note_in is None else note_in)
@@ -115,6 +116,9 @@ class Reclassify:
                 elif not self.is_member(base,eff,owner):
                     needs_membership=dict(category=eff,path=self.reclass_label(base,dict(category=new['category'],node=None if eff in ROOT_NAMES else eff,profile=None,amount='0'))['path'],profile=owner,name=self.disp_name(base,owner))
                     blocks.append(dict(code='NOT_MEMBER',message=f"{needs_membership['name']} chưa là thành viên danh mục đích. Thêm vào danh mục (có xác nhận riêng) rồi xem trước lại."))
+            # spec 046 vòng sửa (PO review P2): danh mục đích mang nghiệp vụ vay → cần Người + khoản vay có sẵn, cùng quy tắc với Phân loại
+            lbi=None if same(before[idx],new) or not hasattr(self,'lb_part_check') else self.lb_part_check(base,new)
+            if lbi:blocks.append(dict(code='LOAN_BUSINESS',message=lbi[1]))
             level=self.reclass_level(base,before,after)
             if entry is not None and _root(before[idx]['category'])!=_root(new['category']):blocks.append(dict(code='LEGACY_ROOT',message='Dòng lịch sử cũ chỉ đổi danh mục/đối tượng trong cùng loại gốc; muốn đổi loại, hủy lần migrate và migrate lại.'))
             blocks+=self.reclass_reference_blocks(base,t,before,after,level)
@@ -145,9 +149,11 @@ class Reclassify:
         node=p.get('node');path=self.cat_path(s,node) if node else {'income':'Thu nhập','expense':'Chi tiêu','principal':'Gốc vay','interest':'Lãi vay','investment':'Đầu tư BĐS','transfer_pending':'Chuyển nội bộ · chờ đối ứng','transfer':'Chuyển nội bộ','unknown':'Chưa phân loại'}.get(p['category'],p['category'])
         prof=next((x for x in s['profiles'] if x['id']==p.get('profile')),None) if p.get('profile') else None
         link=None
-        if prof and prof['kind']=='LOAN':link='Khoản vay: '+prof['name']
+        ln=next((x for x in s.get('loans',[]) if x['id']==p.get('loan')),None) if p.get('loan') else None
+        if ln:link=f"Khoản vay: {ln['code']} · {ln['name']}"
+        elif prof and prof['kind']=='LOAN':link='Khoản vay: '+prof['name']
         elif prof and prof['kind']=='PROPERTY':link='BĐS: '+prof['name']+(' (vốn hóa)' if self.cat_flag(s,node,'capitalize') else '')
-        return dict(category=p['category'],node=node,path=path,profile=p.get('profile'),object=self.disp_name(s,p['profile']) if p.get('profile') else None,link=link,amount=S(D(p['amount'])))
+        return dict(category=p['category'],node=node,path=path,profile=p.get('profile'),loan=p.get('loan'),object=self.disp_name(s,p['profile']) if p.get('profile') else None,link=link,amount=S(D(p['amount'])))
 
     # ---- ghi -------------------------------------------------------------------------
     def reclass_apply(self,s,tid,idx,after,reason,simulate=False,note=None):
@@ -158,7 +164,7 @@ class Reclassify:
             if simulate:
                 acc=next((a for a in s['accounts'] if a['id']==t['account']),None)
                 if acc is not None:acc['adjustment_open']=True                     # mô phỏng phiên điều chỉnh mà bước ghi sẽ yêu cầu
-            payload=[{k:v for k,v in p.items() if k in {'category','amount','profile','node'}} for p in after]
+            payload=[{k:v for k,v in p.items() if k in {'category','amount','profile','node','loan'}} for p in after]
             return self.change(s,'classify',dict(ids=[tid],parts=payload,reason=reason,note=note,_reclass=RECLASS_GRANT))
         e=item(s['legacy_entries'],tid);p=after[0];key=p.get('node') or p['category']
         b=next((x for x in s.get('legacy_batches',[]) if x['id']==e['batch']),None);require(b and b['status']=='ACTIVE','Dòng thuộc lần migrate đã hủy; không sửa.')
@@ -166,10 +172,12 @@ class Reclassify:
         prof=item(s['profiles'],p['profile']);require(self.is_member(s,self.cat_target(self.cat_eff(s,p)),self.part_owner(s,prof)),'Đối tượng chưa là thành viên danh mục đích.')
         final=e.get('note','') if note is None else str(note).strip()[:1000]
         require(final or not (p.get('node') and self.cat_flag(s,p['node'],'note_required')),'Danh mục này yêu cầu ghi chú (khoản chi không chứng từ cần ghi rõ mục đích).')
-        before=dict(category=e['category'],profile=e.get('profile'),note=e.get('note',''));e['category']=key;e['profile']=p['profile']
+        before=dict(category=e['category'],profile=e.get('profile'),loan=e.get('loan'),note=e.get('note',''));e['category']=key;e['profile']=p['profile']
+        if p.get('loan'):e['loan']=p['loan']
+        else:e.pop('loan',None)
         if final:e['note']=final
         else:e.pop('note',None)
-        e.setdefault('classification_history',[]).append(dict(at=now(),before=before,after=dict(category=key,profile=p['profile'],note=final),reason=reason))
+        e.setdefault('classification_history',[]).append(dict(at=now(),before=before,after=dict(category=key,profile=p['profile'],loan=p.get('loan'),note=final),reason=reason))
         return 'Sửa phân loại dòng lịch sử cũ'
 
     def change_reclassify(self,s,d):

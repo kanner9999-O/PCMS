@@ -315,6 +315,12 @@ class Categories:
         if loans:return f'Đang có {len(loans)} khoản vay gắn danh mục này; không thể xóa hẳn. Muốn ẩn: chuyển khoản vay sang danh mục khác (Công nợ) rồi lưu trữ.'
         if any(p['kind']=='LOAN' and any(nid in (h.get('from'),h.get('to')) for h in p.get('group_history',[])) for p in s['profiles']):return f'Danh mục từng có khoản vay gắn vào; không thể xóa hẳn. {hint}'
         if nid in blob:return f'Danh mục đã từng được dùng để phân loại giao dịch; không thể xóa hẳn. {hint}'
+        # spec 046 (R203, bổ sung R201): nghiệp vụ vay, khoản vay tạo từ danh mục, chi tiết nghiệp vụ trỏ vào danh mục
+        if node.get('business') or node.get('business_history'):return f'Danh mục đã gắn nghiệp vụ vay (kể cả đã gỡ); không thể xóa hẳn. {hint}'
+        nl=sum(1 for l in s.get('loans',[]) if l['category']==nid)
+        if nl:return f'Có {nl} khoản vay được tạo từ danh mục này; không thể xóa hẳn. {hint}'
+        nd=sum(1 for det in s.get('loan_details',[]) if any(l.get('category')==nid for v in det['versions']+([det['draft']] if det.get('draft') else []) for l in v['lines']))
+        if nd:return f'Có {nd} giao dịch có chi tiết nghiệp vụ vay ở danh mục này; không thể xóa hẳn. {hint}'
         # spec 044 (R201): mọi nơi khác lưu danh mục — xóa sẽ làm dòng lịch sử cũ, lần migrate, quan hệ đối tượng trỏ vào danh mục không tồn tại
         rows=sum(1 for e in s.get('legacy_entries',[]) if e['category']==nid or any(nid in ((h.get('before') or {}).get('category'),(h.get('after') or {}).get('category')) for h in e.get('classification_history',[])))
         if rows:return f'Có {rows} dòng lịch sử cũ (kể cả lần migrate đã hủy) thuộc hoặc từng thuộc danh mục này; không thể xóa hẳn. {hint}'
@@ -450,6 +456,12 @@ class Categories:
                 if pr['kind']=='LOAN' and pr.get('group'):attached[pr['group']]=attached.get(pr['group'],0)+1
             roots=[dict(key=k,name=v,description=s['category_roots'].get(k,''),role=ROLE_LABELS[k],group='default',group_name=GROUPS['default'],objects=objs.get(k,[]),parentable=k in PARENTABLE,totals=totals(k,k=='expense'),archived_share=totals(k,k=='expense',arch)) for k,v in ROOTS.items()]
             nodes=[dict(group=n.get('group','default'),group_name=GROUPS[n.get('group','default')],role=ROLE_LABELS[n['root']],capitalize=self.cat_flag(s,n['id'],'capitalize'),note_required=self.cat_flag(s,n['id'],'note_required'),objects=objs.get(n['id'],[]),deletable=self.cat_in_use_fast(s,n,blob) is None,loans=attached.get(n['id'],0),id=n['id'],name=n['name'],description=n['description'],parent=n['parent'],root=n['root'],status=n['status'],depth=self.cat_depth(s,n),path=self.cat_path(s,n['id']),history=n['history'],totals=totals(n['id'],n['root']=='expense'),archived_share=totals(n['id'],n['root']=='expense',arch),**self.cat_archive_meta(s,n,blob)) for n in s['categories']]
+            # spec 046: nghiệp vụ hiệu lực của từng danh mục và khoản vay của người thành viên theo chiều đó (cùng sổ khoản vay với Công nợ)
+            biz=self.lb_biz_map(s);book=self.loan_book(s) if s.get('loans') else None
+            for n in nodes:
+                b=biz.get(n['id']);n['business']=dict(type=b[0],own=b[1]==n['id'],**{'from':b[1]},from_path=self.cat_path(s,b[1]),history=next(x for x in s['categories'] if x['id']==n['id']).get('business_history',[])) if b else None
+                for o in n['objects']:
+                    o['biz_loans']=[dict(id=r['id'],code=r['code'],name=r['name'],principal=r['principal'],interest_outstanding=r['interest_outstanding'],status=r['status']) for r in (book or {}).get('loans',[]) if b and r['person']==o['profile'] and r['direction']==b[0]]
             return dict(classification_issues=self.classification_issues(s),roots=roots,nodes=nodes,templates={k:dict(name=v['name'],children=v['children'],description=v['description'],exists=any(n['parent'] is None and norm_name(n['name'])==norm_name(v['name']) for n in s['categories'])) for k,v in TEMPLATES.items()},deleted=s.get('category_deleted',[]),merges=s.get('profile_merges',[]),cleanup=[dict(id=n['id'],path=self.cat_path(s,n['id']),root=n['root'],status=n['status']) for n in self.cat_cleanup_candidates(s)],legacy=self.legacy_summary(s),groups=GROUPS,group_note=GROUP_NOTE,max_depth=MAX_DEPTH,root_types=ROOT_TYPES,period=dict(start=start,end=end) if (start or end) else None,draft=True)
 
     def part_owner(self,s,prof):
