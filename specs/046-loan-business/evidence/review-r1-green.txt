@@ -1,0 +1,20 @@
+1c361e1
+(chưa commit: các sửa của vòng 29/10 nằm trong cây làm việc)
+test_broker_terms_locked_but_name_and_non_financial_fields_editable (test_p49_loan_business.ReviewP1RetroactiveTerms.test_broker_terms_locked_but_name_and_non_financial_fields_editable) ... ok
+test_edit_allowed_before_any_posting_drafts_do_not_lock (test_p49_loan_business.ReviewP1RetroactiveTerms.test_edit_allowed_before_any_posting_drafts_do_not_lock) ... ok
+test_rate_edit_blocked_after_posting_and_history_unchanged (test_p49_loan_business.ReviewP1RetroactiveTerms.test_rate_edit_blocked_after_posting_and_history_unchanged) ... ok
+test_void_and_reopen_do_not_unlock_terms (test_p49_loan_business.ReviewP1RetroactiveTerms.test_void_and_reopen_do_not_unlock_terms) ... ok
+test_bulk_classification_same_rule (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_bulk_classification_same_rule) ... ok
+test_legacy_import_requires_loan_and_links_it (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_legacy_import_requires_loan_and_links_it) ... ok
+test_moving_or_clearing_cannot_strand_loan_links (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_moving_or_clearing_cannot_strand_loan_links) ... ok
+test_no_person_or_no_loan_rejected_and_not_saved (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_no_person_or_no_loan_rejected_and_not_saved) ... ok
+test_old_parts_without_loan_stay_visible_and_untouched (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_old_parts_without_loan_stay_visible_and_untouched) ... ok
+test_person_and_loan_saves_pending_without_posting (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_person_and_loan_saves_pending_without_posting) ... ok
+test_reclassify_preview_and_commit_require_loan (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_reclassify_preview_and_commit_require_loan) ... ok
+test_split_one_transaction_across_two_loans_of_one_person (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_split_one_transaction_across_two_loans_of_one_person) ... ok
+test_wrong_loan_rejected (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_wrong_loan_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 5.184s
+
+OK

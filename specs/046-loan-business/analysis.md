@@ -77,3 +77,20 @@ Không có. T001 và T002 là setup; T029–T033 là polish/bằng chứng.
 - **G1**: T031 thêm bước đo thời gian `view()`.
 - **U3**: contracts ghi rằng `loan_book.sources` là nguồn của danh sách "Ghi từ giao dịch nguồn".
 - **I1**: Assumptions của spec ghi trần 100.000 đ/triệu/ngày là giới hạn chặn nhập sai.
+
+
+## Chạy lại `/speckit-analyze` — vòng sửa theo PO review 28/10 (29/10/2026)
+
+Đã chạy thật bộ lệnh đang cài (`.specify/scripts/bash/check-prerequisites.sh --json --require-spec --require-tasks --include-tasks` → FEATURE_DIR `specs/046-loan-business`; không có `.specify/extensions.yml` nên không có hook). Phạm vi: Phase 10 (T034–T041), FR-003/004/005 sửa đổi. Kết quả của analyze (chỉ đọc):
+
+| ID | Loại | Mức | Vị trí | Phát hiện | Đề xuất |
+|---|---|---|---|---|---|
+| R1 | Hiến chương IX | HIGH | spec.md, Bản đồ ảnh hưởng | Chưa phản ánh trường khoản vay mới trên phần phân loại và các đường ghi/màn bị ảnh hưởng | Bổ sung bản đồ ảnh hưởng cho vòng sửa |
+| R2 | Không nhất quán | MEDIUM | tasks.md T013 | Còn "sửa mức lãi cho ra số lãi mới", trái FR-003 mới | Ghi chú thay bởi T037 |
+| R3 | Độ phủ | MEDIUM | spec.md SC | Chưa có tiêu chí đo được cho P1/P2 | Thêm SC-007, SC-008 |
+| R4 | Thiếu đặc tả | LOW | data-model.md | Mã chờ cho khoản đã chọn bị lệch chưa đặt tên | Thêm LOAN_MISMATCH |
+| R5 | Văn phong | LOW | spec.md US3 3b/3c | Đánh số không liền | Giữ để truy vết |
+
+Độ phủ: FR-003 → T036, T037, T040; FR-004 → T038; FR-005 → T038–T040; T034 test đỏ; T035 tài liệu; T041 bằng chứng. 0 CRITICAL, 1 HIGH, 0 mơ hồ, 0 trùng lặp. Hiến chương: I, II, IV, VIII đạt. IX: quyết định P2 do Thạch đã chốt trong brief nên không phỏng vấn lại.
+
+**Xử lý sau analyze (người triển khai, không phải output của analyze)**: R1 bổ sung mục "Bổ sung bản đồ ảnh hưởng — vòng sửa 29/10" trong spec.md; R2 sửa tasks.md T013; R3 thêm SC-007/SC-008; R4 thêm LOAN_MISMATCH vào data-model.md. R5 giữ nguyên.

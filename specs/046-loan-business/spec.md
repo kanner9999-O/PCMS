@@ -34,6 +34,10 @@
 - Trả môi giới vượt phần theo điều khoản thì **chỉ cảnh báo**, vì đó không phải nghĩa vụ của người vay và brief không chốt việc chặn.
 - **Ngày theo dõi**: không liên kết được giao dịch có ngày trước ngày theo dõi. Hạn trả không bắt buộc.
 
+### Session 2026-10-29 — vòng sửa theo PO review 28/10 (`docs/po-review-046-2026-10-28.md`; quyết định đã chốt, không hỏi lại)
+- **P1 — không đổi điều khoản tài chính hồi tố.** Bản này không hỗ trợ đổi lãi suất theo ngày hiệu lực. Khi khoản đã từng có phát sinh được ghi (một phiên bản chi tiết nghiệp vụ đã ghi, kể cả đã hủy hay đã bị thay, hoặc một miễn giảm), khóa sửa mức lãi và điều khoản môi giới (thêm, bỏ, đổi mức). Chưa có phát sinh được ghi (chỉ có nháp) thì vẫn sửa được. Tên, mã, tên/biệt danh môi giới, ngày theo dõi, hạn vẫn sửa theo quy tắc hiện hành. Hủy chi tiết hay mở lại khoản không mở khóa. Nhập sai điều khoản sau khi đã ghi: hủy chi tiết các nguồn, tạo khoản mới đúng điều khoản rồi ghi lại vào khoản mới; khoản cũ giữ lịch sử.
+- **P2 — phân loại trước, chi tiết sau, nhưng phải có người và khoản.** Thạch đã chốt: phần tiền mới vào danh mục mang nghiệp vụ vay phải chọn **Người** và **một khoản vay có sẵn** của người đó, cùng chiều, chưa hoàn tất. Một người nhiều khoản thì tách phần theo từng khoản. Chỉ phần gốc / lãi / phí môi giới được để sau. Thiếu người hoặc khoản thì không lưu phân loại (giao dịch giữ trạng thái cũ, chưa hoàn tất). Quy tắc áp như nhau cho phân loại một dòng, phân loại hàng loạt, Sửa phân loại và nhập lịch sử cũ. Phần tiền đã có từ trước (phân loại trước khi gắn nghiệp vụ hoặc trước vòng sửa này) là ngoại lệ lịch sử: không tự sửa, không tự xóa, vẫn nằm trong danh sách chờ để đối chiếu.
+
 ### Kết quả `/speckit-clarify` (28/10/2026)
 - Đã quét theo đủ danh mục của bộ lệnh (phạm vi, dữ liệu, luồng, phi chức năng, tích hợp, ngoại lệ, thuật ngữ, tiêu chí hoàn thành). Kết luận: **không có điểm mơ hồ trọng yếu nào cần hỏi Thạch**, nên không đặt câu hỏi.
 - Những điểm có thể đổi kết quả tài chính đều đã được chốt:
@@ -50,6 +54,7 @@
 3. **Chi tiết nghiệp vụ** của một nguồn (giao dịch ngân hàng hoặc dòng lịch sử cũ) chia phần tiền nằm trong danh mục có nghiệp vụ thành các dòng.
    - Mỗi dòng gồm khoản vay, thành phần (gốc / lãi / phí môi giới) và số tiền.
    - Có hai dạng: **nháp** và **bản đã ghi**. Chỉ bản đã ghi được tính vào sổ.
+   - Người và khoản vay được chọn ngay khi phân loại (mỗi phần tiền một khoản). Dòng chi tiết của phần tiền đó chỉ dùng đúng khoản đã chọn.
 4. **Sổ khoản vay** là một phép tính duy nhất trên các bản đã ghi, dùng cho mọi màn. Sổ cho ra:
    - dư gốc;
    - lãi theo điều khoản, lãi thực thu/trả, miễn giảm, lãi còn thiếu;
@@ -111,6 +116,13 @@
 
 **Kiểm tra đồng nhất giữa các màn:** test so dư gốc, lãi còn thiếu, số người, số khoản và số giao dịch giữa Công nợ, Danh mục, Đối tượng và Tổng tài sản.
 
+### Bổ sung bản đồ ảnh hưởng — vòng sửa 29/10 (PO review P1, P2)
+- **Dữ liệu**: phần phân loại (`allocations[]`), dòng/lần migrate lịch sử cũ thêm trường khoản vay. Dữ liệu thật chưa có danh mục mang nghiệp vụ, nên không có phần tiền nào thiếu khoản; không cần migrate.
+- **Đường ghi phải cùng quy tắc người + khoản**: Phân loại (một dòng, hàng loạt, tách phần), Sửa phân loại (giao dịch và dòng lịch sử cũ), Migrate lịch sử cũ. Đổi cha / chuyển nhánh / gỡ nghiệp vụ không được làm phần đã chọn khoản lệch người, lệch chiều hay mất nghiệp vụ. Chuyển, gộp, gỡ đối tượng đã chặn qua khoản vay của người (giữ nguyên).
+- **Màn hình**: hộp Phân loại, hộp Sửa phân loại, hộp Migrate lịch sử cũ (ô Khoản vay); Công nợ → Sửa thông tin (khóa ô mức lãi / môi giới); Chi tiết nghiệp vụ (nhóm theo khoản đã chọn); danh sách chờ (lý do mới "khoản đã chọn không còn khớp").
+- **Không đổi**: tiền nguồn, sao kê, snapshot, báo cáo tài khoản, khoản kiểu cũ, công thức lãi.
+- **Test**: hai lớp test hồi quy mới; sửa 2 test cũ coi tính lại lãi lịch sử là đúng; các test US1–US6 khác giữ nguyên vì dùng phần tiền cũ (phân loại trước khi gắn nghiệp vụ).
+
 ## Luồng màn hình *(để PO đối chiếu trước khi triển khai)*
 
 1. **Danh mục › chọn một danh mục**
@@ -124,8 +136,10 @@
      - nhánh con đang mang nghiệp vụ khác (có thì bị chặn).
    - Nhập lý do → Xác nhận.
 2. **Phân loại giao dịch** vào danh mục có nghiệp vụ
-   - Chọn danh mục theo cấp và chọn người thành viên như hiện nay → Lưu.
-   - Hệ thống mở ngay **Chi tiết nghiệp vụ** (cách A). Nếu đóng hộp mà chưa ghi, giao dịch ở trạng thái "Chờ chi tiết nghiệp vụ" (cách B).
+   - Chọn danh mục theo cấp, chọn người thành viên, rồi chọn **khoản vay** của người đó (ô "Khoản vay (Cho vay)" hoặc "(Đi vay)" chỉ liệt kê khoản cùng chiều, chưa hoàn tất). Người có nhiều khoản và giao dịch thuộc nhiều khoản: bấm **+ Tách thêm phần**, mỗi phần một khoản.
+   - Thiếu người hoặc khoản: không lưu, hộp phân loại giữ nguyên để chọn tiếp; giao dịch vẫn "Chưa phân loại" (hoặc giữ phân loại cũ). Người chưa có khoản: tạo ở Công nợ → **+ Khoản vay mới** trước.
+   - Lưu xong, hệ thống mở ngay **Chi tiết nghiệp vụ** (cách A). Nếu đóng hộp mà chưa ghi, giao dịch ở trạng thái "Chờ chi tiết nghiệp vụ" (cách B); sổ không đổi.
+   - **Sửa phân loại** và **Migrate lịch sử cũ** vào danh mục nghiệp vụ cũng có ô chọn khoản và cùng quy tắc.
 3. **Chi tiết nghiệp vụ** (một bộ dùng chung cho mọi lối vào)
    - Phần đầu: tiền nguồn, phần thuộc nghiệp vụ, ngày, người.
    - Mỗi dòng chọn:
@@ -219,7 +233,8 @@ Thạch tạo khoản vay cho một người trong danh mục có nghiệp vụ,
 **Acceptance Scenarios**:
 1. **Given** Kết là thành viên Hot Debt (Cho vay), **When** tạo khoản từ Hot Debt, **Then** khoản có chiều Cho vay và không đổi được chiều.
 2. **Given** người chưa là thành viên danh mục nghiệp vụ nào cùng chiều, **When** tạo khoản, **Then** bị chặn và được hướng dẫn thêm người vào danh mục trước.
-3. **Given** khoản đã có chi tiết đã ghi, **When** sửa mức lãi, **Then** cần lý do, lưu lịch sử và xem được số lãi thay đổi. Đây là sửa nhập sai cho cả khoản, không phải đổi lãi theo thời gian.
+3. **Given** khoản chưa có phát sinh được ghi (chỉ có nháp), **When** sửa mức lãi hay môi giới, **Then** được, cần lý do và lưu lịch sử.
+4. **Given** khoản đã từng có phát sinh được ghi (kể cả đã hủy, hoặc khoản đã hoàn tất rồi mở lại), **When** sửa mức lãi hoặc thêm/bỏ/đổi mức môi giới, **Then** bị chặn ở cả giao diện và API; lãi và dư lãi của các ngày đã qua không đổi. Tên, mã, biệt danh môi giới, ngày theo dõi, hạn vẫn sửa được (PO review P1).
 
 ---
 
@@ -233,7 +248,9 @@ Giao dịch phân loại vào danh mục có nghiệp vụ được bóc thành 
 **Acceptance Scenarios**:
 1. **Given** chi tiết thiếu tiền, **When** bấm Ghi nghiệp vụ, **Then** bị chặn, kèm số còn thiếu. Lưu nháp vẫn được và sổ không đổi.
 2. **Given** đã có bản đã ghi, **When** sửa nháp thay thế, **Then** sổ dùng bản hiện hành cho tới khi bản mới đủ và được ghi; bản cũ giữ trong lịch sử.
-3. **Given** chưa chọn người, hoặc người chưa có khoản cùng chiều, **Then** trạng thái "Chờ chi tiết nghiệp vụ" ghi rõ lý do; hệ thống không tạo người hay khoản giả.
+3. **Given** phân loại **mới** vào danh mục có nghiệp vụ, **When** thiếu người hoặc thiếu khoản vay có sẵn (hoặc khoản không thuộc người đó, khác chiều, đã hoàn tất), **Then** không lưu phân loại, ở mọi đường ghi (một dòng, hàng loạt, Sửa phân loại, migrate lịch sử). Có người và khoản nhưng chưa có chi tiết: lưu được, giao dịch "Chờ chi tiết nghiệp vụ", sổ không đổi (PO review P2).
+3b. **Given** phần tiền **cũ** thiếu người hoặc khoản (phân loại trước khi gắn nghiệp vụ), **Then** giữ nguyên, nằm trong danh sách chờ kèm lý do; hệ thống không tạo người hay khoản giả và không tự sửa.
+3c. **Given** một giao dịch phân loại thành hai phần cho hai khoản của cùng người, **Then** chi tiết của mỗi phần chỉ dùng đúng khoản của phần đó; ghi chỉ khi cả hai phần đủ.
 4. **Given** giao dịch đã ghi nghiệp vụ, **When** phân loại lại, Sửa phân loại, chuyển đối tượng hoặc gộp hồ sơ làm đổi phần tiền thuộc nghiệp vụ, **Then** bị chặn; phải hủy hoặc sửa chi tiết trước (có lý do).
 5. **Given** dòng lịch sử cũ thuộc danh mục có nghiệp vụ, **Then** bóc tách được như giao dịch ngân hàng và không bị ghi đôi.
 6. **Given** phần tiền cũ đã gắn khoản vay kiểu cũ đúng chiều, **Then** xem trước tính là "đã hợp lệ", giữ nguyên, không ghi lại.
@@ -303,21 +320,23 @@ Công nợ, Danh mục, Đối tượng và Tổng tài sản dùng cùng một 
   - mức lãi ≥ 0 đồng/triệu/ngày;
   - môi giới, chỉ cho Cho vay: tên và mức ≥ 0.
   - Sửa thông tin cần lý do, có lịch sử. Không tạo khoản tự động.
+  - Khóa điều khoản tài chính (PO review P1): khi khoản đã từng có phát sinh được ghi (phiên bản chi tiết đã ghi ở bất kỳ trạng thái nào, hoặc miễn giảm), không sửa mức lãi và không thêm/bỏ/đổi mức môi giới; hủy chi tiết hay mở lại khoản không mở khóa. Không có tính năng đổi lãi theo ngày hiệu lực.
 - **FR-004 (R205)**: Chi tiết nghiệp vụ.
   - Áp dụng cho giao dịch ngân hàng và dòng lịch sử cũ có phần tiền trong danh mục có nghiệp vụ.
-  - Mỗi dòng: khoản vay của đúng người của phần tiền đó và cùng chiều; thành phần hợp chiều tiền; số tiền dương.
+  - Mỗi dòng: khoản vay của đúng người của phần tiền đó và cùng chiều — nếu phần tiền đã chọn khoản khi phân loại thì đúng khoản đó; thành phần hợp chiều tiền; số tiền dương.
   - Chỉ ghi được khi: tổng các dòng của từng phần khớp đúng phần tiền; không vượt nghĩa vụ; khoản chưa hoàn tất; ngày nguồn từ ngày theo dõi trở đi.
   - Nháp lưu được bất cứ lúc nào và không tính vào sổ.
   - Khi sửa, bản hiện hành giữ nguyên tới khi bản thay thế được ghi. Hủy cần lý do. Mọi phiên bản đều được giữ.
 - **FR-005 (R205)**: Trạng thái và chặn sửa.
   - Mỗi nguồn ở trạng thái "Chờ chi tiết nghiệp vụ" hoặc "Đã ghi nghiệp vụ", kèm lý do còn thiếu; có danh sách chờ.
   - Phân loại, Sửa phân loại, chuyển đối tượng, gộp hồ sơ, gỡ thành viên làm đổi phần tiền đã ghi nghiệp vụ → bị chặn.
-  - Hồ sơ gắn cho phần tiền mới trong danh mục có nghiệp vụ phải là Người.
+  - Phần tiền mới trong danh mục có nghiệp vụ phải có hồ sơ Người và một khoản vay có sẵn của người đó, cùng chiều, chưa hoàn tất (PO review P2). Áp cho phân loại một dòng, hàng loạt, Sửa phân loại, migrate lịch sử; một bất biến chung chặn mọi đường ghi khác tạo ra phần tiền thiếu người/khoản, hay làm khoản đã chọn lệch người/chiều (chuyển nhánh, gỡ nghiệp vụ).
+  - Phần tiền cũ (có trước) thiếu người/khoản giữ nguyên trong danh sách chờ, không tự sửa.
 - **FR-006 (R206)**: Lãi theo ngày, tính bằng số thập phân chính xác.
   - Lãi ngày D = cơ sở(D) / 1.000.000 × mức; cơ sở(D) = dư gốc cuối ngày D−1 + gốc giải ngân ngày D.
   - Tổng lũy kế tới ngày xem làm tròn về đồng, nửa lên.
   - Sổ cho ra: lãi theo điều khoản tới ngày xem, lãi thực thu/trả, miễn giảm, lãi còn thiếu.
-  - Không thay đổi lãi theo thời gian, không lãi phạt, không nhập lãi vào gốc.
+  - Không thay đổi lãi theo thời gian (không sửa mức lãi hồi tố — FR-003), không lãi phạt, không nhập lãi vào gốc.
 - **FR-007 (R207)**: Khi ghi gốc, xem trước tác động: dư gốc trước/sau, tất toán một phần/toàn bộ, lãi còn thiếu. Bắt đầu từ khoản vay ("Ghi từ giao dịch nguồn") dùng cùng một cơ chế.
 - **FR-008 (R207)**: Miễn giảm lãi có số tiền, ngày, lý do, lịch sử; hủy cần lý do. Không được vượt lãi còn thiếu tại ngày đó và không phải tiền thu.
 - **FR-009 (R207)**: Hoàn tất khoản là thao tác người dùng xác nhận.
@@ -343,7 +362,8 @@ Công nợ, Danh mục, Đối tượng và Tổng tài sản dùng cùng một 
 
 ### Key Entities
 - **Nghiệp vụ danh mục**: loại (Cho vay / Đi vay), lịch sử gắn và gỡ (thời điểm, lý do).
-- **Khoản vay**: mã, tên, người, chiều, danh mục nơi tạo, ngày theo dõi, hạn, mức lãi, môi giới (tên, mức), trạng thái hoàn tất, lịch sử.
+- **Khoản vay**: mã, tên, người, chiều, danh mục nơi tạo, ngày theo dõi, hạn, mức lãi, môi giới (tên, mức), trạng thái hoàn tất, lịch sử, trạng thái khóa điều khoản (suy ra).
+- **Phần tiền phân loại** (đã có): thêm trường khoản vay khi thuộc danh mục có nghiệp vụ.
 - **Chi tiết nghiệp vụ**: nguồn (giao dịch hoặc dòng lịch sử cũ), các phiên bản đã ghi (dòng, thời điểm, lý do), nháp, lịch sử hủy.
 - **Miễn giảm lãi**: khoản, ngày, số tiền, lý do, trạng thái, lịch sử.
 - **Sổ khoản vay** (chỉ đọc): các đoạn gốc, lãi, môi giới, trạng thái, cảnh báo.
@@ -356,6 +376,8 @@ Công nợ, Danh mục, Đối tượng và Tổng tài sản dùng cùng một 
 - **SC-003**: Không có trường hợp nào nháp hoặc chi tiết chưa đủ làm đổi số trong sổ.
 - **SC-004**: So từng trường trên bản sao dữ liệu thật trước/sau: snapshot đã duyệt, báo cáo tài khoản và số của khoản kiểu cũ không đổi.
 - **SC-005**: Mọi đường sửa song song đều bị chặn khi làm lệch chi tiết đã ghi, mỗi đường có test: phân loại, Sửa phân loại, chuyển đối tượng, gộp hồ sơ, gỡ thành viên, đổi cha, gỡ nghiệp vụ, xóa danh mục.
+- **SC-007** (vòng sửa 29/10): Sau khi đã có phát sinh được ghi, 0 đường nào (API, giao diện, sau hủy chi tiết, sau mở lại khoản) đổi được mức lãi hay điều khoản môi giới; lãi và dư lãi của mọi ngày đã qua giống hệt trước khi thử sửa.
+- **SC-008** (vòng sửa 29/10): 100% đường ghi phân loại (một dòng, hàng loạt, Sửa phân loại, migrate lịch sử) từ chối phần mới thiếu người hoặc khoản, mỗi đường có test tự động; phần tiền cũ giữ nguyên 100% và hiện trong danh sách chờ.
 - **SC-006**: Đi hết ví dụ 1–8 qua giao diện trên dữ liệu giả mà không phải làm gì ngoài giao diện.
 
 ## Tư vấn kế toán *(Constitution VIII)*
@@ -374,6 +396,8 @@ Công nợ, Danh mục, Đối tượng và Tổng tài sản dùng cùng một 
 - **Môi giới**:
   - Phần theo điều khoản là số tham chiếu, chưa phải nghĩa vụ phải trả đã ghi nhận. Chi phí môi giới thực tế là số tiền đã trả.
   - Khi miễn giảm lãi, phần môi giới có giảm theo hay không tùy thỏa thuận; hệ thống **không tự suy diễn**.
+- **Không sửa điều khoản hồi tố** (vòng sửa 29/10): mức lãi và mức môi giới là điều khoản của hợp đồng vay. Theo nguyên tắc **nhất quán** và **không điều chỉnh hồi tố số đã ghi nhận**, đổi điều khoản là một sự kiện có ngày hiệu lực, không phải sửa đè. Sửa đè làm lãi của những ngày đã qua đổi mà không có chứng từ, nên bị khóa khi đã có phát sinh được ghi. Nhập sai từ đầu thì sửa theo kiểu **bút toán đảo**: hủy chi tiết (giữ dấu vết), ghi lại vào khoản mới đúng điều khoản. Phụ lục thay đổi lãi suất theo ngày hiệu lực là tính năng riêng, cần thỏa thuận quy tắc (và kế toán viên xác nhận nếu có hợp đồng/phụ lục thật).
+- **Đối tượng công nợ chi tiết** (vòng sửa 29/10): sổ chi tiết công nợ theo dõi theo **từng đối tượng và từng khế ước** (khoản vay). Vì vậy mỗi phần tiền thuộc nghiệp vụ vay phải có người và khoản ngay khi ghi nhận phân loại; chỉ việc bóc gốc/lãi/phí (một bước hạch toán chi tiết) được để sau, và trong lúc chờ thì báo cáo ghi "chưa đầy đủ". Phần tiền cũ thiếu đối tượng là chênh lệch cần đối chiếu, không tự gán.
 - **Làm tròn** một lần trên tổng lũy kế (nửa lên): nhất quán, tránh sai số cộng dồn của việc làm tròn từng ngày, và khớp ví dụ của Thạch.
 - **Số dư đầu kỳ** chưa nhập được. Khoản có lịch sử trước ngày theo dõi sẽ thiếu số; hệ thống ghi "dữ liệu chưa đầy đủ" và không tạo giao dịch giả.
 - **Thuế / pháp lý**: lãi cho vay của cá nhân có thể phát sinh nghĩa vụ thuế thu nhập từ đầu tư vốn, và mức lãi có giới hạn theo pháp luật. **Cần kế toán viên / chuyên viên thuế xác nhận.** Hệ thống không tính thuế và không kiểm trần lãi.

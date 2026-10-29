@@ -402,6 +402,8 @@ Trên dữ liệu giả, đi theo bảng ví dụ của spec 046.
   - khoản mức 0 → không lãi;
   - làm tròn theo spec.
 - **Chặn trả vượt**: thu gốc vượt dư gốc bị chặn.
+- **Khóa điều khoản** (bổ sung 29/10): sửa mức lãi 500 → 700 sau khi đã ghi bị chặn ở giao diện và API; lãi 300.000 và dư lãi 150.000 ngày 25/10 không đổi; hủy chi tiết hay mở lại khoản không mở khóa; khoản chỉ có nháp vẫn sửa được.
+- **Người và khoản khi phân loại** (bổ sung 29/10): phân loại mới vào danh mục Cho vay thiếu người hoặc khoản thì không lưu (một dòng, hàng loạt, Sửa phân loại, migrate lịch sử); có người và khoản thì lưu, chờ chi tiết, sổ không đổi; một giao dịch tách được cho 2 khoản của cùng người; phần tiền cũ thiếu khoản vẫn hiện trong danh sách chờ.
 - **Hoàn tất**: hết gốc nhưng còn lãi thì chưa hoàn tất; miễn giảm đủ thì hoàn tất được.
 - **Môi giới**: hiện 120.000/180.000 theo điều khoản dù mới thu 150.000.
 - **Chặn đường song song**: mọi đường sửa làm lệch chi tiết đã ghi bị chặn.

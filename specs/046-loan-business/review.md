@@ -1,5 +1,7 @@
 # Review — spec 046: nghiệp vụ Cho vay / Đi vay (QA của người triển khai)
 
+> **Vòng sửa 29/10/2026** theo `docs/po-review-046-2026-10-28.md` (PO chưa nghiệm thu P1, P2): xem **§9**. PO cần nghiệm thu lại; chưa merge, chưa phát hành.
+>
 > **Đây là QA của Claude, người triển khai, không phải nghiệm thu độc lập.** Codex (PO) chưa nghiệm thu. **Chưa phát hành lên dữ liệu thật.** App thật 8792 vẫn chạy P48. Nhánh `046-loan-business` chỉ được merge và phát hành sau khi có review độc lập.
 
 ## 1. Quy trình Spec Kit đã gọi (28/10/2026)
@@ -119,7 +121,8 @@
 
 - **Địa chỉ**: http://localhost:8809, chạy mã P49 từ worktree `PCMS-wt-046`, chỉ có dữ liệu giả.
 - **Thư mục dữ liệu**: `/Users/nerkan/Documents/Working/PCMS-QA/p49-po`.
-- **Trạng thái ban đầu**: bộ dữ liệu sạch. Mọi giao dịch đã phân loại danh mục nhưng **chưa** gắn nghiệp vụ và **chưa** có chi tiết, để PO tự đi từ bước 1.
+- **Trạng thái ban đầu** (dựng lại 29/10, build `P49-2026-10-29`): bộ dữ liệu sạch, 10 giao dịch. L1–L8 và E1 đã phân loại danh mục (trước khi gắn nghiệp vụ, tức là "phần tiền cũ"), **chưa** gắn nghiệp vụ và **chưa** có chi tiết. **L9** (31/10, ra 3.000.000, "Ket vay them") để **chưa phân loại**, dùng thử quy tắc người + khoản. Một dòng lịch sử cũ FT900 của Tươi. Chưa có khoản vay nào.
+- **Bộ đã dùng cho QA vòng sửa** (giữ để đối chiếu, không dùng cho nghiệm thu): `/Users/nerkan/Documents/Working/PCMS-QA/p49-claude-r1`.
 - **Dựng lại**:
   ```bash
   cd /Users/nerkan/Documents/Working/PCMS-wt-046
@@ -133,7 +136,7 @@
 1. **Danh mục** → chọn danh mục (ví dụ Hot Debt) → **Gắn nghiệp vụ** → chọn Cho vay hoặc Đi vay → xem trước (hợp lệ / thiếu / xung đột) → nhập lý do → Xác nhận. Các danh mục con tự kế thừa.
 2. **Công nợ** → **+ Khoản vay mới**: chọn danh mục nghiệp vụ, người (phải là thành viên), tên, mức lãi (đồng/triệu/ngày), môi giới nếu có.
 3. Tạo chi tiết nghiệp vụ bằng một trong hai cách:
-   - Phân loại giao dịch vào danh mục nghiệp vụ và chọn người → hộp **Chi tiết nghiệp vụ** tự mở.
+   - Phân loại giao dịch vào danh mục nghiệp vụ, chọn người **và khoản vay** (bắt buộc; người nhiều khoản thì "+ Tách thêm phần", mỗi phần một khoản) → hộp **Chi tiết nghiệp vụ** tự mở. Đóng hộp thì giao dịch "Chờ chi tiết nghiệp vụ", sổ chưa đổi.
    - Bấm "Chi tiết nghiệp vụ" trên dòng giao dịch, hoặc "Ghi từ giao dịch nguồn" ở khoản vay.
 
    Trong hộp: chọn khoản, thành phần, số tiền, xem tác động → **Ghi nghiệp vụ**. Chưa đủ thông tin thì **Lưu nháp**; nháp chưa tính vào sổ.
@@ -146,7 +149,9 @@
 - **Không gắn nghiệp vụ được lên gốc hệ thống** (Gốc vay, Lãi vay…), chỉ lên danh mục tự tạo, kể cả danh mục con dưới Gốc vay.
 - **Ngoài phạm vi theo brief**: nhập số dư đầu kỳ thủ công, trả trước, hoàn trả tiền thừa, lãi phạt, nhiều môi giới, thu hộ, phân bổ miễn giảm sang môi giới.
 - **Trả vượt nghĩa vụ chỉ bị chặn.** Người dùng phải Sửa phân loại phần thừa sang danh mục khác; chưa có thành phần "tiền thừa".
-- **Sửa mức lãi** áp cho cả khoản (sửa nhập sai). Không có lãi suất thay đổi theo thời gian.
+- **Không đổi được mức lãi / môi giới sau khi đã có phát sinh được ghi** (vòng sửa 29/10). Không có lãi suất thay đổi theo ngày hiệu lực; nhập sai thì hủy chi tiết, tạo khoản mới đúng điều khoản và ghi lại.
+- **Đổi khoản của một phần tiền đã phân loại** phải qua Sửa phân loại (hộp Chi tiết nghiệp vụ không đổi được khoản đã chọn).
+- **Hộp phân loại không có nút tạo khoản tại chỗ**: người chưa có khoản phải tạo ở Công nợ → + Khoản vay mới trước (gợi ý hiện ngay trong hộp).
 - **Nhãn phân loại trên dòng giao dịch** vẫn ghi theo loại gốc ("Chi tiêu · 100.000.000"), kèm nhãn trạng thái nghiệp vụ bên cạnh; chưa đổi thành tên danh mục.
 - **Chưa kiểm**: giao diện trên điện thoại; dữ liệu lớn (nhiều trăm khoản).
 - **README, HANDOFF.md chưa cập nhật.** README đang có thay đổi dở của Thạch trong thư mục vận hành; HANDOFF vẫn ghi P07.
@@ -163,3 +168,112 @@
   4. `merge --ff-only` vào thư mục vận hành.
   5. Khởi động lại 8792.
   6. Lấy hash dữ liệu sau và so.
+
+## 9. Vòng sửa theo PO review 28/10 (29/10/2026)
+
+Nguồn: `docs/po-review-046-2026-10-28.md`. Không mở spec mới; tiếp tục trên worktree `PCMS-wt-046`, nhánh `046-loan-business`. Đây vẫn là QA của người triển khai; **PO chưa nghiệm thu lại**.
+
+### 9.1 Quy trình đã chạy thật
+| Bước | Bằng chứng |
+|---|---|
+| Test hồi quy viết **trước** khi sửa mã: 13 test mới (`ReviewP1RetroactiveTerms` 4, `ReviewP2PersonAndLoanRequired` 9) | `evidence/review-r1-red.txt`: 12/13 đỏ (9 fail, 3 error); 1 test đã xanh sẵn (`test_old_parts_without_loan_stay_visible_and_untouched` — giữ để chống hồi quy) |
+| Cập nhật spec (Clarifications 29/10, bổ sung bản đồ ảnh hưởng, luồng màn 2, US2/US3, FR-003/004/005/006, SC-007/008, Tư vấn kế toán), plan, data-model, contracts, tasks (Phase 10, T034–T041); PRODUCT-SPEC R204/R205; ACCEPTANCE A64 | diff của commit vòng sửa |
+| `/speckit-analyze` chạy lại bằng bộ lệnh đang cài (`check-prerequisites.sh`; không có hook) | `analysis.md` mục "Chạy lại /speckit-analyze — vòng sửa": 0 CRITICAL, 1 HIGH (bản đồ ảnh hưởng), 2 MEDIUM, 2 LOW; đã xử lý R1–R4 trước khi implement |
+| `/speckit-implement` cho Phase 10 (checklist requirements 16/16) | tasks.md T034–T041 [X] |
+| Test xanh sau khi sửa | `evidence/review-r1-green.txt` (13/13) |
+
+### 9.2 Cách sửa
+**P1 — khóa điều khoản hồi tố**
+- `lb_terms_locked(s, loan)`: khoản đã xuất hiện trong dòng của **bất kỳ** phiên bản chi tiết nào (đang ghi, đã bị thay, hay trước bản hủy) hoặc có miễn giảm (kể cả đã hủy) → khóa. Nháp không tính.
+- `lb-loan-edit` chặn đổi `rate`, thêm/bỏ môi giới, đổi mức môi giới khi khóa. Tên/biệt danh môi giới, tên, mã, ngày theo dõi, hạn vẫn sửa theo quy tắc cũ (ngày theo dõi vẫn không được sau nguồn đã liên kết).
+- Hủy chi tiết hay mở lại khoản **không mở khóa**, vì các phiên bản cũ luôn được giữ. Không thêm tính năng ngày hiệu lực.
+- `loan_book.loans[]` thêm `terms_locked`, `terms_lock_reason`. Form "Sửa khoản" khóa ô mức lãi và mức môi giới (khoản chưa có môi giới thì khóa cả tên môi giới), hiện lý do ngay trên form.
+- Sửa 2 test cũ coi tính lại lãi lịch sử là đúng:
+  - `test_edit_needs_reason_history_and_rate_correction_changes_interest` → `test_edit_needs_reason_history_rate_correctable_only_before_posting`;
+  - `test_over_paying_broker_warns_not_blocks` (trước đây sửa mức môi giới sau khi ghi; nay dùng khoản mới có mức thấp đặt từ đầu).
+
+**P2 — phân loại mới phải có người + khoản**
+- Phần phân loại có thêm trường `loan`. Hàm kiểm chung `lb_part_check`:
+  - danh mục hiệu lực có nghiệp vụ → cần hồ sơ Người và khoản của đúng người đó, đúng chiều, chưa hoàn tất;
+  - phần có khoản mà danh mục không mang nghiệp vụ → lỗi.
+- Áp ở mọi đường ghi:
+  - `classify`: một dòng, hàng loạt, tách phần. Phần giữ y nguyên phần cũ được miễn, để không ép sửa dữ liệu cũ khi chỉ đổi ghi chú.
+  - `reclassify_preview`: block `LOAN_BUSINESS`, payload giữ `loan`; với dòng lịch sử cũ, `reclass_apply` lưu `loan`.
+  - `legacy_preview` / `legacy-import`: cần Người có sẵn và khoản; lưu `loan` vào lần migrate và từng dòng; `legacy_items` mang `loan`.
+- **Lưới an toàn chung**: dấu vân tay có thêm tập phần tiền thô và tập phần vi phạm; `lb_guard` chặn mọi thao tác tạo phần vi phạm **mới**. Gồm phần mới/đổi thiếu người hoặc khoản, và phần đã chọn khoản trở nên lệch người/chiều hay mất nghiệp vụ (đổi cha danh mục, chuyển đối tượng, gỡ nghiệp vụ).
+  - Phần y nguyên có từ trước mà trở thành thuộc nghiệp vụ (gắn nghiệp vụ, chuyển nhánh) được giữ và vào danh sách chờ: đây là ngoại lệ lịch sử.
+- **Chi tiết nghiệp vụ** nhóm theo (danh mục, người, khoản).
+  - Phần đã chọn khoản chỉ nhận dòng của đúng khoản đó; dòng sai khoản bị chặn kèm mã khoản đúng.
+  - Phần cũ không có khoản (nhóm null) vẫn chọn được khoản bất kỳ của người đó cùng chiều.
+  - Ghi chỉ khi mọi phần đủ; nháp không vào sổ; bản đã ghi giữ nguyên khi đang sửa (không đổi).
+- **Giao diện**:
+  - ô **Khoản vay** (lọc theo người, chiều, chưa hoàn tất), kèm gợi ý, trong hộp Phân loại (một dòng và hàng loạt), Sửa phân loại, Migrate lịch sử cũ;
+  - nút "+ Tách thêm phần" hiện khi đã có danh mục nghiệp vụ;
+  - thiếu người hoặc khoản thì không gửi, hộp giữ nguyên;
+  - hộp Chi tiết nghiệp vụ ghi "Kết · khoản CV-0001" trên từng phần và ẩn "+ Tạo khoản vay" ở phần đã chọn khoản.
+- Mã chờ mới `LOAN_MISMATCH` (khoản đã chọn không còn khớp). Build `P49-2026-10-29`.
+
+### 9.3 Ca kiểm tự động (13 test mới, tests/test_p49_loan_business.py)
+| Test | Kiểm |
+|---|---|
+| `ReviewP1…test_rate_edit_blocked_after_posting_and_history_unchanged` | Tái hiện review: `example(4)`, sửa 500 → 700 bị chặn; ngày 25/10 lãi 300.000, dư lãi 150.000 không đổi; `terms_locked` + lý do |
+| `…test_broker_terms_locked_but_name_and_non_financial_fields_editable` | đổi mức, bỏ, thêm môi giới bị chặn; đổi biệt danh, tên, mã, hạn được; quy tắc ngày theo dõi giữ nguyên |
+| `…test_edit_allowed_before_any_posting_drafts_do_not_lock` | chỉ có nháp → sửa lãi và môi giới được, có lịch sử |
+| `…test_void_and_reopen_do_not_unlock_terms` | hủy hết chi tiết (0 nguồn) vẫn khóa; hoàn tất → mở lại vẫn khóa |
+| `ReviewP2…test_no_person_or_no_loan_rejected_and_not_saved` | Tái hiện review: E1 vào Hot Debt không người → chặn; có người, không khoản → chặn; phân loại giữ nguyên, không vào sổ |
+| `…test_wrong_loan_rejected` | khoản của người khác, khác chiều, không tồn tại, khoản ở danh mục không nghiệp vụ → chặn |
+| `…test_person_and_loan_saves_pending_without_posting` | có người + khoản → lưu, "Chờ chi tiết", sổ không đổi (tương đương đóng/hủy hộp thứ hai), chi tiết chỉ đưa đúng khoản |
+| `…test_split_one_transaction_across_two_loans_of_one_person` | một giao dịch 2 phần cho CV-0001/CV-0002; đảo khoản bị chặn; chỉ ghi 1 phần bị chặn; ghi đủ thì sổ đúng |
+| `…test_bulk_classification_same_rule` | hàng loạt: thiếu khoản bị chặn; có khoản thì cả hai giao dịch gắn khoản |
+| `…test_reclassify_preview_and_commit_require_loan` | Sửa phân loại: xem trước báo chặn khi thiếu khoản; có khoản thì xác nhận được, phần có `loan` |
+| `…test_legacy_import_requires_loan_and_links_it` | migrate: người có sẵn thiếu khoản, hoặc người mới → chặn; có khoản thì từng dòng gắn khoản |
+| `…test_old_parts_without_loan_stay_visible_and_untouched` | phần cũ thiếu khoản vẫn trong danh sách chờ; lưu lại phân loại y nguyên (chỉ đổi ghi chú) được, không bị sửa |
+| `…test_moving_or_clearing_cannot_strand_loan_links` | chuyển nhánh có phần đã gắn khoản sang cha không mang nghiệp vụ → chặn |
+
+Test cũ phải chỉnh vì hành vi mới đúng hơn: `test_pending_reasons` (phần E1 không người nay tạo trước khi gắn nghiệp vụ), `test_pending_in_same_person_direction_blocks_completion` và `test_legacy_link_valid_not_double_and_legacy_row_detail` (thêm khoản khi phân loại / migrate), cùng 2 test P1 ở trên. JS: `loan_business.test.cjs` thêm `lbLineIn`/`lbRemaining` theo khoản và `lbLoansFor`.
+
+### 9.4 Kết quả thực chạy (29/10/2026, worktree)
+| Kiểm | Kết quả |
+|---|---|
+| `PYTHONPATH=src:tests python3 -m unittest discover -s tests` | **496 tests OK** (trước vòng sửa 483) |
+| `node tests/js/*.cjs` | **10/10 OK** |
+| Bản sao dữ liệu thật trong scratchpad: `view()` P48 (thư mục vận hành, `589f449`) vs P49 vòng sửa | **Giống hệt 13 nhóm**: assets, categories, crypto, debts, interest_statements, loan_options, objects, readiness, realty, reports, snapshots, transactions (tiền và phân loại), trx. Đã xóa bản sao sau khi so |
+| Thời gian `view()` trên bản sao | P48 1,27–1,33 giây; P49 1,26–1,27 giây |
+| Hash dữ liệu thật trước và sau | `outputs/p01-user-trial` 161 file `a1ec41f0`; `private-data` 30 file `4421df5d`: **không đổi**. Thư mục vận hành chỉ có thay đổi dở của Thạch (không đụng) |
+
+### 9.5 QA giao diện của người triển khai (dữ liệu giả, cổng 8809, bộ `p49-claude-r1`)
+Setup qua API của trang: gắn Cho vay cho Hot Debt, tạo CV-0001 (500, môi giới Long 200) và CV-0002 (600) cho Kết. Các bước dưới đây đi trên giao diện.
+| # | Thao tác | Kết quả |
+|---|---|---|
+| R1 | Phân loại L9 vào Hot Debt, chưa chọn người → Lưu | Gợi ý "chọn Người, rồi chọn khoản vay"; thông báo chặn; hộp giữ nguyên; L9 vẫn "Chưa phân loại" |
+| R2 | Gọi thẳng API `classify` không người / có người không khoản | Cả hai bị chặn bằng thông báo tiếng Việt; phân loại L9 vẫn rỗng |
+| R3 | Chọn Kết → ô Khoản vay hiện CV-0001, CV-0002; tách 2 phần 2.000.000 CV-0001 + 1.000.000 CV-0002 → Lưu | Lưu được; hộp Chi tiết nghiệp vụ tự mở với 2 phần "Kết · khoản CV-0001" / "khoản CV-0002", mỗi phần chỉ có đúng khoản đó |
+| R4 | Đóng hộp Chi tiết (hủy) | Sổ không đổi (gốc 0, 0 nguồn); L9 "Chờ chi tiết nghiệp vụ"; danh sách chờ 9 nguồn (gồm các phần cũ L1–L8, FT900) |
+| R5 | Ghi L1 vào CV-0001, mở "Sửa khoản CV-0001" | Form hiện lý do khóa; ô mức lãi, mức môi giới chỉ đọc (mờ); gõ 700 không nhận; đổi tên + lý do → lưu được |
+| R6 | API `lb-loan-edit` rate 700 / mức môi giới 300 | Bị chặn; lãi CV-0001 ngày 25/10 vẫn 300.000 |
+| R7 | Hủy chi tiết L1 rồi thử sửa lãi CV-0001; mở form CV-0002 (chưa ghi) | Vẫn khóa (0 nguồn đang ghi); CV-0002 không khóa, sửa 600 → 650 được |
+| R8 | Sửa phân loại E1 → Hot Debt · Kết, chưa chọn khoản → Xem trước | Chặn; chọn CV-0002 → xem trước hiện "Khoản vay: CV-0002", xác nhận → phần E1 gắn CV-0002, "Chờ chi tiết" |
+| R9 | Migrate lịch sử cũ vào Hot Debt cho Tươi (chưa có khoản) | Xem trước bị chặn "chọn khoản vay của Tươi… tạo ở Công nợ"; tạo CV-0003 → ô Khoản hiện CV-0003 → ghi; dòng FT901 gắn CV-0003; dòng cũ FT900 vẫn chờ |
+| R10 | Phân loại hàng loạt L8 + L6 vào Hot Debt · Kết, không chọn khoản | Ô Khoản vay hiện; Lưu bị chặn; không giao dịch nào đổi |
+| — | Console | Không có lỗi JS; các 400/403 là các lần cố ý thử bị chặn |
+
+**Lỗi tìm thấy trong QA vòng này (đã sửa):** mở Migrate với người đã chọn sẵn thì ô Khoản vay không hiện và gợi ý vẫn "chọn Người". Server vẫn chặn đúng; sửa bằng cách đồng bộ ô khoản sau khi điền sẵn người. Các ô bị khóa trong form Sửa khoản trước đó trông như ô thường; đã làm mờ.
+
+**Chưa kiểm trên giao diện** (có test tự động): mở lại khoản đã hoàn tất rồi sửa lãi; chuyển nhánh làm lệch khoản.
+
+### 9.6 Hướng dẫn kiểm độc lập ngắn cho Codex
+1. Mở http://localhost:8809 (bộ sạch `p49-po`; dựng lại bằng lệnh ở §5).
+2. Danh mục → Hot Debt → Gắn nghiệp vụ Cho vay. Công nợ → + Khoản vay mới: tạo 2 khoản cho Kết.
+3. Phân loại **L9** vào Hot Debt: thử thiếu người, thiếu khoản (phải bị chặn, L9 vẫn chưa phân loại); rồi tách 2 phần cho 2 khoản; đóng hộp Chi tiết → kiểm Công nợ không đổi.
+4. Ghi chi tiết một giao dịch cũ (ví dụ L1 → CV-0001 Giải ngân) → Sửa khoản: ô lãi bị khóa; thử API như PO review; hủy chi tiết rồi thử lại.
+5. Sửa phân loại E1 và Migrate lịch sử vào Hot Debt: phải chọn khoản.
+6. Lệnh test: `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:tests python3 -m unittest test_p49_loan_business` (49 test).
+
+### 9.7 File thay đổi trong vòng sửa
+- Mã: `src/pcms/loan_business.py`, `src/pcms/p01.py`, `src/pcms/reclassify.py`, `src/pcms/legacy_import.py`, `src/pcms/web/p01.js`.
+- Test: `tests/test_p49_loan_business.py`, `tests/js/loan_business.test.cjs`.
+- Tài liệu: `specs/046-loan-business/{spec,plan,tasks,analysis,data-model,review,traceability,quickstart}.md`, `contracts/actions.md`, `evidence/review-r1-red.txt`, `evidence/review-r1-green.txt`; `PRODUCT-SPEC.md`, `ACCEPTANCE.md`, `IMPLEMENTATION-STATUS.md`.
+- Ngoài repo: `/Users/nerkan/Documents/Working/PCMS-QA/seed_p49.py` (thêm L9).
+
+### 9.8 Trạng thái
+Chưa merge, chưa phát hành. PR [kanner9999-O/PCMS#48](https://github.com/kanner9999-O/PCMS/pull/48) cập nhật thêm commit vòng sửa. Chờ PO nghiệm thu lại; không tự đánh dấu PO đã chấp nhận.

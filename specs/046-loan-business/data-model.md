@@ -27,6 +27,15 @@ node.business_history = [{at, action: 'SET'|'CLEAR', type, reason, before}]
 | created_at, history[] | | history: {at, action CREATE/EDIT/COMPLETE/REOPEN, before, after, reason} |
 | completion | {at, reason, as_of}/null | |
 
+### Khóa điều khoản (vòng sửa 29/10, suy ra, không lưu)
+- `terms_locked` = khoản xuất hiện trong dòng của **bất kỳ** phiên bản chi tiết nào (POSTED, đã bị thay, hoặc trước một bản VOID) hoặc có miễn giảm (kể cả đã hủy). Nháp không tính.
+- Khi khóa: `rate`, `broker` (có/không, `broker.rate`) không đổi được. `broker.name`, `name`, `code`, `tracking_date`, `due_date` sửa theo quy tắc cũ.
+
+## Phần tiền phân loại (bổ sung vòng sửa 29/10)
+- `transactions[].allocations[].loan` và `legacy_entries[].loan` / `legacy_batches[].loan`: id khoản vay khi phần tiền thuộc danh mục có nghiệp vụ.
+- Bất biến: phần **mới hoặc đổi** trong danh mục có nghiệp vụ phải có hồ sơ Người + `loan` hợp lệ (đúng người, đúng chiều, chưa hoàn tất). Phần có `loan` không được rơi vào danh mục không mang nghiệp vụ hay khác chiều.
+- Nhóm của chi tiết nghiệp vụ là (danh mục, người, khoản). Phần cũ không có `loan` → nhóm (danh mục, người, null): dòng chọn khoản bất kỳ của người đó cùng chiều (ngoại lệ lịch sử).
+
 ## Chi tiết nghiệp vụ `s['loan_details'][]`
 ```
 {source: <transaction id | legacy entry id>, kind: 'BANK'|'LEGACY',
@@ -65,7 +74,7 @@ LoanRow = {id, code, name, person, person_name, direction, category, category_pa
   caution (còn nguồn chờ cùng người/chiều), events[], segments[], waivers[], sources (số giao dịch)}
 SourceStatus = {status: 'POSTED'|'PENDING'|'LEGACY_LINK'|'CONFLICT', reasons[], groups[], amount_in_scope, direction, has_draft, editing}
 ```
-- **Lý do chờ**: NO_PERSON, NOT_PERSON, NO_LOAN, NOT_DETAILED, DRAFT, MISMATCH.
+- **Lý do chờ**: NO_PERSON, NOT_PERSON, NO_LOAN, NOT_DETAILED, DRAFT, MISMATCH; thêm LOAN_MISMATCH (vòng sửa 29/10: khoản đã chọn khi phân loại không còn thuộc người/chiều của phần tiền).
 - **Lý do xung đột**: LEGACY_DIRECTION (khoản cũ khác chiều), LEGACY_NO_SETUP.
 
 ## Chuyển trạng thái

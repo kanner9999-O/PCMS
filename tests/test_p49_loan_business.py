@@ -171,10 +171,13 @@ class US2Loans(Fixture):
         self.assertIn('chưa mang nghiệp vụ',self.err('lb-loan-create',category=self.named,person=self.pid('Lạ'),name='X',rate=0,tracking_date='2026-10-01'))
         self.err('lb-loan-create',category=self.hot,person=self.house,name='X',rate=0,tracking_date='2026-10-01')
 
-    def test_edit_needs_reason_history_and_rate_correction_changes_interest(self):
-        a=self.loan(self.hot,self.ket,'Một',500);self.post('L1',[self.line(a,'principal',100000000)])
+    def test_edit_needs_reason_history_rate_correctable_only_before_posting(self):
+        # vòng sửa 29/10 (PO review P1): sửa mức lãi chỉ được khi chưa có phát sinh được ghi; sau khi ghi thì lãi lịch sử không đổi
+        a=self.loan(self.hot,self.ket,'Một',500)
         self.err('lb-loan-edit',loan=a,rate=600);self.act('lb-loan-edit',loan=a,rate=600,reason='Nhập sai mức')
-        self.assertEqual(self.row(a,'2026-10-25')['interest_accrued'],'360000');self.assertEqual(self.st()['loans'][0]['history'][-1]['before'],{'rate':'500'})
+        self.assertEqual(self.st()['loans'][0]['history'][-1]['before'],{'rate':'500'})
+        self.post('L1',[self.line(a,'principal',100000000)]);self.assertEqual(self.row(a,'2026-10-25')['interest_accrued'],'360000')
+        self.err('lb-loan-edit',loan=a,rate=500,reason='Đổi lại');self.assertEqual(self.row(a,'2026-10-25')['interest_accrued'],'360000')
         self.assertIn('trước ngày theo dõi',self.err('lb-loan-edit',loan=a,tracking_date='2026-10-21',reason='x'))
 
 
@@ -211,11 +214,11 @@ class US3Details(Fixture):
         self.assertEqual(self.book()['sources'][sid]['status'],'PENDING');self.assertEqual(self.row(self.cv1)['repaid'],'0')
 
     def test_pending_reasons(self):
+        self.act('classify',ids=[self.tx('E1')['id']],parts=[dict(category='expense',node=self.hot)],_reclass=RECLASS_GRANT)   # phần cũ, phân loại trước khi gắn nghiệp vụ
         self.set_biz(self.hot,'RECEIVABLE');self.set_biz(self.borrow,'PAYABLE')
         b=self.book();r=lambda ref:b['sources'][self.tx(ref)['id']]['reasons']
-        self.assertEqual(r('L6'),['NO_LOAN','NOT_DETAILED']);self.assertEqual(b['pending']['count'],7)
-        self.act('classify',ids=[self.tx('E1')['id']],parts=[dict(category='expense',node=self.hot)],_reclass=RECLASS_GRANT)
-        self.assertEqual(self.book()['sources'][self.tx('E1')['id']]['reasons'],['NO_PERSON'])
+        self.assertEqual(r('L6'),['NO_LOAN','NOT_DETAILED']);self.assertEqual(b['pending']['count'],8)
+        self.assertEqual(r('E1'),['NO_PERSON'])
 
     def test_new_parts_only_person_in_business_category(self):
         self.set_biz(self.hot,'RECEIVABLE')
@@ -247,9 +250,9 @@ class US3Details(Fixture):
         b=self.book();self.assertEqual(b['sources'][self.tx('E1')['id']]['status'],'LEGACY_LINK');self.assertEqual(b['summary']['legacy_loans'],1)
         self.assertEqual(D(b['summary']['legacy_receivable']),D(1000000));self.assertEqual(D(b['summary']['receivable']),D(0))
         # dòng lịch sử cũ trong danh mục nghiệp vụ: bóc tách như giao dịch, không ghi đôi
-        self.act('legacy-import',category=self.hot,profile=self.tuoi,account=self.account,text="15/09/2026\tTuoi vay cu\tFT9\t2,000,000\t\t1\n")
+        cvt=self.loan(self.hot,self.tuoi,'Tươi cũ',0,tracking_date='2026-09-01')     # vòng sửa 29/10: migrate vào danh mục nghiệp vụ cần chọn khoản
+        self.act('legacy-import',category=self.hot,profile=self.tuoi,loan=cvt,account=self.account,text="15/09/2026\tTuoi vay cu\tFT9\t2,000,000\t\t1\n")
         e=self.st()['legacy_entries'][-1];self.assertEqual(self.book()['sources'][e['id']]['status'],'PENDING')
-        cvt=self.loan(self.hot,self.tuoi,'Tươi cũ',0,tracking_date='2026-09-01')
         self.act('lb-detail-post',source=e['id'],lines=[self.line(cvt,'principal',2000000)])
         self.assertEqual((self.row(cvt)['principal'],self.book()['sources'][e['id']]['status']),('2000000','POSTED'))
         self.assertIn('đã ghi nghiệp vụ vay',self.err('legacy-void',batch=self.st()['legacy_batches'][-1]['id'],reason='x'))
@@ -279,7 +282,7 @@ class US4InterestSettlement(Fixture):
         self.assertTrue(self.row(self.cv2)['can_complete'])
 
     def test_pending_in_same_person_direction_blocks_completion(self):
-        self.example(7);self.act('classify',ids=[self.tx('L6')['id']],parts=[dict(category='expense',node=self.hot,profile=self.ket)],_reclass=RECLASS_GRANT)
+        self.example(7);self.act('classify',ids=[self.tx('L6')['id']],parts=[dict(category='expense',node=self.hot,profile=self.ket,loan=self.cv1)],_reclass=RECLASS_GRANT)   # vòng sửa 29/10: phần mới phải chọn khoản
         r=self.row(self.cv1);self.assertFalse(r['can_complete']);self.assertIn('chờ chi tiết',r['complete_blocker']);self.assertTrue(r['caution'])
         self.assertTrue(self.row(self.dv1)['caution'] is False)
 
@@ -314,8 +317,9 @@ class US5Broker(Fixture):
     def test_over_paying_broker_warns_not_blocks(self):
         self.example(4);p=self.store.lb_detail_preview(dict(source=self.tx('L5')['id'],lines=[self.line(self.cv1,'broker',120000)]))
         self.assertTrue(p['can_post']);self.assertEqual(p['warnings'],[])
-        self.act('lb-loan-edit',loan=self.cv1,broker_name='Long',broker_rate=10,reason='sửa')
-        p=self.store.lb_detail_preview(dict(source=self.tx('L5')['id'],lines=[self.line(self.cv1,'broker',120000)]));self.assertTrue(p['can_post']);self.assertTrue(p['warnings'])
+        # khoản mới mức môi giới thấp (điều khoản đặt trước khi ghi — vòng sửa 29/10 không cho sửa mức sau khi ghi)
+        low=self.loan(self.hot,self.ket,'Môi giới thấp',500,broker_name='Long',broker_rate=10);self.post('L2',[self.line(low,'principal',10000000)],reason='Chuyển sang khoản thử')
+        p=self.store.lb_detail_preview(dict(source=self.tx('L5')['id'],lines=[self.line(low,'broker',120000)]));self.assertTrue(p['can_post']);self.assertTrue(p['warnings'])
 
 
 class US6OneBook(Fixture):
@@ -358,3 +362,116 @@ class US6OneBook(Fixture):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class ReviewP1RetroactiveTerms(Fixture):
+    """PO review 28/10 P1: không sửa điều khoản tài chính hồi tố khi khoản đã có phát sinh được ghi."""
+    def test_rate_edit_blocked_after_posting_and_history_unchanged(self):
+        self.example(4);before=self.row(self.cv1,'2026-10-25')
+        self.assertEqual((before['interest_accrued'],before['interest_outstanding']),('300000','150000'))
+        self.assertIn('đã có phát sinh được ghi',self.err('lb-loan-edit',loan=self.cv1,rate='700',reason='PO test'))
+        after=self.row(self.cv1,'2026-10-25');self.assertEqual((after['interest_accrued'],after['interest_outstanding'],after['rate']),('300000','150000','500'))
+        self.assertTrue(after['terms_locked']);self.assertIn('ngày hiệu lực',after['terms_lock_reason'])
+
+    def test_broker_terms_locked_but_name_and_non_financial_fields_editable(self):
+        self.example(4)
+        self.err('lb-loan-edit',loan=self.cv1,broker_name='Long',broker_rate='300',reason='x')          # đổi mức môi giới
+        self.err('lb-loan-edit',loan=self.cv1,broker_name='',broker_rate='',reason='x')                 # bỏ môi giới
+        self.err('lb-loan-edit',loan=self.cv2,broker_name='Long',broker_rate='100',reason='x')          # thêm môi giới cho khoản đã ghi
+        self.act('lb-loan-edit',loan=self.cv1,broker_name='Long (anh họ)',broker_rate='200',reason='đổi biệt danh')
+        self.act('lb-loan-edit',loan=self.cv1,name='Vay tháng 10 (sửa tên)',code='CV-0101',due_date='2026-12-31',reason='sửa thông tin')
+        r=self.row(self.cv1,'2026-10-25');self.assertEqual((r['code'],r['broker']['name'],r['broker_terms']),('CV-0101','Long (anh họ)','120000'))
+        self.assertIn('trước ngày theo dõi',self.err('lb-loan-edit',loan=self.cv1,tracking_date='2026-10-21',reason='x'))   # quy tắc hiện hành giữ nguyên
+
+    def test_edit_allowed_before_any_posting_drafts_do_not_lock(self):
+        self.example(0);self.act('lb-detail-draft',source=self.tx('L1')['id'],lines=[self.line(self.cv1,'principal',100000000)])
+        self.assertFalse(self.row(self.cv1)['terms_locked'])
+        self.act('lb-loan-edit',loan=self.cv1,rate='600',broker_name='Long',broker_rate='250',reason='Nhập sai trước khi ghi')
+        l=next(x for x in self.st()['loans'] if x['id']==self.cv1);self.assertEqual((l['rate'],l['broker']['rate']),('600','250'))
+        self.assertEqual(l['history'][-1]['before'],{'rate':'500','broker':{'name':'Long','rate':'200'}})
+
+    def test_void_and_reopen_do_not_unlock_terms(self):
+        self.example(2);self.act('lb-detail-void',source=self.tx('L2')['id'],reason='Ghi nhầm')
+        self.assertEqual(self.row(self.cv2)['sources'],0);self.assertTrue(self.row(self.cv2)['terms_locked'])
+        self.assertIn('đã có phát sinh được ghi',self.err('lb-loan-edit',loan=self.cv2,rate='700',reason='x'))
+        self.act('lb-detail-post',source=self.tx('L2')['id'],lines=[self.line(self.cv2,'principal',10000000)],reason='Ghi lại')
+        self.post('L4',[self.line(self.cv1,'principal',40000000),self.line(self.cv1,'interest',150000)]);self.post('L5',[self.line(self.cv1,'broker',120000)])
+        self.post('L7',[self.line(self.cv1,'principal',60000000),self.line(self.cv1,'interest',300000),self.line(self.cv2,'principal',10000000),self.line(self.cv2,'interest',60000)])
+        self.act('lb-loan-complete',loan=self.cv2,reason='Xong');self.act('lb-loan-reopen',loan=self.cv2,reason='Kiểm lại')
+        self.assertIn('đã có phát sinh được ghi',self.err('lb-loan-edit',loan=self.cv2,rate='700',reason='x'))
+
+
+class ReviewP2PersonAndLoanRequired(Fixture):
+    """PO review 28/10 P2: phân loại mới vào danh mục nghiệp vụ vay phải có Người và khoản vay có sẵn; chỉ để sau phần gốc/lãi/môi giới."""
+    def setUp(self):
+        super().setUp();self.example(0)
+        self.e1=self.tx('E1')['id'];self.before=copy.deepcopy(self.tx('E1')['allocations'])
+    def cls_e1(self,**part):return self.act('classify',ids=[self.e1],parts=[dict(category='expense',node=self.hot,**part)],_reclass=RECLASS_GRANT)
+    def err_e1(self,parts,**k):
+        m=self.err('classify',ids=[self.e1],parts=parts,_reclass=RECLASS_GRANT,**k);self.assertEqual(self.tx('E1')['allocations'],self.before);return m
+
+    def test_no_person_or_no_loan_rejected_and_not_saved(self):
+        self.assertIn('chọn Người và khoản vay',self.err_e1([dict(category='expense',node=self.hot)]))
+        self.assertIn('chọn khoản vay của Kết',self.err_e1([dict(category='expense',node=self.hot,profile=self.ket)]))
+        self.assertNotIn(self.e1,self.book()['sources'])
+
+    def test_wrong_loan_rejected(self):
+        cvt=self.loan(self.hot,self.tuoi,'Tươi vay',500)
+        self.assertIn('không thuộc',self.err_e1([dict(category='expense',node=self.hot,profile=self.ket,loan=cvt)]))
+        self.assertIn('không thuộc',self.err_e1([dict(category='expense',node=self.hot,profile=self.ket,loan=self.dv1)]))     # khác chiều
+        self.err_e1([dict(category='expense',node=self.hot,profile=self.ket,loan='khong-co')])
+        self.err_e1([dict(category='expense',profile=None,loan=self.cv1)])                                                   # danh mục không mang nghiệp vụ
+
+    def test_person_and_loan_saves_pending_without_posting(self):
+        before=copy.deepcopy(self.book()['loans']);self.cls_e1(profile=self.ket,loan=self.cv2)
+        self.assertEqual(self.tx('E1')['allocations'][0]['loan'],self.cv2)
+        src=self.book()['sources'][self.e1];self.assertEqual((src['status'],src['reasons']),('PENDING',['NOT_DETAILED']))
+        self.assertEqual(self.book()['loans'],before)                                                                       # đóng/hủy hộp chi tiết: sổ không đổi
+        p=self.store.lb_detail_preview(dict(source=self.e1));self.assertEqual([[l['id'] for l in g['loans']] for g in p['groups']],[[self.cv2]])
+
+    def test_split_one_transaction_across_two_loans_of_one_person(self):
+        self.act('classify',ids=[self.e1],parts=[dict(category='expense',node=self.hot,profile=self.ket,loan=self.cv1,amount='600000'),
+            dict(category='expense',node=self.hot,profile=self.ket,loan=self.cv2,amount='400000')],_reclass=RECLASS_GRANT)
+        p=self.store.lb_detail_preview(dict(source=self.e1));self.assertEqual(sorted(D(g['amount']) for g in p['groups']),[D(400000),D(600000)])
+        swapped=[self.line(self.cv1,'principal',400000),self.line(self.cv2,'principal',600000)]
+        self.err('lb-detail-post',source=self.e1,lines=swapped)                                                              # lệch khoản đã chọn khi phân loại
+        self.err('lb-detail-post',source=self.e1,lines=[self.line(self.cv1,'principal',600000)])                             # chưa đủ: không ghi từng phần
+        self.assertEqual(self.book()['sources'][self.e1]['status'],'PENDING')
+        self.post('E1',[self.line(self.cv1,'principal',600000),self.line(self.cv2,'principal',400000)])
+        self.assertEqual((self.row(self.cv1)['principal'],self.row(self.cv2)['principal']),('600000','400000'))
+
+    def test_bulk_classification_same_rule(self):
+        ids=[self.e1,self.tx('L6')['id']]
+        self.assertIn('khoản vay',self.err('classify',ids=ids,parts=[dict(category='expense',node=self.hot,profile=self.ket)],_reclass=RECLASS_GRANT))
+        self.act('classify',ids=ids,parts=[dict(category='expense',node=self.hot,profile=self.ket,loan=self.cv1)],_reclass=RECLASS_GRANT)
+        self.assertEqual({self.tx(r)['allocations'][0]['loan'] for r in ('E1','L6')},{self.cv1})
+
+    def test_reclassify_preview_and_commit_require_loan(self):
+        p=self.store.reclassify_preview(dict(transaction=self.e1,part=0,category=self.hot,profile=self.ket));self.assertFalse(p['can_commit'])
+        self.assertTrue(any('khoản vay' in b['message'] for b in p['blocks']),p['blocks'])
+        p=self.store.reclassify_preview(dict(transaction=self.e1,part=0,category=self.hot,profile=self.ket,loan=self.cv1));self.assertTrue(p['can_commit'],p['blocks'])
+        self.act('transaction-reclassify',transaction=self.e1,part=0,category=self.hot,profile=self.ket,loan=self.cv1,reason='Cho Kết vay thêm',review_token=p['review_token'],confirm_business=True)
+        self.assertEqual(self.tx('E1')['allocations'][0]['loan'],self.cv1)
+
+    def test_legacy_import_requires_loan_and_links_it(self):
+        text="15/09/2026\tTuoi vay cu\tFT9\t2,000,000\t\t1\n"
+        self.assertIn('khoản vay',self.err('legacy-import',category=self.hot,profile=self.tuoi,account=self.account,text=text))
+        self.assertIn('khoản vay',self.err('legacy-import',category=self.hot,name='Người mới',type='PERSON',account=self.account,text=text))
+        cvt=self.loan(self.hot,self.tuoi,'Tươi cũ',0,tracking_date='2026-09-01')
+        self.act('legacy-import',category=self.hot,profile=self.tuoi,loan=cvt,account=self.account,text=text)
+        e=self.st()['legacy_entries'][-1];self.assertEqual(e['loan'],cvt)
+        p=self.store.lb_detail_preview(dict(source=e['id']));self.assertEqual([[l['id'] for l in g['loans']] for g in p['groups']],[[cvt]])
+
+    def test_old_parts_without_loan_stay_visible_and_untouched(self):
+        sid=self.tx('L6')['id'];old=copy.deepcopy(self.tx('L6')['allocations'])
+        self.assertEqual(self.book()['sources'][sid]['reasons'],['NO_LOAN','NOT_DETAILED'])                                # ngoại lệ cũ: nằm trong danh sách chờ
+        self.act('classify',ids=[sid],parts=copy.deepcopy(old),note='ghi chú mới');self.assertEqual(self.tx('L6')['allocations'],old)   # giữ nguyên phần cũ: được lưu
+        self.assertIn(sid,[i['source'] for i in self.book()['pending']['items']])
+
+    def test_moving_or_clearing_cannot_strand_loan_links(self):
+        self.cls_e1(profile=self.ket,loan=self.cv1)
+        self.act('category-create',name='Thường',type='expense',description='');plain=self.node('Thường')
+        self.act('category-object-add',category=plain,profile=self.ket)
+        self.act('category-object-add',category=self.short,profile=self.ket)
+        self.act('classify',ids=[self.tx('L5')['id']],parts=[dict(category='expense',node=self.short,profile=self.ket,loan=self.cv1)],_reclass=RECLASS_GRANT)
+        self.assertIn('khoản vay',self.err('category-edit',category=self.short,parent=plain,reason='chuyển'))              # nhánh mất nghiệp vụ khi còn phần gắn khoản

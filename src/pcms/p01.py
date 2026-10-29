@@ -93,7 +93,7 @@ class P01Store(LoanBusiness, Reclassify, Objects, Business, LegacyImport, Accoun
                 b['coverage_gaps']=self.coverage_gaps(s,b['account'],b)
                 if b['status']=='DISMISSED':b['current_issues']=self.check_batch(s,b)[0]
             reports=[self.report(s,a['id']) for a in s['accounts']]
-            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s),'loan_book':self.loan_book(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management','reclassify','loan-business'], 'build':'P49-2026-10-28'}
+            return {'state':s,'reports':reports,'readiness':[self.readiness(s,r) for r in reports], 'version':events[-1]['sequence'],'debts':self.debt_register(s,extras=True), 'interest_statements':self.interest_statement_view(s), 'trx':self.trx_view(s), 'categories':self.category_view(s), 'realty':self.realty_view(s),'loan_book':self.loan_book(s), 'crypto':self.crypto_view(s), 'assets':self.asset_view(s), 'business':self.business_view(s), 'objects':self.object_view(s), 'loan_options':self.loan_options(s), 'capabilities':['transaction-identity','loan-category','loan-completion','loan-cash-report','trx-energy','category-tree','quick-object','realty','crypto','assets','business-objects','default-group','object-management','reclassify','loan-business'], 'build':'P49-2026-10-29'}
 
     def debt_register(self,s,extras=False):
         """Draft projection only; never infer missing opening facts or net parties."""
@@ -493,6 +493,7 @@ class P01Store(LoanBusiness, Reclassify, Objects, Business, LegacyImport, Accoun
             require(len(ids)==1 or (len(parts)==1 and not parts[0].get('amount')),'Phân loại hàng loạt chỉ một loại, toàn bộ tiền mỗi dòng.')
             selected=[item(s['transactions'],i) for i in ids]
             require(len({t['account'] for t in selected})==1,'Chỉ phân loại các dòng trong cùng tài khoản.')
+            biz=self.lb_biz_map(s)
             for t in selected:
                 self.require_adjustment(s,t)
                 require(not t.get('transfer_match'),'Giao dịch đã ghép chuyển nội bộ; không phân loại lại.')
@@ -504,6 +505,7 @@ class P01Store(LoanBusiness, Reclassify, Objects, Business, LegacyImport, Accoun
                     profile=p.get('profile') or None
                     amount=money(p.get('amount') or S(abs(signed)));require(amount>0,'Số phân bổ phải dương.')
                     part={'category':category,'amount':S(amount),'profile':profile}
+                    if p.get('loan'):part['loan']=str(p['loan'])
                     if p.get('node'):
                         node=next((n for n in s.get('categories',[]) if n['id']==p['node']),None)
                         require(node is not None and node['status']=='ACTIVE' and node['root']==root_key(category),'Danh mục con không tồn tại, đã lưu trữ hoặc không thuộc loại phân bổ đã chọn.')
@@ -514,9 +516,12 @@ class P01Store(LoanBusiness, Reclassify, Objects, Business, LegacyImport, Accoun
                         # R191 (spec 042): mọi phân loại mới phải đúng quan hệ — đối tượng sở hữu (người của khoản vay) là thành viên của danh mục hiệu lực (sau nhóm khoản vay, chuyển đối tượng, gộp hồ sơ).
                         # Không còn ngoại lệ theo loại hồ sơ; chỉ giữ nguyên được phần đã có sẵn y hệt trên chính giao dịch này (dữ liệu cũ xem được, sửa qua mục Cần đối chiếu).
                         owner=self.part_owner(s,target);eff=self.cat_target(self.cat_eff(s,part))
-                        unchanged=any(x.get('profile')==profile and x['category']==category and (x.get('node') or None)==(part.get('node') or None) for x in t['allocations'])
+                        unchanged=any(x.get('profile')==profile and x['category']==category and (x.get('node') or None)==(part.get('node') or None) and (x.get('loan') or None)==(part.get('loan') or None) for x in t['allocations'])
                         require(unchanged or not self.require_membership or self.is_member(s,eff,owner),f"{self.disp_name(s,owner)} chưa là thành viên danh mục {self.cat_path(s,eff) if eff not in ROOT_NAMES else ROOT_NAMES[eff]}. Thêm đối tượng vào danh mục ở màn Danh mục (hoặc mục Cần đối chiếu) trước.")
-                        require(unchanged or self.lb_part_ok(s,eff,target),f"Danh mục {self.cat_path(s,eff) if eff not in ROOT_NAMES else ROOT_NAMES[eff]} mang nghiệp vụ vay: chỉ gắn đối tượng loại Người (khoản vay chọn ở bước Chi tiết nghiệp vụ).")
+                    # spec 046 vòng sửa (PO review P2): phần mới vào danh mục nghiệp vụ vay cần Người + khoản vay có sẵn; phần giữ y nguyên phần cũ được giữ
+                    same=any(x.get('profile')==part['profile'] and x['category']==category and (x.get('node') or None)==(part.get('node') or None) and (x.get('loan') or None)==(part.get('loan') or None) for x in t['allocations'])
+                    issue=None if same else self.lb_part_check(s,part,biz)
+                    require(not issue,issue[1] if issue else '')
                     allocated.append(part)
                 require(sum((D(p['amount']) for p in allocated),Decimal(0))==abs(D(t['signed_amount'])),'Tổng phân bổ phải khớp giao dịch nguồn.')
                 # spec 043 (R197): thay đổi mức B (công nợ, lãi, tài sản) phải đi qua "Sửa phân loại" có xem trước tác động và xác nhận; nghiệp vụ đã tham chiếu thì chặn

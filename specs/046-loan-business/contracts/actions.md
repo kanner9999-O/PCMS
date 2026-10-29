@@ -7,7 +7,10 @@ Hành động gửi `POST /api/action {action, data}`. Thông báo lỗi bằng 
 | `lb-category-set` | category, type (RECEIVABLE/PAYABLE), reason, review_token | Gắn nghiệp vụ. Token lấy từ `/api/lb-category-preview`; trong xem trước còn `blocks` thì chặn. |
 | `lb-category-clear` | category, reason | Gỡ nghiệp vụ. Chặn khi nhánh có chi tiết (đã ghi/nháp) hoặc có khoản tạo từ nhánh. |
 | `lb-loan-create` | category, person, code?, name, tracking_date, due_date?, rate, broker_name?, broker_rate? | Tạo khoản; chiều lấy từ nghiệp vụ hiệu lực. |
-| `lb-loan-edit` | loan, name?, code?, tracking_date?, due_date?, rate?, broker_name?, broker_rate?, reason | Sửa; cần lý do. Kiểm lại nghĩa vụ với mức mới; ngày theo dõi không được sau nguồn đã liên kết. |
+| `lb-loan-edit` | loan, name?, code?, tracking_date?, due_date?, rate?, broker_name?, broker_rate?, reason | Sửa; cần lý do. Ngày theo dõi không được sau nguồn đã liên kết. **Vòng sửa 29/10:** khoản đã từng có phát sinh được ghi (`terms_locked`) thì đổi `rate`, thêm/bỏ môi giới hay đổi `broker_rate` bị chặn; chỉ đổi tên môi giới thì được. |
+| `classify` (đã có, bổ sung) | parts[].loan | Phần mới vào danh mục có nghiệp vụ: bắt buộc `profile` loại Người và `loan` của người đó, cùng chiều, chưa hoàn tất. Thiếu thì không lưu. Phần giữ y nguyên phần cũ được giữ. |
+| `reclassify` / `/api/reclassify-preview` (đã có, bổ sung) | loan | Như trên; xem trước báo chặn `LOAN_BUSINESS`. |
+| `legacy-import` / `/api/legacy-preview` (đã có, bổ sung) | loan | Danh mục có nghiệp vụ: phải chọn Người có sẵn và khoản của người đó; mọi dòng trong lần migrate gắn khoản này. |
 | `lb-detail-draft` | source, lines[] | Lưu nháp (không kiểm đủ). |
 | `lb-detail-post` | source, lines[], reason? | Ghi phiên bản mới, kiểm đủ và kiểm nghĩa vụ. Xóa nháp. |
 | `lb-detail-void` | source, reason | Hủy bản hiện hành (thêm phiên bản VOID); kiểm nghĩa vụ và hoàn tất. |
@@ -31,3 +34,5 @@ Thêm các trường:
 - build `P49-2026-10-28`.
 - `categories.nodes[].business`: `{type, own, from, from_path}`.
 - `categories` ở mỗi đối tượng: `loans` (khoản của người theo chiều của danh mục, lấy từ sổ).
+- `loan_book.loans[]`: thêm `terms_locked`, `terms_lock_reason` (vòng sửa 29/10).
+- `lb-detail-preview.groups[]`: thêm `loan` (khoản đã chọn khi phân loại, hoặc null với phần tiền cũ); khi có thì `loans` chỉ gồm khoản đó.

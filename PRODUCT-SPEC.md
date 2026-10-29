@@ -875,13 +875,15 @@ Thay một phần R186 cho Cho vay/Đi vay. Thay cho phần vay của các quy t
   - Khoản phải được tạo trước khi liên kết giao dịch.
   - Giải ngân thêm vào khoản có sẵn hay tạo khoản mới do người dùng chọn.
   - Không có hạn mức, lãi phạt, nhập lãi vào gốc hay nhập số dư đầu kỳ thủ công.
+  - [Bổ sung 29/10/2026 theo PO review] Không sửa điều khoản tài chính hồi tố: khi khoản đã từng có phát sinh được ghi (kể cả đã hủy, hoặc đã hoàn tất rồi mở lại), khóa mức lãi và điều khoản môi giới. Chưa có phát sinh được ghi thì sửa được. Tên, mã, biệt danh môi giới, ngày theo dõi, hạn vẫn sửa được. Chưa hỗ trợ đổi lãi theo ngày hiệu lực.
 - R205: Chi tiết nghiệp vụ.
   - Áp dụng cho từng giao dịch ngân hàng và từng dòng lịch sử cũ có tiền trong danh mục nghiệp vụ.
   - Mỗi dòng chi tiết gồm khoản vay, thành phần (gốc / lãi / phí môi giới) và số tiền. Một giao dịch tách được cho nhiều khoản; mỗi dòng chỉ thuộc một khoản.
   - Được lưu nháp. Chỉ ghi vào sổ khi đã phân bổ đủ và tổng khớp phần tiền.
   - Khi sửa, bản hiện hành giữ nguyên cho tới khi bản thay thế được ghi. Hủy phải có lý do. Mọi phiên bản đều được giữ.
   - Trạng thái: "Chờ chi tiết nghiệp vụ" (kèm lý do) hoặc "Đã ghi nghiệp vụ".
-  - Chưa xác định người hoặc khoản vay thì để chờ; không tạo người hay khoản giả.
+  - [Sửa 29/10/2026 theo PO review] Phân loại mới vào danh mục nghiệp vụ phải chọn Người và một khoản vay có sẵn của người đó (cùng chiều, chưa hoàn tất); nhiều khoản thì tách phần theo khoản. Chỉ phần gốc/lãi/phí môi giới được để sau. Thiếu người/khoản thì không lưu phân loại. Áp cho phân loại một dòng, hàng loạt, sửa phân loại và nhập lịch sử cũ.
+  - Phần tiền cũ thiếu người hoặc khoản giữ nguyên trong danh sách chờ để đối chiếu; không tạo người hay khoản giả, không tự sửa.
   - Mọi đường sửa làm lệch chi tiết đã ghi đều bị chặn: phân loại, sửa phân loại, chuyển, gộp hoặc gỡ đối tượng, đổi cha, hủy migrate.
   - Liên kết cũ hợp lệ được giữ, không ghi đôi.
   - Không tự suy luận tiền vào là trả gốc hay tiền ra là giải ngân.

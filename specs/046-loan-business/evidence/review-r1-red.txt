@@ -1,0 +1,150 @@
+1c361e1
+FEFEFFFF.EFFF
+======================================================================
+ERROR: test_edit_allowed_before_any_posting_drafts_do_not_lock (test_p49_loan_business.ReviewP1RetroactiveTerms.test_edit_allowed_before_any_posting_drafts_do_not_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 384, in test_edit_allowed_before_any_posting_drafts_do_not_lock
+    self.assertFalse(self.row(self.cv1)['terms_locked'])
+                     ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'terms_locked'
+
+======================================================================
+ERROR: test_void_and_reopen_do_not_unlock_terms (test_p49_loan_business.ReviewP1RetroactiveTerms.test_void_and_reopen_do_not_unlock_terms)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 391, in test_void_and_reopen_do_not_unlock_terms
+    self.assertEqual(self.row(self.cv2)['sources'],0);self.assertTrue(self.row(self.cv2)['terms_locked'])
+                                                                      ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'terms_locked'
+
+======================================================================
+ERROR: test_person_and_loan_saves_pending_without_posting (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_person_and_loan_saves_pending_without_posting)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 423, in test_person_and_loan_saves_pending_without_posting
+    self.assertEqual(self.tx('E1')['allocations'][0]['loan'],self.cv2)
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: 'loan'
+
+======================================================================
+FAIL: test_broker_terms_locked_but_name_and_non_financial_fields_editable (test_p49_loan_business.ReviewP1RetroactiveTerms.test_broker_terms_locked_but_name_and_non_financial_fields_editable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 374, in test_broker_terms_locked_but_name_and_non_financial_fields_editable
+    self.err('lb-loan-edit',loan=self.cv1,broker_name='Long',broker_rate='300',reason='x')          # đổi mức môi giới
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+======================================================================
+FAIL: test_rate_edit_blocked_after_posting_and_history_unchanged (test_p49_loan_business.ReviewP1RetroactiveTerms.test_rate_edit_blocked_after_posting_and_history_unchanged)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 368, in test_rate_edit_blocked_after_posting_and_history_unchanged
+    self.assertIn('đã có phát sinh được ghi',self.err('lb-loan-edit',loan=self.cv1,rate='700',reason='PO test'))
+                                             ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+======================================================================
+FAIL: test_bulk_classification_same_rule (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_bulk_classification_same_rule)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 441, in test_bulk_classification_same_rule
+    self.assertIn('khoản vay',self.err('classify',ids=ids,parts=[dict(category='expense',node=self.hot,profile=self.ket)],_reclass=RECLASS_GRANT))
+                              ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+======================================================================
+FAIL: test_legacy_import_requires_loan_and_links_it (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_legacy_import_requires_loan_and_links_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 454, in test_legacy_import_requires_loan_and_links_it
+    self.assertIn('khoản vay',self.err('legacy-import',category=self.hot,profile=self.tuoi,account=self.account,text=text))
+                              ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+======================================================================
+FAIL: test_moving_or_clearing_cannot_strand_loan_links (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_moving_or_clearing_cannot_strand_loan_links)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 473, in test_moving_or_clearing_cannot_strand_loan_links
+    self.assertIn('khoản vay',self.err('category-edit',category=self.short,parent=plain,reason='chuyển'))              # nhánh mất nghiệp vụ khi còn phần gắn khoản
+                              ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+======================================================================
+FAIL: test_no_person_or_no_loan_rejected_and_not_saved (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_no_person_or_no_loan_rejected_and_not_saved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 410, in test_no_person_or_no_loan_rejected_and_not_saved
+    self.assertIn('chọn Người và khoản vay',self.err_e1([dict(category='expense',node=self.hot)]))
+                                            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 407, in err_e1
+    m=self.err('classify',ids=[self.e1],parts=parts,_reclass=RECLASS_GRANT,**k);self.assertEqual(self.tx('E1')['allocations'],self.before);return m
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+======================================================================
+FAIL: test_reclassify_preview_and_commit_require_loan (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_reclassify_preview_and_commit_require_loan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 446, in test_reclassify_preview_and_commit_require_loan
+    p=self.store.reclassify_preview(dict(transaction=self.e1,part=0,category=self.hot,profile=self.ket));self.assertFalse(p['can_commit'])
+                                                                                                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_split_one_transaction_across_two_loans_of_one_person (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_split_one_transaction_across_two_loans_of_one_person)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 431, in test_split_one_transaction_across_two_loans_of_one_person
+    p=self.store.lb_detail_preview(dict(source=self.e1));self.assertEqual(sorted(D(g['amount']) for g in p['groups']),[D(400000),D(600000)])
+                                                         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [Decimal('1000000')] != [Decimal('400000'), Decimal('600000')]
+
+First differing element 0:
+Decimal('1000000')
+Decimal('400000')
+
+Second list contains 1 additional elements.
+First extra element 1:
+Decimal('600000')
+
+- [Decimal('1000000')]
++ [Decimal('400000'), Decimal('600000')]
+
+======================================================================
+FAIL: test_wrong_loan_rejected (test_p49_loan_business.ReviewP2PersonAndLoanRequired.test_wrong_loan_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 416, in test_wrong_loan_rejected
+    self.assertIn('không thuộc',self.err_e1([dict(category='expense',node=self.hot,profile=self.ket,loan=cvt)]))
+                                ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 407, in err_e1
+    m=self.err('classify',ids=[self.e1],parts=parts,_reclass=RECLASS_GRANT,**k);self.assertEqual(self.tx('E1')['allocations'],self.before);return m
+  File "/Users/nerkan/Documents/Working/PCMS-wt-046/tests/test_p49_loan_business.py", line 28, in err
+    with self.assertRaises(ValidationError) as c:self.act(a,**d)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: ValidationError not raised
+
+----------------------------------------------------------------------
+Ran 13 tests in 4.766s
+
+FAILED (failures=9, errors=3)

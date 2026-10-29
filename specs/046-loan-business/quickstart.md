@@ -47,6 +47,11 @@ Script seed tạo bộ dữ liệu giả mô phỏng cấu trúc thật:
    - Duyệt tài khoản khi còn nguồn chờ → được.
    - Ghi chi tiết sau đó → snapshot không đổi, không bị yêu cầu điều chỉnh.
 
+## Kịch bản vòng sửa 29/10 (PO review P1, P2)
+
+- **P1**: ghi một chi tiết cho CV-0001 → Sửa khoản: ô mức lãi / mức môi giới bị khóa, kèm lý do; API `lb-loan-edit` đổi `rate` bị chặn; lãi các ngày đã qua không đổi; hủy chi tiết hoặc mở lại khoản vẫn khóa; khoản chỉ có nháp sửa được.
+- **P2**: phân loại L9 (chưa phân loại) vào Hot Debt: thiếu người hoặc thiếu khoản → không lưu; tách 2 phần cho 2 khoản → lưu, "Chờ chi tiết"; đóng hộp Chi tiết → sổ không đổi; Sửa phân loại, Migrate lịch sử, phân loại hàng loạt cùng quy tắc; phần cũ (L1–L8, FT900) vẫn trong danh sách chờ.
+
 ## Lệnh test
 
 ```bash

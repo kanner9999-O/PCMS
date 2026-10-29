@@ -56,7 +56,7 @@ description: "Task list — spec 046 nghiệp vụ Cho vay / Đi vay"
   - môi giới chỉ cho Cho vay;
   - sửa thông tin cần lý do và có lịch sử;
   - ngày theo dõi không được sau ngày nguồn đã liên kết;
-  - sửa mức lãi cho ra số lãi mới.
+  - ~~sửa mức lãi cho ra số lãi mới~~ — thay bởi T037 (vòng sửa 29/10: khóa điều khoản khi đã có phát sinh được ghi).
 - [X] T014 [US2] Cài `lb-loan-create`, `lb-loan-edit` và hàm gợi ý mã trong src/pcms/loan_business.py
 
 ## Phase 5: User Story 3 — Chi tiết nghiệp vụ (P1)
@@ -128,6 +128,19 @@ description: "Task list — spec 046 nghiệp vụ Cho vay / Đi vay"
 - [X] T031 Chạy toàn bộ suite cùng node test; kiểm bất biến trên bản sao dữ liệu thật (so P48 với P49) theo quickstart.md; đo thời gian view() P48 vs P49 trên bản sao (analyze G1)
 - [X] T032 Viết script seed QA /Users/nerkan/Documents/Working/PCMS-QA/seed_p49.py; dựng 8809; đi qua kịch bản 1–9 trên giao diện
 - [X] T033 Viết specs/046-loan-business/traceability.md và review.md (danh sách thay đổi, kết quả test đã chạy, QA, giới hạn, hướng dẫn ngắn)
+
+## Phase 10: Vòng sửa theo PO review 28/10 (29/10/2026)
+
+**Goal**: sửa P1 (khóa điều khoản tài chính hồi tố) và P2 (phân loại mới cần Người + khoản có sẵn) trong một đợt. Nguồn: docs/po-review-046-2026-10-28.md.
+
+- [X] T034 Viết test hồi quy tái hiện P1/P2 (lớp `ReviewP1RetroactiveTerms`, `ReviewP2PersonAndLoanRequired`) trong tests/test_p49_loan_business.py; chạy đỏ và lưu specs/046-loan-business/evidence/review-r1-red.txt
+- [X] T035 Cập nhật spec.md (Clarifications 29/10, luồng màn 2, US2/US3, FR-003/004/005/006, Tư vấn kế toán), plan.md, data-model.md, contracts/actions.md, PRODUCT-SPEC.md (R204/R205), ACCEPTANCE.md (A64); chạy lại /speckit-analyze và ghi kết quả vào analysis.md
+- [X] T036 [US2] Thêm `lb_terms_locked` và khóa `rate`/môi giới trong `lb-loan-edit`; thêm `terms_locked`, `terms_lock_reason` vào `loan_book.loans[]` trong src/pcms/loan_business.py
+- [X] T037 [US2] Sửa test cũ coi tính lại lãi lịch sử là đúng (`test_edit_needs_reason_history_and_rate_correction_changes_interest`, `test_over_paying_broker_warns_not_blocks`) trong tests/test_p49_loan_business.py
+- [X] T038 [US3] Thêm `lb_new_part_issue`, nhóm (danh mục, người, khoản) trong `lb_groups`/`lb_status`/`lb_detail_preview`/`loan_book`/`lb_fingerprint`, bất biến phần tiền lỗi mới trong `lb_guard` (src/pcms/loan_business.py)
+- [X] T039 [US3] Áp kiểm ở `classify` (src/pcms/p01.py), `reclassify_preview`/`reclass_apply` (src/pcms/reclassify.py), `legacy_preview`/`legacy-import`/`legacy_items` (src/pcms/legacy_import.py)
+- [X] T040 [US3] Giao diện: ô Khoản vay trong Phân loại (một dòng, hàng loạt, tách phần), Sửa phân loại, Migrate lịch sử cũ; khóa ô điều khoản trong Sửa thông tin khoản (src/pcms/web/p01.js); test JS hàm lọc khoản (tests/js/loan_business.test.cjs)
+- [X] T041 Chạy toàn bộ suite + node; so P48/P49 trên bản sao dữ liệu thật; cập nhật seed QA và QA giao diện trên dữ liệu giả; cập nhật review.md, traceability.md, IMPLEMENTATION-STATUS.md
 
 ## Dependencies & Execution Order
 

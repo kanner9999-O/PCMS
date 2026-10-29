@@ -23,3 +23,5 @@
 | FR-015 / R212: nguồn, snapshot, khoản cũ không đổi | T024, T031 | `test_approve_with_pending_and_snapshot_unchanged`, `test_no_business_data_means_no_change` | QA-9: snapshot và tổng báo cáo giống trước/sau, không mở phiên điều chỉnh. T031: bản sao dữ liệu thật, P48 so với P49 giống hệt ở 11 nhóm số liệu. |
 | FR-016: BĐS và nghiệp vụ cặp vẫn tạm dừng | T000, T030 | hồi quy spec 041 (`test_p43_*`) vẫn xanh | — |
 | UI thuần (thành phần theo chiều, số còn phải phân bổ) | T029 | js: `loan_business.test.cjs` | — |
+| Vòng sửa 29/10 · P1 (FR-003, SC-007): khóa điều khoản hồi tố | T034, T036, T037, T040 | `ReviewP1RetroactiveTerms.*` (4 test); `US2Loans.test_edit_needs_reason_history_rate_correctable_only_before_posting`; `US5Broker.test_over_paying_broker_warns_not_blocks` | review.md §9.5 R5–R7 |
+| Vòng sửa 29/10 · P2 (FR-004, FR-005, SC-008): người + khoản khi phân loại, mọi đường ghi | T034, T038, T039, T040 | `ReviewP2PersonAndLoanRequired.*` (9 test); js: `lbLineIn`/`lbRemaining`/`lbLoansFor` | review.md §9.5 R1–R4, R8–R10 |

@@ -21,7 +21,8 @@ MILLION=Decimal(1000000)
 MAX_RATE=Decimal(100000)
 PENDING_TEXT={'NO_PERSON':'chưa chọn người','NOT_PERSON':'đối tượng không phải Người','NO_LOAN':'người chưa có khoản vay cùng chiều',
     'NOT_DETAILED':'chưa ghi chi tiết nghiệp vụ','DRAFT':'có nháp chưa ghi','MISMATCH':'chi tiết đã ghi không còn khớp phân loại',
-    'LEGACY_DIRECTION':'khoản vay cũ khác chiều nghiệp vụ','LEGACY_NO_SETUP':'khoản vay cũ chưa thiết lập chiều','LEGACY_NOT_COUNTED':'khoản vay cũ gắn ngoài Gốc vay/Lãi vay nên sổ cũ không tính; sửa phân loại sang Người'}
+    'LEGACY_DIRECTION':'khoản vay cũ khác chiều nghiệp vụ','LEGACY_NO_SETUP':'khoản vay cũ chưa thiết lập chiều','LEGACY_NOT_COUNTED':'khoản vay cũ gắn ngoài Gốc vay/Lãi vay nên sổ cũ không tính; sửa phân loại sang Người',
+    'LOAN_MISMATCH':'khoản vay đã chọn khi phân loại không thuộc người hoặc khác chiều nghiệp vụ; sửa phân loại'}
 
 def lb_state(s):
     for k in ('loans','loan_details','loan_waivers'):s.setdefault(k,[])
@@ -96,7 +97,7 @@ class LoanBusiness:
 
     def lb_groups(self,s,biz=None):
         """{nguồn: dict(t, groups {(danh mục, người): số}, issues [...], legacy [...])} cho mọi nguồn có tiền trong danh mục nghiệp vụ."""
-        biz=self.lb_biz_map(s) if biz is None else biz;profiles={p['id']:p for p in s['profiles']};out={}
+        biz=self.lb_biz_map(s) if biz is None else biz;profiles={p['id']:p for p in s['profiles']};out={};loans={l['id']:l for l in s.get('loans',[])}
         if not biz:return out
         for t,p in self.cat_parts(s):
             key=self.cat_target(p);b=biz.get(key)
@@ -104,7 +105,10 @@ class LoanBusiness:
             rec=out.setdefault(t['id'],dict(t=t,groups={},issues=[],legacy=[],amount=Decimal(0),legacy_amount=Decimal(0)))
             amount=D(p['amount']);prof=profiles.get(p.get('profile'))
             if prof is None:rec['issues'].append(dict(code='NO_PERSON',category=key,amount=amount));rec['amount']+=amount
-            elif prof['kind']=='PERSON':rec['groups'][(key,prof['id'])]=rec['groups'].get((key,prof['id']),Decimal(0))+amount;rec['amount']+=amount
+            elif prof['kind']=='PERSON':
+                lo=p.get('loan') or None;ln=loans.get(lo) if lo else None
+                if lo and not (ln and ln['person']==prof['id'] and ln['direction']==b[0]):rec['issues'].append(dict(code='LOAN_MISMATCH',category=key,profile=prof['id'],amount=amount));rec['amount']+=amount
+                else:g=(key,prof['id'],lo);rec['groups'][g]=rec['groups'].get(g,Decimal(0))+amount;rec['amount']+=amount
             elif prof['kind']=='LOAN':
                 sd=(prof.get('debt_setup') or {}).get('direction')
                 if p['category'] not in {'principal','interest'}:rec['issues'].append(dict(code='LEGACY_NOT_COUNTED',category=key,profile=prof['id'],amount=amount));rec['amount']+=amount
@@ -120,17 +124,22 @@ class LoanBusiness:
         v=(det or {}).get('versions') or []
         return v[-1] if v and v[-1]['status']=='POSTED' else None
 
+    def lb_line_group(self,groups,l):
+        """Nhóm (danh mục, người, khoản) của một dòng chi tiết; phần tiền cũ không chọn khoản là nhóm (danh mục, người, None)."""
+        k=(l.get('category'),l.get('person'),l.get('loan'))
+        return k if k in groups else (k[0],k[1],None) if (k[0],k[1],None) in groups else k
+
     def lb_status(self,s,rec,det,loans_of):
         """Trạng thái một nguồn: POSTED / PENDING (kèm lý do) / LEGACY_LINK."""
         cur=self.lb_current(det);reasons=[i['code'] for i in rec['issues']]
         if rec['groups']:
             if cur:
                 sums={}
-                for l in cur['lines']:sums[(l['category'],l['person'])]=sums.get((l['category'],l['person']),Decimal(0))+D(l['amount'])
+                for l in cur['lines']:g=self.lb_line_group(rec['groups'],l);sums[g]=sums.get(g,Decimal(0))+D(l['amount'])
                 if sums!=rec['groups']:reasons.append('MISMATCH')
             else:
-                for (key,person),_ in rec['groups'].items():
-                    if not loans_of.get(person):reasons.append('NO_LOAN')
+                for (key,person,lo),_ in rec['groups'].items():
+                    if not lo and not loans_of.get(person):reasons.append('NO_LOAN')
                 reasons.append('NOT_DETAILED')
         if det and det.get('draft'):reasons.append('DRAFT')
         reasons=list(dict.fromkeys(reasons))
@@ -216,7 +225,7 @@ class LoanBusiness:
             sources={};pending=[];p_in=p_out=Decimal(0);scope_pending=set()
             for sid,rec in groups.items():
                 t=rec['t'];det=details.get(sid);status,reasons=self.lb_status(s,rec,det,loans_of);direction='IN' if D(t['signed_amount'])>0 else 'OUT'
-                persons=sorted({p for (_,p) in rec['groups']});cats=sorted({k for (k,_) in rec['groups']}|{i['category'] for i in rec['issues']}|{x['category'] for x in rec['legacy']})
+                persons=sorted({p for (_,p,_) in rec['groups']});cats=sorted({k for (k,_,_) in rec['groups']}|{i['category'] for i in rec['issues']}|{x['category'] for x in rec['legacy']})
                 info=dict(status=status,reasons=reasons,reason_text=[PENDING_TEXT[r] for r in reasons],direction=direction,date=t['date'],reference=t.get('reference'),
                     description=t.get('description'),account=t.get('account'),legacy=bool(t.get('legacy')),amount=S(rec['amount']),legacy_amount=S(rec['legacy_amount']),persons=persons,
                     person_names=[profiles[p]['name'] for p in persons if p in profiles],categories=cats,paths=[self.cat_path(s,c) for c in cats],
@@ -253,6 +262,7 @@ class LoanBusiness:
                     rate=loan['rate'],broker=copy.deepcopy(loan.get('broker')),tracking_date=loan['tracking_date'],due_date=loan.get('due_date'),status=loan['status'],
                     overdue=bool(loan.get('due_date') and as_of>loan['due_date'] and (D(led['principal'])>0 or D(led['interest_outstanding'])>0) and loan['status']!='COMPLETED'),
                     settled=bool(final['last_event'] and D(final['principal'])==0 and D(final['interest_outstanding'])==0),can_complete=blocker is None,complete_blocker=blocker,caution=caution,
+                    terms_locked=bool(self.lb_terms_locked(s,loan)),terms_lock_reason=self.lb_terms_locked(s,loan),
                     waivers=copy.deepcopy(waivers.get(loan['id'],[])),history=copy.deepcopy(loan.get('history',[])),completion=copy.deepcopy(loan.get('completion')),**led))
             # theo danh mục: dòng đã ghi cộng vào danh mục và mọi danh mục cha tới nút gắn nghiệp vụ, giao dịch đếm một lần mỗi danh mục
             by_cat={};srcs=self.lb_sources(s);loan_by={l['id']:l for l in s['loans']}
@@ -309,26 +319,61 @@ class LoanBusiness:
 
     # ---- dấu vân tay & bất biến (FR-005, research D6) ----------------------------------------
     def lb_fingerprint(self,s):
-        if not (s.get('loan_details') or s.get('loans')):return None
-        biz=self.lb_biz_map(s);groups=self.lb_groups(s,biz);posted={};drafts={};pairs=set()
+        biz=self.lb_biz_map(s)
+        if not (s.get('loan_details') or s.get('loans') or biz):return None
+        groups=self.lb_groups(s,biz);posted={};drafts={};pairs=set()
         t=lambda k:(biz.get(k) or (None,))[0]
         for det in s['loan_details']:
             cur=self.lb_current(det);rec=groups.get(det['source'])
             if cur:
-                posted[det['source']]=sorted((k,p,str(a),t(k)) for (k,p),a in rec['groups'].items()) if rec else None
+                posted[det['source']]=sorted((k,p,lo or '',str(a),t(k)) for (k,p,lo),a in rec['groups'].items()) if rec else None
                 pairs|={(l['category'],l['person']) for l in cur['lines']}
             dl=(det.get('draft') or {}).get('lines',[])
             pairs|={(l.get('category'),l.get('person')) for l in dl if l.get('category') and l.get('person')}
             drafts[det['source']]=sorted({(c,t(c)) for c in {l['category'] for l in (cur or {}).get('lines',[])}|{l.get('category') for l in dl if l.get('category')}})
         loans=sorted((l['id'],t(l['category'])) for l in s['loans']);pairs|={(l['category'],l['person']) for l in s['loans']}
-        return dict(posted=posted,drafts=drafts,loans=loans,members=sorted((c,p,self.is_member(s,c,p)) for c,p in pairs),tree=self.lb_tree_conflicts(s))
+        raw,bad=self.lb_part_audit(s,biz)
+        return dict(posted=posted,drafts=drafts,loans=loans,members=sorted((c,p,self.is_member(s,c,p)) for c,p in pairs),tree=self.lb_tree_conflicts(s),raw=raw,bad=bad)
+
+    # ---- người + khoản khi phân loại (PO review P2) -----------------------------------------
+    def lb_part_check(self,s,part,biz=None,completed=True):
+        """(mã, thông báo) nếu phần tiền (thô hoặc hiệu lực) vi phạm quy tắc người + khoản của danh mục nghiệp vụ, ngược lại None."""
+        biz=self.lb_biz_map(s) if biz is None else biz;eff=self.cat_eff(s,part) if 'own_profile' not in part and 'own_node' not in part else part
+        key=self.cat_target(eff);b=biz.get(key);lo=eff.get('loan') or None
+        path=lambda:self.cat_path(s,key) if any(n['id']==key for n in s.get('categories',[])) else key
+        if not b:return ('LOAN_NO_BUSINESS',f"Danh mục {path()} không mang nghiệp vụ Cho vay/Đi vay; bỏ chọn khoản vay cho phần tiền này.") if lo else None
+        name=DIRS[b[0]]['name'];prof=next((x for x in s['profiles'] if x['id']==eff.get('profile')),None) if eff.get('profile') else None
+        if prof is None:return ('NO_PERSON',f"Danh mục {path()} mang nghiệp vụ {name}: chọn Người và khoản vay có sẵn cho phần tiền này. Chỉ phần gốc / lãi / phí môi giới được để sau.")
+        if prof['kind']!='PERSON':return ('NOT_PERSON',f"Danh mục {path()} mang nghiệp vụ vay: chỉ gắn đối tượng loại Người, kèm khoản vay của người đó.")
+        if not lo:return ('NO_LOAN_LINK',f"Danh mục {path()} mang nghiệp vụ {name}: chọn khoản vay của {prof['name']} (một người nhiều khoản thì tách phần theo từng khoản). Chưa có khoản: tạo ở Công nợ → + Khoản vay mới. Chi tiết gốc / lãi để sau được.")
+        ln=next((x for x in s.get('loans',[]) if x['id']==lo),None)
+        if not ln or ln['person']!=prof['id'] or ln['direction']!=b[0]:return ('LOAN_MISMATCH',f"Khoản vay đã chọn không thuộc {prof['name']} hoặc khác chiều {name} của danh mục {path()}.")
+        if completed and ln['status']=='COMPLETED':return ('LOAN_COMPLETED',f"Khoản {ln['code']} đã hoàn tất; mở lại khoản trước khi phân loại thêm tiền vào khoản này.")
+        return None
+
+    def lb_part_audit(self,s,biz):
+        """Tập phần tiền thô và tập phần vi phạm (thô, mã, thông báo) — để bất biến chặn phần vi phạm mới ở mọi đường ghi."""
+        raw=set();bad={}
+        for t,p in self.cat_parts(s):
+            k=(t['id'],p.get('own_category',p['category']),p.get('own_node',p.get('node')) or None,p.get('own_profile',p.get('profile')) or None,p.get('loan') or None,str(p['amount']))
+            raw.add(k)
+            if not p.get('loan') and not biz.get(self.cat_target(p)):continue
+            r=self.lb_part_check(s,p,biz,completed=False)
+            if r:bad[(k,r[0])]=(t.get('reference') or '',r[1])
+        return raw,bad
 
     def lb_guard(self,s,before):
         after=self.lb_fingerprint(s)
         if after is None and before is None:
             require(not self.lb_tree_conflicts(s),'Danh mục con không được khác nghiệp vụ của danh mục cha; gỡ nghiệp vụ riêng của nhánh trước.')
             return
-        before=before or dict(posted={},drafts={},loans=[],members=[],tree=[]);srcs=self.lb_sources(s)
+        if before is not None and after is not None:
+            for (k,code),(ref_,msg) in after['bad'].items():
+                if (k,code) in before['bad']:continue
+                # phần y nguyên có từ trước (ngoại lệ lịch sử) được giữ và vào danh sách chờ; phần mới/đổi, hay khoản đã chọn bị lệch, thì chặn
+                require(k in before['raw'] and code not in {'LOAN_MISMATCH','LOAN_NO_BUSINESS'},f"Phần tiền {ref_}: {msg}")
+        empty=dict(posted={},drafts={},loans=[],members=[],tree=[],raw=set(),bad={})
+        before=before or empty;after=after or empty;srcs=self.lb_sources(s)
         ref=lambda sid:(srcs.get(sid) or {}).get('reference') or sid[:8]
         for sid,g in before['posted'].items():
             require(after['posted'].get(sid)==g,f"Giao dịch {ref(sid)} đã ghi nghiệp vụ vay; thao tác này làm đổi phần tiền, đối tượng hoặc nghiệp vụ của nó. Mở «Chi tiết nghiệp vụ» của giao dịch (ở lịch sử tài khoản hoặc Công nợ → Sổ chi tiết), hủy có lý do rồi làm lại.")
@@ -341,10 +386,6 @@ class LoanBusiness:
         for (c,p,m) in before['members']:
             if m:require(self.is_member(s,c,p),f"{names.get(p,'Đối tượng')} còn khoản vay hoặc chi tiết nghiệp vụ ở danh mục {self.cat_path(s,c)}; không gỡ, chuyển hay gộp khỏi danh mục này. Hủy chi tiết nghiệp vụ trước nếu thật sự cần.")
         require(not (set(after['tree'])-set(before['tree'])),'Danh mục con không được khác nghiệp vụ của danh mục cha; gỡ nghiệp vụ riêng của nhánh trước.')
-
-    def lb_part_ok(self,s,key,prof):
-        """FR-005: phần tiền mới trong danh mục có nghiệp vụ chỉ gắn hồ sơ Người."""
-        return prof['kind']=='PERSON' or not self.lb_effective(s,key)
 
     # ---- xem trước gắn nghiệp vụ -----------------------------------------------------------
     def lb_category_preview(self,d,s=None):
@@ -410,17 +451,19 @@ class LoanBusiness:
             else:lines=copy.deepcopy((det or {}).get('draft',{}) and det['draft']['lines'] or (cur or {}).get('lines',[]))
             for i in rec['issues']:blocks.append(dict(code=i['code'],message=f"Phần {self.lb_money(i['amount'])} ở {self.cat_path(s,i['category'])}: {PENDING_TEXT[i['code']]}. Sửa phân loại (chọn Người là thành viên) trước."))
             loans={l['id']:l for l in s['loans']};groups=[]
-            for (key,pid),amount in sorted(rec['groups'].items(),key=lambda kv:(self.cat_path(s,kv[0][0]),profiles[kv[0][1]]['name'])):
-                typ=biz[key][0];opts=[l for l in s['loans'] if l['person']==pid and l['direction']==typ]
-                got=sum((D(l['amount']) for l in lines if l['category']==key and l['person']==pid and l.get('amount')),Decimal(0))
-                groups.append(dict(category=key,path=self.cat_path(s,key),person=pid,person_name=profiles[pid]['name'],amount=S(amount),business=typ,business_name=DIRS[typ]['name'],
+            for (key,pid,lo),amount in sorted(rec['groups'].items(),key=lambda kv:(self.cat_path(s,kv[0][0]),profiles[kv[0][1]]['name'],loans[kv[0][2]]['code'] if kv[0][2] else '')):
+                typ=biz[key][0];opts=[loans[lo]] if lo else [l for l in s['loans'] if l['person']==pid and l['direction']==typ]
+                got=sum((D(l['amount']) for l in lines if self.lb_line_group(rec['groups'],l)==(key,pid,lo) and l.get('amount')),Decimal(0))
+                groups.append(dict(category=key,path=self.cat_path(s,key),person=pid,person_name=profiles[pid]['name'],loan=lo,loan_code=loans[lo]['code'] if lo else None,amount=S(amount),business=typ,business_name=DIRS[typ]['name'],
                     allocated=S(got),remaining=S(amount-got),components=COMPONENTS[(typ,direction)],
                     loans=[dict(id=l['id'],code=l['code'],name=l['name'],status=l['status'],broker=bool(l.get('broker')),tracking_date=l['tracking_date']) for l in opts]))
                 if not opts:blocks.append(dict(code='NO_LOAN',message=f"{profiles[pid]['name']} chưa có khoản {DIRS[typ]['name']}; tạo khoản vay trước khi liên kết."))
-                if got!=amount:blocks.append(dict(code='INCOMPLETE',message=f"{profiles[pid]['name']} · {self.cat_path(s,key)}: đã phân bổ {self.lb_money(got)} / {self.lb_money(amount)}, còn {self.lb_money(amount-got)}."))
-            keys={(g['category'],g['person']) for g in groups}
+                if got!=amount:blocks.append(dict(code='INCOMPLETE',message=f"{profiles[pid]['name']}{' · '+loans[lo]['code'] if lo else ''} · {self.cat_path(s,key)}: đã phân bổ {self.lb_money(got)} / {self.lb_money(amount)}, còn {self.lb_money(amount-got)}."))
+            keys={(g['category'],g['person'],g['loan']) for g in groups}
             for l in lines:
-                if (l['category'],l['person']) not in keys:blocks.append(dict(code='LINE_GROUP',message='Có dòng không thuộc phần tiền nào của giao dịch; xóa dòng đó.'));continue
+                if self.lb_line_group(rec['groups'],l) not in keys:
+                    fixed=[g for g in groups if g['category']==l['category'] and g['person']==l['person']]
+                    blocks.append(dict(code='LINE_GROUP',message=f"Dòng dùng khoản khác khoản đã chọn khi phân loại ({', '.join(g['loan_code'] for g in fixed)}); chọn đúng khoản hoặc Sửa phân loại." if fixed else 'Có dòng không thuộc phần tiền nào của giao dịch; xóa dòng đó.'));continue
                 loan=loans.get(l['loan'])
                 if not loan or not l['component'] or not l['amount']:blocks.append(dict(code='LINE_EMPTY',message='Mỗi dòng cần khoản vay, thành phần và số tiền.'));continue
                 typ=biz[l['category']][0]
@@ -485,6 +528,14 @@ class LoanBusiness:
         require(not dd or dd>=td,'Hạn trả không được trước ngày theo dõi.')
         return out
 
+    def lb_terms_locked(self,s,loan):
+        """PO review P1: khoản đã từng có phát sinh được ghi (mọi phiên bản chi tiết, kể cả đã thay/hủy, hoặc miễn giảm) thì khóa điều khoản tài chính."""
+        srcs={det['source'] for det in s.get('loan_details',[]) for v in det.get('versions',[]) if any(l.get('loan')==loan['id'] for l in v.get('lines',[]))}
+        waived=any(w['loan']==loan['id'] for w in s.get('loan_waivers',[]))
+        if not srcs and not waived:return None
+        return (f"Khoản {loan['code']} đã có phát sinh được ghi ({len(srcs)} nguồn{', có miễn giảm' if waived else ''}); không sửa mức lãi hay điều khoản môi giới vì sẽ đổi lãi của những ngày đã qua. "
+                "Bản này chưa hỗ trợ đổi lãi suất theo ngày hiệu lực. Nếu nhập sai từ đầu: hủy chi tiết các nguồn, tạo khoản mới đúng điều khoản rồi ghi lại vào khoản mới.")
+
     def change_loan_business(self,s,action,d):
         from .p01 import now
         lb_state(s);reason=str(d.get('reason') or '').strip()[:500]
@@ -506,6 +557,9 @@ class LoanBusiness:
             f=self.lb_loan_fields(s,{k:v for k,v in d.items() if k in {'code','name','tracking_date','due_date','rate','broker_name','broker_rate'}},loan)
             changed={k:v for k,v in f.items() if loan.get(k)!=v};require(changed,'Không có thay đổi nào.')
             if loan['status']=='COMPLETED':require(set(changed)<={'name','code'},'Khoản đã hoàn tất: chỉ đổi tên/mã. Mở lại khoản trước khi sửa lãi, ngày hay môi giới.')
+            old_b=loan.get('broker');new_b=changed.get('broker',old_b)
+            financial='rate' in changed or bool(old_b)!=bool(new_b) or (old_b and new_b and old_b['rate']!=new_b['rate'])
+            lock=self.lb_terms_locked(s,loan) if financial else None;require(not lock,lock or '')
             before={k:copy.deepcopy(loan.get(k)) for k in changed};loan.update(changed)
             self.lb_check(s,loan,self.lb_loan_lines(s).get(loan['id'],[]),[w for w in s['loan_waivers'] if w['loan']==loan['id']])
             loan['history'].append(dict(at=now(),action='EDIT',before=before,after=copy.deepcopy(changed),reason=reason))

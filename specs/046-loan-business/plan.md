@@ -103,6 +103,20 @@ Kiểm lại sau Phase 1: không phát sinh vi phạm.
    - Tóm tắt tài khoản: thêm dòng nghiệp vụ.
    - Capability `loan-business` dùng để bật phần giao diện mới.
 
+## Vòng sửa theo PO review 28/10 (29/10/2026)
+
+Nguồn: `docs/po-review-046-2026-10-28.md` (P1, P2). Không mở spec mới; sửa trong worktree `PCMS-wt-046`, nhánh `046-loan-business`.
+
+- **P1 — khóa điều khoản**: `lb_terms_locked(s, loan)` (loan_business.py) trả lý do khi khoản đã từng có phát sinh được ghi. `lb-loan-edit` chặn đổi `rate` và điều khoản môi giới (có/không, mức) khi khóa; tên môi giới vẫn đổi được. `loan_book.loans[]` thêm `terms_locked`, `terms_lock_reason`; form "Sửa thông tin" khóa ô mức lãi / môi giới và ghi lý do. Không thêm tính năng ngày hiệu lực.
+- **P2 — người + khoản khi phân loại**:
+  - Phần phân loại thêm trường `loan`. Một hàm kiểm chung `lb_new_part_issue(s, part)` (danh mục hiệu lực có nghiệp vụ → cần Người + khoản đúng người, đúng chiều, chưa hoàn tất; phần có `loan` mà danh mục không có nghiệp vụ → lỗi).
+  - Gọi ở `classify` (một dòng và hàng loạt; phần giữ y nguyên phần cũ được miễn), `reclassify_preview` (block `LOAN_BUSINESS`; payload giữ `loan`), `reclass_apply` cho dòng lịch sử cũ, `legacy_preview`/`legacy-import` (lưu `loan` vào lần migrate và từng dòng).
+  - Lưới an toàn: `lb_fingerprint` thêm tập phần tiền lỗi; `lb_guard` chặn khi xuất hiện phần lỗi **mới** (phần mới/đổi, hoặc phần có khoản trở nên lệch người/chiều/không còn nghiệp vụ). Phần y nguyên trở thành thuộc nghiệp vụ (gắn nghiệp vụ, chuyển nhánh) được giữ và vào danh sách chờ — ngoại lệ lịch sử.
+  - Nhóm chi tiết nghiệp vụ đổi khóa thành (danh mục, người, khoản|null). Dòng phải đúng khoản của nhóm; nhóm null (phần cũ) nhận khoản bất kỳ của người đó cùng chiều.
+  - Giao diện: ô "Khoản vay" (lọc theo người, chiều, chưa hoàn tất) trong hộp Phân loại (cả hàng loạt), Sửa phân loại, Migrate lịch sử cũ; nút "+ Tách thêm phần" hiện khi có nghiệp vụ để chia nhiều khoản; thiếu khoản thì không gửi và hộp giữ nguyên.
+- **Test trước**: `ReviewP1RetroactiveTerms`, `ReviewP2PersonAndLoanRequired` trong `tests/test_p49_loan_business.py`, chạy đỏ trước khi sửa (`evidence/review-r1-red.txt`). Sửa test cũ `test_edit_needs_reason_history_and_rate_correction_changes_interest` (coi tính lại lãi lịch sử là đúng) và `test_over_paying_broker_warns_not_blocks` (dùng sửa mức môi giới sau khi ghi).
+- **Rủi ro**: hiệu năng bất biến mới (duyệt mọi phần tiền mỗi thao tác khi có nghiệp vụ) — dữ liệu thật hiện chưa gắn nghiệp vụ nên đường nhanh bỏ qua; đo lại P48/P49 trên bản sao.
+
 ## Project Structure
 
 ### Documentation (this feature)
